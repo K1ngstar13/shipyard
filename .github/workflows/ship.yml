@@ -1,0 +1,230 @@
+name: Ship game
+run-name: Ship ${{ inputs.game }} ${{ inputs.platforms }} to ${{ inputs.destination }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      game:
+        description: Game folder name inside games/ (for example quackie-pond)
+        required: true
+        type: string
+      platforms:
+        description: Which stores
+        type: choice
+        options: [both, ios, android]
+        default: both
+      destination:
+        description: "previews = screenshots only | testers = TestFlight + Play internal | closed-test = Play closed test | review = submit to both stores | build-only = just make the files"
+        type: choice
+        options: [previews, testers, closed-test, review, build-only]
+        default: testers
+
+concurrency:
+  group: ship-${{ inputs.game }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  GAME: ${{ inputs.game }}
+  DESTINATION: ${{ inputs.destination }}
+
+jobs:
+  preflight:
+    name: Preflight and store assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build number
+        run: echo "BUILD_NUMBER=$(( ${{ github.run_number }} * 10 + ${{ github.run_attempt }} ))" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install headless browser
+        run: npx playwright install --with-deps chromium
+
+      - name: App icon
+        run: node scripts/make-icon.mjs "$GAME"
+
+      - name: Approval preflight
+        run: node scripts/preflight.mjs "$GAME" "$DESTINATION"
+
+      - name: Screenshots, feature graphic, store text
+        run: node scripts/store-assets.mjs "$GAME"
+
+      - name: Save previews and icon to the repo
+        run: |
+          git config user.name "Shipyard"
+          git config user.email "shipyard@users.noreply.github.com"
+          git add "games/$GAME/store/previews" "games/$GAME/icon.png"
+          if git diff --cached --quiet; then
+            echo "Previews and icon unchanged."
+          else
+            git commit -m "Previews and icon for $GAME"
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: store-assets
+          path: build/${{ inputs.game }}/store
+          retention-days: 14
+
+  android:
+    name: Google Play
+    needs: preflight
+    if: inputs.platforms != 'ios' && inputs.destination != 'previews'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check Google secrets
+        env:
+          PLAY_JSON_KEY: ${{ secrets.PLAY_JSON_KEY }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          missing=""
+          [ -n "$ANDROID_KEYSTORE_BASE64" ] || missing="$missing ANDROID_KEYSTORE_BASE64"
+          [ -n "$ANDROID_KEYSTORE_PASSWORD" ] || missing="$missing ANDROID_KEYSTORE_PASSWORD"
+          if [ "$DESTINATION" != "build-only" ] && [ -z "$PLAY_JSON_KEY" ]; then missing="$missing PLAY_JSON_KEY"; fi
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing. See docs/SETUP.md (the upload key comes from the One-time setup workflow)."
+            exit 1
+          fi
+
+      - name: Build number
+        run: echo "BUILD_NUMBER=$(( ${{ github.run_number }} * 10 + ${{ github.run_attempt }} ))" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - run: npm ci
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: store-assets
+          path: build/${{ inputs.game }}/store
+
+      - name: Create Android project
+        run: node scripts/prepare-app.mjs "$GAME" android
+
+      - name: Unpack upload key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.keystore"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload.keystore" >> "$GITHUB_ENV"
+
+      - name: Build and send to Google Play
+        env:
+          SHIPYARD_ROOT: ${{ github.workspace }}
+          PLAY_JSON_KEY: ${{ secrets.PLAY_JSON_KEY }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: upload
+        run: bundle exec fastlane android ship
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-build
+          path: build/${{ inputs.game }}/out/*.aab
+          if-no-files-found: ignore
+          retention-days: 30
+
+  ios:
+    name: App Store
+    needs: preflight
+    if: inputs.platforms != 'android' && inputs.destination != 'previews'
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check Apple secrets
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          SHIPYARD_TOKEN: ${{ secrets.SHIPYARD_TOKEN }}
+        run: |
+          missing=""
+          for name in ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8 MATCH_PASSWORD SHIPYARD_TOKEN; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing. See docs/SETUP.md."
+            exit 1
+          fi
+
+      - name: Build number and certificate repo access
+        env:
+          SHIPYARD_TOKEN: ${{ secrets.SHIPYARD_TOKEN }}
+        run: |
+          echo "BUILD_NUMBER=$(( ${{ github.run_number }} * 10 + ${{ github.run_attempt }} ))" >> "$GITHUB_ENV"
+          auth=$(printf 'shipyard:%s' "$SHIPYARD_TOKEN" | base64 | tr -d '\n')
+          echo "::add-mask::$auth"
+          echo "MATCH_GIT_BASIC_AUTHORIZATION=$auth" >> "$GITHUB_ENV"
+          xcodebuild -version
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - run: npm ci
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: store-assets
+          path: build/${{ inputs.game }}/store
+
+      - name: Create iOS project
+        run: node scripts/prepare-app.mjs "$GAME" ios
+
+      - name: Build and send to Apple
+        env:
+          SHIPYARD_ROOT: ${{ github.workspace }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        run: bundle exec fastlane ios ship
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-build
+          path: build/${{ inputs.game }}/out/*.ipa
+          if-no-files-found: ignore
+          retention-days: 30
