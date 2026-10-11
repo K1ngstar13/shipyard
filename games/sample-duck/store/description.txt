@@ -1,0 +1,7 @@
+Sample Duck is a small, quiet game about tapping a duck.
+
+Every tap counts. Keep tapping and the pond around your duck slowly changes, from morning blue to deep green water. There is no timer, no score to beat, and no way to lose. Play for ten seconds while the kettle boils, or ten minutes while you wind down.
+
+Everything happens on your device. The game works with no internet connection, collects nothing about you, and has no ads or purchases.
+
+This is the example game that ships with Shipyard, built to show what a finished store listing looks like. Replace it with your own.

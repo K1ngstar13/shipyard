@@ -1,0 +1,1679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13213B">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Shipyard">
+<title>Shipyard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --board: #13213B; --row: #1B2D4D; --row-hover: #223760; --line: #2C4270;
+    --amber: #FFB43A; --sky: #B9CCEE; --paper: #F3F6FB; --paper-2: #E4EAF4;
+    --ink: #172340; --ink-soft: #52607C; --go: #39C98A; --stop: #FF6B5B;
+    --display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+    --body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; min-height: 100dvh; background: var(--board); color: #EEF3FF; font: 16px/1.45 var(--body);
+    padding: env(safe-area-inset-top) 0 calc(96px + env(safe-area-inset-bottom));
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 16px; }
+  [hidden] { display: none !important; }
+
+  .top { display: flex; align-items: center; gap: 8px; padding: 14px 0 0; }
+  .brand { font-weight: 700; color: var(--sky); margin-right: auto; }
+  .icon-btn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--sky); }
+  .icon-btn:hover { background: var(--row); }
+  .icon-btn svg { width: 20px; height: 20px; }
+  .board-head { padding: 18px 0 14px; }
+  h1 { margin: 0; font-family: var(--display); font-weight: 800; color: var(--amber); font-size: clamp(56px, 17vw, 88px); line-height: .88; }
+  .checked { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--sky); font-size: 14px; }
+  .checked .icon-btn { width: 34px; height: 34px; border-radius: 10px; }
+  .checked .icon-btn.spin svg { animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .board { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .row { width: 100%; text-align: left; border: 0; border-radius: 14px; background: var(--row); padding: 14px 14px 12px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 8px 12px; }
+  .row:hover { background: var(--row-hover); }
+  .game-name { font-family: var(--display); font-weight: 700; font-size: 27px; line-height: 1; color: #F6F8FF; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta { grid-column: 1 / -1; color: var(--sky); font-size: 14px; display: flex; flex-wrap: wrap; column-gap: 14px; }
+  .flap { display: flex; gap: 3px; }
+  .tile { position: relative; width: 19px; height: 27px; display: grid; place-items: center; border-radius: 3px; background: #0B1528; color: var(--amber); font-family: var(--display); font-weight: 800; font-size: 17px; }
+  .tile::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0,0,0,.6); }
+  .flap.go .tile { color: var(--go); } .flap.stop .tile { color: var(--stop); } .flap.idle .tile { color: #8397BD; }
+  .flap.flip .tile { animation: flip .38s cubic-bezier(.3,.7,.4,1) both; }
+  @keyframes flip { 0% { transform: perspective(80px) rotateX(90deg); opacity: .2; } 100% { transform: none; opacity: 1; } }
+
+  .empty, .notice { border: 1px dashed var(--line); border-radius: 14px; padding: 20px; color: var(--sky); }
+  .empty h2 { margin: 0 0 6px; font-family: var(--display); font-size: 30px; color: #F6F8FF; line-height: 1; }
+  .empty p { margin: 0 0 14px; }
+  .notice { border-style: solid; border-color: rgba(255,107,91,.45); color: #FFD3CD; margin-bottom: 10px; }
+
+  .dock { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--board) 70%, rgba(19,33,59,0)); }
+  .dock .primary { max-width: 608px; margin: 0 auto; display: block; }
+  .primary { width: 100%; min-height: 54px; border: 0; border-radius: 14px; background: var(--amber); color: #1C1405; font-weight: 700; font-size: 17px; }
+  .primary:disabled { opacity: .55; cursor: progress; }
+  .secondary { min-height: 46px; padding: 0 16px; border-radius: 12px; border: 1px solid #C9D3E5; background: #fff; color: var(--ink); font-weight: 600; }
+  .text-btn { border: 0; background: none; padding: 8px 0; color: #2E5BBA; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+  dialog.sheet { width: 100%; max-width: 620px; max-height: 94dvh; margin: auto auto 0; padding: 0; border: 0; border-radius: 22px 22px 0 0; background: var(--paper); color: var(--ink); overflow: hidden; }
+  dialog.sheet::backdrop { background: rgba(6,12,26,.66); }
+  @media (min-width: 720px) { dialog.sheet { margin: auto; border-radius: 22px; } }
+  .sheet-body { padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); overflow-y: auto; max-height: 94dvh; }
+  .grabber { width: 44px; height: 5px; border-radius: 3px; background: #C3CDDF; margin: 0 auto 12px; }
+  .sheet-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 14px; }
+  .sheet h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: .95; }
+  .sheet .sub { margin: 6px 0 0; color: var(--ink-soft); font-size: 14px; overflow-wrap: anywhere; }
+  .close { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--paper-2); color: var(--ink); font-size: 22px; }
+
+  .steps { display: flex; gap: 6px; margin-bottom: 16px; }
+  .steps div { flex: 1; height: 4px; border-radius: 2px; background: #CFD8E7; }
+  .steps div.done { background: var(--ink); }
+  .step-label { font-weight: 600; color: var(--ink-soft); font-size: 13px; margin: 0 0 16px; }
+
+  .field { display: grid; gap: 6px; margin-bottom: 16px; }
+  .field label, .legend { font-weight: 600; font-size: 15px; display: flex; justify-content: space-between; gap: 10px; }
+  .count { font-weight: 500; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .count.over { color: #C2321F; }
+  .hint { color: var(--ink-soft); font-size: 13px; margin: 0; }
+  input[type=text], input[type=password], input[type=url], input[type=email], select, textarea {
+    width: 100%; min-height: 48px; padding: 11px 12px; border-radius: 12px; border: 1px solid #C9D3E5; background: #fff; font-size: 16px;
+  }
+  input:disabled { background: var(--paper-2); color: var(--ink-soft); }
+  textarea { min-height: 120px; resize: vertical; }
+  input[type=color] { width: 64px; height: 48px; padding: 4px; border-radius: 12px; border: 1px solid #C9D3E5; background: #fff; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .group-title { font-family: var(--display); font-weight: 700; font-size: 24px; margin: 26px 0 12px; padding-top: 18px; border-top: 1px solid #D5DDEA; }
+
+  .choices { display: grid; gap: 8px; margin: 8px 0 18px; }
+  .choice { position: relative; display: block; }
+  .choice input { position: absolute; opacity: 0; inset: 0; }
+  .choice span { display: block; padding: 12px 14px; border-radius: 14px; border: 1.5px solid #CFD8E7; background: #fff; }
+  .choice strong { display: block; font-size: 16px; }
+  .choice small { display: block; color: var(--ink-soft); font-size: 13.5px; line-height: 1.4; margin-top: 2px; }
+  .choice input:checked + span { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .choice input:focus-visible + span { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+  .segmented { display: grid; grid-template-columns: repeat(3,1fr); background: var(--paper-2); border-radius: 12px; padding: 4px; gap: 4px; margin: 8px 0 18px; }
+  .segmented.two { grid-template-columns: repeat(2,1fr); }
+  .segmented label { position: relative; }
+  .segmented input { position: absolute; opacity: 0; inset: 0; }
+  .segmented span { display: grid; place-items: center; min-height: 40px; border-radius: 9px; font-weight: 600; font-size: 14px; color: var(--ink-soft); text-align: center; }
+  .segmented input:checked + span { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(23,35,64,.15); }
+
+  .errors { background: #FFECE9; color: #7A1D10; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-size: 14px; }
+  .errors ul, .found ul, .warn ul { margin: 6px 0 0; padding-left: 18px; }
+  .found { background: #E8F5EE; color: #11503A; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-size: 14px; }
+  .warn { background: #FFF5E2; color: #6B4700; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-size: 14px; }
+  .progress { margin-top: 10px; color: var(--ink-soft); font-size: 14px; min-height: 20px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 14px; }
+
+  .phone { width: 258px; height: 540px; margin: 0 auto 8px; border-radius: 32px; border: 7px solid #1B2D4D; overflow: hidden; background: #000; }
+  .phone iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .phone-note { text-align: center; color: var(--ink-soft); font-size: 13px; margin: 0 0 18px; }
+  .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin-bottom: 8px; }
+  .thumbs img, .wide img { width: 100%; border-radius: 8px; border: 1px solid #CFD8E7; background: #fff; display: block; }
+
+  .icon-top { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 18px; }
+  .icon-hero { margin: 0; display: grid; gap: 6px; justify-items: center; }
+  .icon-hero img { width: 92px; height: 92px; border-radius: 20px; border: 1px solid #CFD8E7; background: #fff; display: block; }
+  #iconRound { border-radius: 50%; }
+  .icon-hero figcaption { font-size: 12px; color: var(--ink-soft); }
+  .icon-meta { flex: 1 1 180px; }
+  .icon-ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 10px; margin: 8px 0 18px; }
+  .idea { border: 2px solid transparent; background: none; padding: 0; border-radius: 14px; display: grid; gap: 4px; justify-items: center; }
+  .idea img { width: 100%; aspect-ratio: 1; border-radius: 12px; border: 1px solid #CFD8E7; display: block; }
+  .idea span { font-size: 11px; color: var(--ink-soft); }
+  .idea.on { border-color: var(--ink); }
+  .icon-swatches { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 18px; }
+  .swatch { width: 38px; height: 38px; border-radius: 10px; border: 2px solid #CFD8E7; }
+  .swatch.on { border-color: var(--ink); box-shadow: inset 0 0 0 2px #fff; }
+  .slider { display: grid; gap: 4px; font-size: 13px; color: var(--ink-soft); font-weight: 600; margin-bottom: 14px; }
+  .slider input { width: 100%; }
+  .icon-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+  .summary { border: 1px solid #D5DDEA; border-radius: 14px; overflow: hidden; margin-bottom: 16px; background: #fff; }
+  .summary > div { display: flex; gap: 12px; padding: 11px 14px; border-top: 1px solid #E7ECF4; font-size: 14.5px; }
+  .summary > div:first-child { border-top: 0; }
+  .summary dt { flex: none; width: 104px; color: var(--ink-soft); }
+  .summary dd { margin: 0; overflow-wrap: anywhere; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translate(-50%,20px); background: #fff; color: var(--ink); padding: 12px 16px; border-radius: 12px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100% - 32px); }
+  .toast.show { opacity: 1; transform: translate(-50%,0); }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Shipyard</div>
+    <button class="icon-btn" id="profileBtn" aria-label="Publisher details">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </button>
+    <button class="icon-btn" id="settingsBtn" aria-label="Connection settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <section class="board-head">
+      <h1>Departures</h1>
+      <div class="checked">
+        <span id="checkedText">Not connected</span>
+        <button class="icon-btn" id="refreshBtn" aria-label="Refresh">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+        </button>
+      </div>
+    </section>
+    <div id="notice" class="notice" role="alert" hidden></div>
+    <ul id="board" class="board" aria-live="polite"></ul>
+    <div id="empty" class="empty" hidden></div>
+  </main>
+</div>
+
+<footer class="dock"><button class="primary" id="addBtn">Upload a game</button></footer>
+
+<dialog id="connectSheet" class="sheet" aria-labelledby="connectTitle">
+  <div class="sheet-body">
+    <div class="grabber"></div>
+    <div class="sheet-head">
+      <div><h2 id="connectTitle">Connect</h2><p class="sub">Shipyard keeps every game in one repo and builds them there. You do this once.</p></div>
+      <button class="close" data-close aria-label="Close">×</button>
+    </div>
+    <div class="field"><label for="cOwner">GitHub username</label><input id="cOwner" type="text" autocapitalize="off" spellcheck="false" placeholder="K1ngstar13"></div>
+    <div class="pair">
+      <div class="field"><label for="cRepo">Repo</label><input id="cRepo" type="text" autocapitalize="off" spellcheck="false" value="shipyard"></div>
+      <div class="field"><label for="cBranch">Branch</label><input id="cBranch" type="text" autocapitalize="off" spellcheck="false" value="main"></div>
+    </div>
+    <div class="field"><label for="cToken">Access token</label><input id="cToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"><p class="hint">Stays on this device only.</p></div>
+    <div id="connectError" class="errors" hidden></div>
+    <button class="primary" id="connectBtn">Connect</button>
+    <div class="actions">
+      <button class="text-btn" id="demoBtn">Try the upload flow without connecting</button>
+      <button class="text-btn" id="disconnectBtn">Forget token on this device</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="profileSheet" class="sheet" aria-labelledby="profileTitle">
+  <div class="sheet-body">
+    <div class="grabber"></div>
+    <div class="sheet-head">
+      <div><h2 id="profileTitle">Publisher</h2><p class="sub">Filled into every game's listing, review contact, and store pages. Set once.</p></div>
+      <button class="close" data-close aria-label="Close">×</button>
+    </div>
+    <div id="profileErrors" class="errors" hidden></div>
+    <div class="field"><label for="pCompany">Company name</label><input id="pCompany" type="text" placeholder="Elevatr LLC"></div>
+    <div class="field"><label for="pPrefix">App ID prefix</label><input id="pPrefix" type="text" autocapitalize="off" spellcheck="false" placeholder="llc.elevatr"><p class="hint">Each game becomes the prefix plus its name, like llc.elevatr.quackiepond.</p></div>
+    <div class="field"><label for="pSite">Website</label><input id="pSite" type="url" autocapitalize="off" spellcheck="false" placeholder="https://elevatr.pages.dev"><p class="hint">Where your privacy and support pages live. Both stores require working links.</p></div>
+    <div class="field"><label for="pEmail">Contact email</label><input id="pEmail" type="email" autocapitalize="off" spellcheck="false"></div>
+    <div class="group-title">App review contact</div>
+    <p class="hint" style="margin-bottom:12px">Apple wants someone they can reach if a reviewer gets stuck. Not shown publicly.</p>
+    <div class="pair">
+      <div class="field"><label for="pFirst">First name</label><input id="pFirst" type="text"></div>
+      <div class="field"><label for="pLast">Last name</label><input id="pLast" type="text"></div>
+    </div>
+    <div class="field"><label for="pPhone">Phone</label><input id="pPhone" type="text" inputmode="tel"></div>
+    <div class="group-title">Apple</div>
+    <div class="field"><label for="pTeam">Team ID</label><input id="pTeam" type="text" autocapitalize="characters" spellcheck="false" placeholder="ABCDE12345"><p class="hint">developer.apple.com, under Membership details.</p></div>
+    <div class="field"><label for="pCerts">Certificate repo</label><input id="pCerts" type="url" autocapitalize="off" spellcheck="false" placeholder="https://github.com/you/shipyard-certs.git"></div>
+    <button class="primary" id="profileSave">Save publisher details</button>
+    <div class="progress" id="profileProgress"></div>
+  </div>
+</dialog>
+
+<dialog id="wizardSheet" class="sheet" aria-labelledby="wizardTitle">
+  <div class="sheet-body">
+    <div class="grabber"></div>
+    <div class="sheet-head">
+      <div><h2 id="wizardTitle">Upload a game</h2><p class="sub" id="wizardSub">Drop in a zip or a single HTML file. Shipyard reads it and drafts the rest.</p></div>
+      <button class="close" data-close aria-label="Close">×</button>
+    </div>
+    <div class="steps" id="steps"><div></div><div></div><div></div><div></div></div>
+    <p class="step-label" id="stepLabel">Step 1 of 4: the game</p>
+    <div id="wizardErrors" class="errors" hidden></div>
+
+    <section data-step="1">
+      <div class="field">
+        <label for="fFiles">Game files</label>
+        <input id="fFiles" type="file" accept=".zip,.html,.htm,application/zip,text/html">
+        <p class="hint" id="fFilesHint">A zip of the folder containing index.html, or one self-contained .html file.</p>
+      </div>
+      <div id="analysis" hidden></div>
+      <div class="field">
+        <label for="fIcon">App icon</label>
+        <input id="fIcon" type="file" accept="image/png">
+        <p class="hint" id="fIconHint">Optional. Shipyard looks for an icon inside your zip, and otherwise makes one from your game's own title screen. Upload a square PNG of at least 1024 × 1024 to override that.</p>
+      </div>
+      <button class="primary" data-next="2">Continue</button>
+    </section>
+
+    <section data-step="2" hidden>
+      <div class="phone" id="phoneFrame" hidden><iframe id="previewFrame" title="Game preview" sandbox="allow-scripts allow-modals allow-pointer-lock" allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"></iframe></div>
+      <p class="phone-note" id="phoneNote" hidden></p>
+      <div id="previewError" class="warn" hidden></div>
+      <p class="phone-note" id="previewOpen" hidden><button class="text-btn" id="openPreviewBtn">Open the game in a new tab</button></p>
+
+      <div class="legend">App icon</div>
+      <div id="iconIntro">
+        <button class="secondary" id="iconDesign">Design an icon from this game</button>
+        <p class="hint" style="margin:8px 0 18px">Shipyard looks through the running game for a logo, mark, or emblem, pulls your colours out of it, and lays out finished icons you can pick from and adjust.</p>
+      </div>
+
+      <div id="iconStudio" hidden>
+        <div class="icon-top">
+          <figure class="icon-hero"><img id="iconSquare" alt="App icon"><figcaption>Store</figcaption></figure>
+          <figure class="icon-hero"><img id="iconRound" alt=""><figcaption>Home screen</figcaption></figure>
+          <div class="icon-meta">
+            <p class="hint" id="iconHint">Pick an idea below, then adjust it.</p>
+            <div class="icon-actions">
+              <button class="text-btn" id="iconRescan">Look again at this screen</button>
+              <button class="text-btn" id="iconClear">Start over</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend" style="font-size:14px">Ideas from your game</div>
+        <div class="icon-ideas" id="iconIdeas"></div>
+
+        <div class="legend" style="font-size:14px">Style</div>
+        <div class="segmented">
+          <label><input type="radio" name="iconStyle" value="playful" checked><span>Playful</span></label>
+          <label><input type="radio" name="iconStyle" value="professional"><span>Professional</span></label>
+          <label><input type="radio" name="iconStyle" value="flat"><span>Flat</span></label>
+        </div>
+
+        <div class="legend" style="font-size:14px">Background</div>
+        <div class="icon-swatches" id="iconSwatches"></div>
+
+        <label class="slider">Size of the mark <input type="range" id="iconScale" min="30" max="100" value="62"></label>
+        <label class="slider">Move up and down <input type="range" id="iconOffset" min="-25" max="25" value="0"></label>
+        <p class="hint" style="margin:10px 0 18px">Uploading your own PNG on step 1 overrides all of this. Skip it and the build crops one for you.</p>
+      </div>
+      <div class="field"><label for="fName">Name <span class="count" data-for="fName" data-max="30"></span></label><input id="fName" type="text" maxlength="60"></div>
+      <div class="field"><label for="fSubtitle">Subtitle <span class="count" data-for="fSubtitle" data-max="30"></span></label><input id="fSubtitle" type="text"><p class="hint">Shown under the name on the App Store, and searched.</p></div>
+      <div class="field"><label for="fShort">One-line description <span class="count" data-for="fShort" data-max="80"></span></label><input id="fShort" type="text"><p class="hint">The line Google Play shows at the top.</p></div>
+      <div class="field"><label for="fDescription">Full description <span class="count" data-for="fDescription" data-max="4000"></span></label><textarea id="fDescription" rows="9"></textarea></div>
+      <div class="field"><label for="fKeywords">Search keywords <span class="count" data-for="fKeywords" data-max="100" data-bytes></span></label><input id="fKeywords" type="text" autocapitalize="off"><p class="hint">Comma-separated, no spaces. Never another game's name.</p></div>
+      <div class="field"><label for="fPromo">Promo line <span class="count" data-for="fPromo" data-max="170"></span></label><input id="fPromo" type="text"><p class="hint">Changeable later without a new build.</p></div>
+      <div class="field"><label for="fNotes">What's new <span class="count" data-for="fNotes" data-max="4000"></span></label><textarea id="fNotes" rows="3"></textarea></div>
+      <div class="pair">
+        <div class="field"><label for="fCategory">Category</label><select id="fCategory"></select></div>
+        <div class="field"><label for="fOrientation">Orientation</label><select id="fOrientation"><option value="portrait">Portrait</option><option value="landscape">Landscape</option><option value="any">Both</option></select></div>
+      </div>
+      <div class="field"><label for="fColor">Background color</label><input id="fColor" type="color" value="#8FD3F4"></div>
+      <div class="actions">
+        <button class="secondary" data-back="1">Back</button>
+        <button class="secondary" id="redraftBtn">Draft again from the game</button>
+        <button class="primary" data-next="3" style="flex:1 1 100%">Continue</button>
+      </div>
+    </section>
+
+    <section data-step="3" hidden>
+      <div class="pair">
+        <div class="field"><label for="fSlug">Folder</label><input id="fSlug" type="text" autocapitalize="off" spellcheck="false"></div>
+        <div class="field"><label for="fVersion">Version</label><input id="fVersion" type="text" inputmode="decimal" value="1.0.0"></div>
+      </div>
+      <div class="field"><label for="fBundle">App ID</label><input id="fBundle" type="text" autocapitalize="off" spellcheck="false"><p class="hint">Permanent once the game is live. Set the prefix under Publisher.</p></div>
+      <div class="legend">Price</div>
+      <div class="segmented two">
+        <label><input type="radio" name="price" value="free" checked><span>Free</span></label>
+        <label><input type="radio" name="price" value="paid"><span>Paid</span></label>
+      </div>
+      <div class="field" id="priceTierField" hidden>
+        <label for="fPrice">Price point</label>
+        <select id="fPrice"></select>
+        <p class="hint">Shipyard records this and reminds you where to set it. Both stores make you set price in their console, once per app, after your tax and banking forms are done. Neither allows it over an API.</p>
+      </div>
+      <div class="legend">Stores</div>
+      <div class="segmented">
+        <label><input type="radio" name="platforms" value="both" checked><span>Both</span></label>
+        <label><input type="radio" name="platforms" value="ios"><span>App Store</span></label>
+        <label><input type="radio" name="platforms" value="android"><span>Google Play</span></label>
+      </div>
+      <div class="actions"><button class="secondary" data-back="2">Back</button><button class="primary" data-next="4" style="flex:1 1 100%">Continue</button></div>
+    </section>
+
+    <section data-step="4" hidden>
+      <div id="reviewChecks"></div>
+      <div class="summary" id="reviewSummary"></div>
+      <div id="previewBlock" hidden>
+        <div class="legend" style="margin-bottom:8px">Store previews</div>
+        <div class="thumbs" id="previewThumbs"></div>
+        <div class="wide" id="previewFeature"></div>
+        <p class="hint" style="margin:8px 0 16px">Captured from your game on a virtual phone. This is what shoppers see.</p>
+      </div>
+      <div class="legend">What happens next</div>
+      <div class="choices" id="destChoices"></div>
+      <button class="primary" id="submitBtn">Save and build previews</button>
+      <div class="progress" id="saveProgress" role="status"></div>
+      <div class="actions"><button class="secondary" data-back="3">Back</button></div>
+    </section>
+  </div>
+</dialog>
+
+<dialog id="shipSheet" class="sheet" aria-labelledby="shipTitle">
+  <div class="sheet-body">
+    <div class="grabber"></div>
+    <div class="sheet-head">
+      <div><h2 id="shipTitle">Game</h2><p class="sub" id="shipMeta"></p></div>
+      <button class="close" data-close aria-label="Close">×</button>
+    </div>
+    <div id="shipPreviews" hidden><div class="thumbs" id="shipThumbs"></div></div>
+    <div class="legend">Where it goes</div>
+    <div class="choices" id="shipDestChoices"></div>
+    <div class="legend">Stores</div>
+    <div class="segmented">
+      <label><input type="radio" name="shipPlatforms" value="both" checked><span>Both</span></label>
+      <label><input type="radio" name="shipPlatforms" value="ios"><span>App Store</span></label>
+      <label><input type="radio" name="shipPlatforms" value="android"><span>Google Play</span></label>
+    </div>
+    <button class="primary" id="shipBtn">Send to my phone</button>
+    <div class="actions">
+      <button class="secondary" id="editFromShip">Edit listing</button>
+      <a class="text-btn" id="runLink" target="_blank" rel="noopener" hidden>Open build log</a>
+    </div>
+  </div>
+</dialog>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const SETTINGS_KEY = 'shipyard.settings';
+  const S = Object.assign({ owner: '', repo: 'shipyard', branch: 'main', token: '' }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'));
+  const DEMO_CONFIG_KEY = 'shipyard.demoConfig';
+  const state = { config: null, games: [], runs: new Map(), shown: new Map(), lastChecked: null, poll: null, loading: false, editing: null, shipping: null, upload: null, step: 1, demo: false };
+
+  const CATEGORIES = {
+    GAMES_CASUAL: 'Casual', GAMES_PUZZLE: 'Puzzle', GAMES_SIMULATION: 'Simulation', GAMES_FAMILY: 'Family',
+    GAMES_ACTION: 'Action', GAMES_ADVENTURE: 'Adventure', GAMES_BOARD: 'Board', GAMES_CARD: 'Card',
+    GAMES_MUSIC: 'Music', GAMES_RACING: 'Racing', GAMES_ROLE_PLAYING: 'Role playing', GAMES_SPORTS: 'Sports',
+    GAMES_STRATEGY: 'Strategy', GAMES_TRIVIA: 'Trivia', GAMES_WORD: 'Word', GAMES_CASINO: 'Casino',
+  };
+  const DESTS = {
+    previews: { label: 'Build previews only', help: 'Captures screenshots and the store banner from your game so you can look before you submit. Takes about two minutes.', cta: 'Save and build previews', short: 'Build previews', done: 'as previews' },
+    testers: { label: 'Send to my phone', help: 'TestFlight and Google Play internal testing. Play the real app before anyone else sees it.', cta: 'Save and send to my phone', short: 'Send to my phone', done: 'to testers' },
+    'closed-test': { label: 'Closed test', help: 'TestFlight and Google Play closed testing. The track that satisfies Google’s 12-tester rule.', cta: 'Save and start closed test', short: 'Start closed test', done: 'to closed test' },
+    review: { label: 'Submit for approval', help: 'Sends the build, listing, and previews to Apple and Google for public release.', cta: 'Save and submit for approval', short: 'Submit for approval', done: 'for review' },
+    'build-only': { label: 'Just make the files', help: 'Produces the installable files without uploading. Needed for a game’s first Google Play upload.', cta: 'Save and build files', short: 'Build the files', done: 'as files' },
+  };
+  const PRICE_POINTS = ['0.99', '1.99', '2.99', '3.99', '4.99', '5.99', '6.99', '7.99', '9.99', '14.99', '19.99'];
+  const STORE_FILES = { subtitle: 'subtitle.txt', short: 'short_description.txt', description: 'description.txt', keywords: 'keywords.txt', promo: 'promotional_text.txt', notes: 'release_notes.txt' };
+  const DEFAULT_SHOTS = [{ wait: 2500 }, { tap: [0.5, 0.62], wait: 2000 }, { tap: [0.5, 0.5], wait: 2000 }, { tap: [0.5, 0.5], wait: 2000 }];
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const enc = encodeURIComponent;
+  const encPath = (p) => p.split('/').map(enc).join('/');
+  const connected = () => Boolean(S.owner && S.repo && S.branch && S.token);
+  const usable = () => connected() || state.demo;
+  const repoPath = () => `/repos/${enc(S.owner)}/${enc(S.repo)}`;
+  const byteLength = (s) => new TextEncoder().encode(s).length;
+  const slugify = (s) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
+  const bundleFor = (slug) => `${state.config?.bundlePrefix || 'com.yourname'}.${slug.replace(/-/g, '')}`.replace(/\.(\d)/g, '.g$1');
+
+  function bytesToB64(bytes) {
+    let out = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) out += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(out);
+  }
+  const textToB64 = (t) => bytesToB64(new TextEncoder().encode(t));
+  const b64ToText = (b) => new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g, '')), (c) => c.charCodeAt(0)));
+
+  function timeAgo(d) {
+    const s = Math.max(0, (Date.now() - new Date(d).getTime()) / 1000);
+    if (s < 45) return 'just now';
+    if (s < 3600) return `${Math.round(s / 60)} min ago`;
+    if (s < 86400) return `${Math.round(s / 3600)} h ago`;
+    return `${Math.round(s / 86400)} d ago`;
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const el = $('#toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 3400);
+  }
+
+  async function gh(path, options = {}) {
+    const res = await fetch(`https://api.github.com${path}`, {
+      ...options,
+      headers: {
+        Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28',
+        Authorization: `Bearer ${S.token}`, ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      },
+      cache: 'no-store',
+    });
+    if (res.status === 204) return null;
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      const err = new Error(data?.message || `GitHub returned ${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  }
+
+  async function readRepoText(path) {
+    try {
+      const data = await gh(`${repoPath()}/contents/${encPath(path)}?ref=${enc(S.branch)}`);
+      return b64ToText(data.content || '');
+    } catch (e) { if (e.status === 404) return null; throw e; }
+  }
+  async function listRepoDir(path) {
+    try {
+      const data = await gh(`${repoPath()}/contents/${encPath(path)}?ref=${enc(S.branch)}`);
+      return Array.isArray(data) ? data : [];
+    } catch (e) { if (e.status === 404) return []; throw e; }
+  }
+  async function readRepoImage(path) {
+    const data = await gh(`${repoPath()}/contents/${encPath(path)}?ref=${enc(S.branch)}`);
+    const mime = /\.jpe?g$/i.test(path) ? 'image/jpeg' : 'image/png';
+    return `data:${mime};base64,${(data.content || '').replace(/\s/g, '')}`;
+  }
+
+  async function pool(items, limit, worker) {
+    const out = new Array(items.length);
+    let i = 0;
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (i < items.length) { const n = i++; out[n] = await worker(items[n], n); }
+    }));
+    return out;
+  }
+
+  function explain(err) {
+    if (err.status === 401) return 'GitHub rejected the token. Check it under the gear icon.';
+    if (err.status === 403) return `GitHub refused that: ${err.message}. The token is probably missing a permission.`;
+    if (err.status === 404) return 'GitHub couldn’t find that repo or workflow. Check the username, repo, and token access.';
+    return err.message || 'Something went wrong talking to GitHub.';
+  }
+
+  // ---------- Board ----------
+  function statusOf(game) {
+    const run = state.runs.get(game.slug);
+    if (!run) return { word: 'READY', tone: 'idle', caption: 'Not shipped yet' };
+    const dest = DESTS[run.destination] || DESTS.testers;
+    if (run.status !== 'completed') return { word: run.status === 'in_progress' ? 'BUILDING' : 'QUEUED', tone: 'busy', caption: `Working ${dest.done}, started ${timeAgo(run.created_at)}` };
+    if (run.conclusion === 'success') return { word: 'SENT', tone: 'go', caption: `Sent ${dest.done} ${timeAgo(run.updated_at)}` };
+    if (run.conclusion === 'cancelled') return { word: 'STOPPED', tone: 'idle', caption: `Stopped ${timeAgo(run.updated_at)}` };
+    return { word: 'FAILED', tone: 'stop', caption: `Failed ${timeAgo(run.updated_at)}. Tap to see why` };
+  }
+
+  function render() {
+    const board = $('#board');
+    const empty = $('#empty');
+    board.innerHTML = '';
+    if (!connected()) {
+      empty.hidden = false;
+      empty.innerHTML = '<h2>Connect once</h2><p>Link Shipyard to your repo. Every game lives there in its own folder, and the build machines run from it.</p><button class="primary" id="emptyConnect">Connect</button><div class="actions"><button class="text-btn" id="emptyDemo">Try the upload flow without connecting</button></div>';
+      $('#emptyConnect').onclick = openConnect;
+      $('#emptyDemo').onclick = startDemo;
+      return;
+    }
+    if (!state.games.length) {
+      empty.hidden = false;
+      empty.innerHTML = '<h2>No games yet</h2><p>Upload a zip or an HTML file. Shipyard reads it, drafts the listing, and shows you previews before anything is submitted.</p>';
+      return;
+    }
+    empty.hidden = true;
+    for (const game of state.games) {
+      const st = statusOf(game);
+      const changed = state.shown.has(game.slug) && state.shown.get(game.slug) !== st.word;
+      state.shown.set(game.slug, st.word);
+      const tiles = [...st.word].map((c, i) => `<span class="tile" style="animation-delay:${i * 45}ms">${esc(c)}</span>`).join('');
+      const li = document.createElement('li');
+      li.innerHTML = `<button class="row" data-slug="${esc(game.slug)}">
+        <span class="game-name">${esc(game.name || game.slug)}</span>
+        <span class="flap ${st.tone}${changed ? ' flip' : ''}" role="img" aria-label="${esc(st.word.toLowerCase())}">${tiles}</span>
+        <span class="meta"><span>Version ${esc(game.version || '1.0.0')}</span><span>${esc(st.caption)}</span></span></button>`;
+      li.querySelector('button').onclick = () => openShip(game.slug);
+      board.appendChild(li);
+    }
+  }
+
+  const setChecked = () => { $('#checkedText').textContent = !connected() ? 'Not connected' : state.lastChecked ? `Checked ${timeAgo(state.lastChecked)}` : 'Checking…'; };
+  function showNotice(msg) { const el = $('#notice'); el.hidden = !msg; el.textContent = msg || ''; }
+
+  async function loadBoard() {
+    clearTimeout(state.poll);
+    if (!connected()) { render(); setChecked(); return; }
+    if (state.loading) return;
+    state.loading = true;
+    $('#refreshBtn').classList.add('spin');
+    try {
+      const [configText, dir, runs] = await Promise.all([
+        readRepoText('shipyard.config.json'),
+        listRepoDir('games'),
+        gh(`${repoPath()}/actions/workflows/ship.yml/runs?per_page=60`).catch((e) => { if (e.status === 404) return { workflow_runs: [] }; throw e; }),
+      ]);
+      if (configText) state.config = JSON.parse(configText);
+      const folders = dir.filter((d) => d.type === 'dir' && !d.name.startsWith('_'));
+      const games = await pool(folders, 6, async (f) => {
+        const text = await readRepoText(`games/${f.name}/game.json`);
+        if (!text) return null;
+        try { return { ...JSON.parse(text), slug: f.name }; } catch { return { slug: f.name, name: `${f.name} (game.json is broken)` }; }
+      });
+      state.games = games.filter(Boolean).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+      state.runs = new Map();
+      for (const run of runs.workflow_runs || []) {
+        const m = /^Ship (\S+) (\S+) to (\S+)/.exec(run.display_title || '');
+        if (m && !state.runs.has(m[1])) state.runs.set(m[1], { ...run, platforms: m[2], destination: m[3] });
+      }
+      state.lastChecked = new Date();
+      showNotice('');
+      render();
+    } catch (err) {
+      showNotice(explain(err));
+    } finally {
+      state.loading = false;
+      $('#refreshBtn').classList.remove('spin');
+      setChecked();
+      const busy = [...state.runs.values()].some((r) => r.status !== 'completed');
+      state.poll = setTimeout(() => { if (document.visibilityState === 'visible') loadBoard(); }, busy ? 15000 : 60000);
+    }
+  }
+
+  // ---------- Connect ----------
+  function openConnect() {
+    $('#cOwner').value = S.owner; $('#cRepo').value = S.repo; $('#cBranch').value = S.branch; $('#cToken').value = S.token;
+    $('#connectError').hidden = true;
+    $('#connectSheet').showModal();
+  }
+  $('#connectBtn').onclick = async () => {
+    const draft = { owner: $('#cOwner').value.trim(), repo: $('#cRepo').value.trim(), branch: $('#cBranch').value.trim() || 'main', token: $('#cToken').value.trim() };
+    const box = $('#connectError');
+    if (!draft.owner || !draft.repo || !draft.token) { box.hidden = false; box.textContent = 'Fill in your username, repo, and token.'; return; }
+    const btn = $('#connectBtn');
+    btn.disabled = true; btn.textContent = 'Connecting…';
+    const prev = { ...S };
+    Object.assign(S, draft);
+    try {
+      await gh(repoPath());
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(S));
+      state.config = null;
+      $('#connectSheet').close();
+      toast('Connected');
+      loadBoard();
+    } catch (err) {
+      Object.assign(S, prev);
+      box.hidden = false; box.textContent = explain(err);
+    } finally { btn.disabled = false; btn.textContent = 'Connect'; }
+  };
+  $('#demoBtn').onclick = startDemo;
+  $('#disconnectBtn').onclick = () => {
+    S.token = '';
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(S));
+    state.games = []; state.runs = new Map();
+    $('#connectSheet').close(); render(); setChecked();
+    toast('Token removed from this device');
+  };
+
+  // ---------- Publisher ----------
+  function openProfile() {
+    if (!usable()) { openConnect(); return; }
+    const c = state.config || {};
+    const r = c.review || {};
+    $('#pCompany').value = c.companyName || '';
+    $('#pPrefix').value = c.bundlePrefix || '';
+    $('#pSite').value = c.siteUrl || '';
+    $('#pEmail').value = c.contactEmail || '';
+    $('#pFirst').value = r.firstName || '';
+    $('#pLast').value = r.lastName || '';
+    $('#pPhone').value = r.phone || '';
+    $('#pTeam').value = c.appleTeamId || '';
+    $('#pCerts').value = c.matchGitUrl || '';
+    $('#profileErrors').hidden = true;
+    $('#profileProgress').textContent = '';
+    $('#profileSheet').showModal();
+  }
+  $('#profileBtn').onclick = openProfile;
+
+  $('#profileSave').onclick = async () => {
+    const next = {
+      ...(state.config || {}),
+      companyName: $('#pCompany').value.trim(),
+      bundlePrefix: $('#pPrefix').value.trim().toLowerCase(),
+      siteUrl: $('#pSite').value.trim().replace(/\/+$/, ''),
+      contactEmail: $('#pEmail').value.trim(),
+      appleTeamId: $('#pTeam').value.trim().toUpperCase(),
+      matchGitUrl: $('#pCerts').value.trim(),
+      language: (state.config && state.config.language) || 'en-US',
+      review: { firstName: $('#pFirst').value.trim(), lastName: $('#pLast').value.trim(), phone: $('#pPhone').value.trim(), email: $('#pEmail').value.trim() },
+    };
+    const problems = [];
+    if (!next.companyName) problems.push('Add a company name.');
+    if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/.test(next.bundlePrefix)) problems.push('App ID prefix must look like llc.elevatr — lowercase letters and dots, at least two parts.');
+    if (!/^https:\/\/\S+\.\S+/.test(next.siteUrl)) problems.push('Website must be a working https link.');
+    if (!/^\S+@\S+\.\S+$/.test(next.contactEmail)) problems.push('Add a contact email.');
+    if (!next.review.firstName || !next.review.lastName || !next.review.phone) problems.push('Apple needs a review contact name and phone.');
+    const box = $('#profileErrors');
+    if (problems.length) { box.hidden = false; box.innerHTML = `<strong>Fix these first</strong><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>`; return; }
+    box.hidden = true;
+
+    const btn = $('#profileSave');
+    if (state.demo) {
+      localStorage.setItem(DEMO_CONFIG_KEY, JSON.stringify(next));
+      state.config = next;
+      $('#profileSheet').close();
+      toast('Saved on this device for the demo');
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const siteConfig = `// Shown on your privacy and support pages.\nwindow.SHIPYARD_SITE = {\n  company: ${JSON.stringify(next.companyName)},\n  email: ${JSON.stringify(next.contactEmail)},\n  updated: ${JSON.stringify(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }))},\n};\n`;
+      await commitFiles({
+        files: [
+          { path: 'shipyard.config.json', base64: textToB64(JSON.stringify(next, null, 2) + '\n') },
+          { path: 'site/site-config.js', base64: textToB64(siteConfig) },
+        ],
+        message: 'Update publisher details',
+        onProgress: (t) => { $('#profileProgress').textContent = t; },
+      });
+      state.config = next;
+      $('#profileProgress').textContent = '';
+      $('#profileSheet').close();
+      toast('Publisher details saved');
+    } catch (err) {
+      $('#profileProgress').textContent = explain(err);
+    } finally { btn.disabled = false; }
+  };
+
+  // ---------- Reading an upload ----------
+  let jszipPromise;
+  function loadJSZip() {
+    jszipPromise ||= new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      s.onload = () => resolve(window.JSZip);
+      s.onerror = () => reject(new Error('Couldn’t load the zip reader. Check your connection.'));
+      document.head.appendChild(s);
+    });
+    return jszipPromise;
+  }
+
+  async function readUpload(file) {
+    if (/\.html?$/i.test(file.name)) return [{ path: 'index.html', bytes: new Uint8Array(await file.arrayBuffer()) }];
+    if (!/\.zip$/i.test(file.name)) throw new Error('Upload a .zip or a single .html file.');
+    const JSZip = await loadJSZip();
+    const zip = await JSZip.loadAsync(file);
+    const entries = Object.values(zip.files).filter((e) => !e.dir && !/(^|\/)(__MACOSX|\.DS_Store|Thumbs\.db|\.git\/)/.test(e.name));
+    const indexes = entries.map((e) => e.name).filter((n) => /(^|\/)index\.html$/i.test(n)).sort((a, b) => a.split('/').length - b.split('/').length);
+    if (!indexes.length) {
+      const anyHtml = entries.map((e) => e.name).filter((n) => /\.html?$/i.test(n)).sort((a, b) => a.split('/').length - b.split('/').length);
+      if (!anyHtml.length) throw new Error('No HTML file in that zip. Shipyard packages games that run in a browser — zip the folder with your game’s index.html.');
+      throw new Error(`No index.html in that zip. The main file looks like ${anyHtml[0].split('/').pop()} — rename it to index.html and zip it again.`);
+    }
+    const root = indexes[0].slice(0, indexes[0].length - 'index.html'.length);
+    const inside = entries.filter((e) => e.name.startsWith(root));
+    return Promise.all(inside.map(async (e) => ({ path: e.name === indexes[0] ? 'index.html' : e.name.slice(root.length), bytes: await e.async('uint8array') })));
+  }
+
+  const GENRES = [
+    { id: 'GAMES_PUZZLE', label: 'puzzle', words: ['puzzle', 'sudoku', 'logic', 'solve', 'clue', 'grid', 'tile', 'hint', 'riddle', 'brain'] },
+    { id: 'GAMES_WORD', label: 'word', words: ['word', 'letter', 'spell', 'anagram', 'vocabulary'] },
+    { id: 'GAMES_CASUAL', label: 'idle', words: ['idle', 'click', 'tap', 'upgrade', 'coin', 'collect', 'shop', 'prestige'] },
+    { id: 'GAMES_ACTION', label: 'action', words: ['jump', 'dodge', 'enemy', 'shoot', 'dash', 'attack', 'lives', 'boss'] },
+    { id: 'GAMES_SIMULATION', label: 'simulation', words: ['build', 'farm', 'manage', 'decorate', 'pet', 'feed', 'care', 'garden'] },
+    { id: 'GAMES_BOARD', label: 'board', words: ['board', 'dice', 'chess', 'checkers', 'deck', 'turn'] },
+  ];
+  const FEATURES = [
+    { re: /\blevels?\b/i, text: 'levels to work through' },
+    { re: /\bpower[- ]?ups?\b/i, text: 'power-ups' },
+    { re: /\b(high ?score|best score|leaderboard)\b/i, text: 'a high score to beat' },
+    { re: /\b(hat|outfit|skin|costume)s?\b/i, text: 'hats and outfits to collect' },
+    { re: /\b(pet|companion)s?\b/i, text: 'a pet to look after' },
+    { re: /\b(combo|streak|chain)s?\b/i, text: 'combos' },
+    { re: /\b(endless|infinite)\b/i, text: 'an endless mode' },
+    { re: /\b(undo|hint)s?\b/i, text: 'hints when you get stuck' },
+  ];
+
+  function analyze(files) {
+    const decoder = new TextDecoder();
+    const index = files.find((f) => f.path === 'index.html');
+    const html = decoder.decode(index.bytes);
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const code = files.filter((f) => /\.(html?|js|mjs|css|json)$/i.test(f.path) && f.bytes.length < 3e6).map((f) => decoder.decode(f.bytes)).join('\n');
+    const visible = [doc.title, ...$$('h1,h2,h3,button,p,label,li', doc).slice(0, 400).map((e) => e.textContent)].join(' ').replace(/\s+/g, ' ').trim();
+    const hay = `${visible} ${code}`.toLowerCase();
+    const totalBytes = files.reduce((n, f) => n + f.bytes.length, 0);
+
+    const blockers = [];
+    const warnings = [];
+    if (/<iframe[^>]+src=["']https?:/i.test(code)) blockers.push('The page loads another website in an iframe. Apple rejects that as "just a website" — bundle the game files instead.');
+    if (/require\(['"]express|from ['"]express|flask|http\.createServer/i.test(code)) blockers.push('This looks like it needs a server to run. Only games that run entirely in the browser can be packaged.');
+    if (files.some((f) => /\.(unityweb|data\.br)$/i.test(f.path)) || /UnityLoader|createUnityInstance/.test(code)) warnings.push('This looks like a Unity WebGL export. It can be packaged, but these are heavy and often feel slow on older phones.');
+    if (totalBytes > 150e6) warnings.push(`That is ${(totalBytes / 1e6).toFixed(0)} MB. Google Play's limit is 200 MB, and big downloads lose installs.`);
+    if ([...code.matchAll(/<(?:script|link)[^>]+(?:src|href)=["'](https?:\/\/[^"']+)/gi)].map((m) => m[1]).some((u) => !/fonts\.(googleapis|gstatic)/.test(u))) {
+      warnings.push('The game loads code from the internet. Reviewers test in airplane mode, so download those files into the folder first.');
+    }
+    if (/paypal|ko-?fi|buymeacoffee|patreon|venmo/i.test(code)) blockers.push('There is a link to outside payments. Apple requires In-App Purchase for anything paid and rejects these links.');
+
+    const rawTitle = (doc.title || '').split(/[|–—]/)[0].trim();
+    const h1 = (doc.querySelector('h1')?.textContent || '').trim();
+    const name = (rawTitle || h1 || '').replace(/\s+/g, ' ').slice(0, 30);
+    const metaDesc = (doc.querySelector('meta[name=description], meta[property="og:description"]')?.getAttribute('content') || '').trim();
+
+    const scored = GENRES.map((g) => ({ g, score: g.words.reduce((n, w) => n + (hay.split(w).length - 1), 0) })).sort((a, b) => b.score - a.score);
+    const genre = scored[0].score > 1 ? scored[0].g : GENRES[2];
+    const found = FEATURES.filter((f) => f.re.test(hay)).map((f) => f.text).slice(0, 4);
+
+    const themeColor = doc.querySelector('meta[name=theme-color]')?.getAttribute('content');
+    const bgMatch = code.match(/body\s*{[^}]*background(?:-color)?\s*:\s*(#[0-9a-f]{3,6})/i) || code.match(/background(?:-color)?\s*:\s*(#[0-9a-f]{6})\b/i);
+    const raw = (themeColor || bgMatch?.[1] || '#8FD3F4').trim();
+    const color = /^#[0-9a-f]{3}$/i.test(raw) ? '#' + raw.slice(1).split('').map((c) => c + c).join('') : (/^#[0-9a-f]{6}$/i.test(raw) ? raw : '#8FD3F4');
+    const landscape = /orientation\s*:\s*landscape|orientation\.lock\(['"]landscape/i.test(code);
+
+    const verb = genre.label === 'idle' ? 'Tap' : genre.label === 'puzzle' ? 'Solve' : 'Play';
+    const subtitle = (metaDesc && metaDesc.length <= 30 ? metaDesc : `A calm ${genre.label} game`).slice(0, 30);
+    const short = (metaDesc && metaDesc.length <= 80 ? metaDesc : `${verb}, unlock, and pick it back up whenever you like.`).slice(0, 80);
+    const description = [
+      `${name || 'This game'} is a ${genre.label} game you can play with one hand.`,
+      metaDesc && metaDesc.length > 80 ? metaDesc : 'Pick it up for a minute or settle in for twenty. Nothing rushes you, and your progress is waiting when you come back.',
+      found.length ? `Inside: ${found.join(', ')}.` : '',
+      'Plays entirely offline. No ads, no purchases, no account, and nothing about you leaves your phone.',
+    ].filter(Boolean).join('\n\n');
+
+    const nameWords = new Set((name || '').toLowerCase().split(/\s+/));
+    // Genre words only count when they actually appear in the game; the generic ones always apply.
+    const pool = [...genre.words.filter((w) => hay.includes(w)), 'offline', 'relax', 'casual', 'quiet', 'simple', 'daily']
+      .filter((w) => w.length > 2 && !nameWords.has(w));
+    const keywords = [];
+    for (const w of [...new Set(pool)]) {
+      if (byteLength([...keywords, w].join(',')) > 100) break;
+      keywords.push(w);
+    }
+
+    const iconCandidate = files.filter((f) => /\.png$/i.test(f.path) && /(icon|logo|apple-touch)/i.test(f.path)).sort((a, b) => b.bytes.length - a.bytes.length)[0] || null;
+
+    return {
+      files, totalBytes, blockers, warnings, iconCandidate,
+      draft: { name, subtitle, short, description, keywords: keywords.join(','), promo: found.length ? `New: ${found[0]}.` : '', notes: 'First release.', category: genre.id, orientation: landscape ? 'landscape' : 'portrait', color },
+      summary: `${files.length} file${files.length === 1 ? '' : 's'}, ${(totalBytes / 1e6).toFixed(1)} MB. Reads as a ${genre.label} game${found.length ? ` with ${found[0]}` : ''}.`,
+    };
+  }
+
+  // ---------- Playable preview ----------
+  const MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml', mp3: 'audio/mpeg', ogg: 'audio/ogg', wav: 'audio/wav', m4a: 'audio/mp4', mp4: 'video/mp4', woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf', json: 'application/json', wasm: 'application/wasm' };
+  // Injected first in the preview. A sandboxed frame has no storage, so anything that
+  // touches it throws on load and the game never paints. These stubs keep it alive, and
+  // anything that still breaks is reported back instead of showing a black rectangle.
+  const SANDBOX_SHIM = `<script>(function(){
+  function stub(n){try{window[n].getItem('probe');return}catch(e){}
+    var m={};var s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null},
+    setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:function(){m={}},
+    key:function(i){return Object.keys(m)[i]||null}};
+    Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length}});
+    try{Object.defineProperty(window,n,{value:s,configurable:true})}catch(e2){}}
+  stub('localStorage');stub('sessionStorage');
+  try{window.indexedDB&&window.indexedDB.open('probe')}catch(e){
+    try{Object.defineProperty(window,'indexedDB',{value:undefined,configurable:true})}catch(e2){}}
+  try{void document.cookie}catch(e){
+    try{Object.defineProperty(document,'cookie',{get:function(){return ''},set:function(){},configurable:true})}catch(e2){}}
+  try{if(navigator.serviceWorker){Object.defineProperty(navigator,'serviceWorker',{value:undefined,configurable:true})}}catch(e){}
+  function say(kind,message){try{parent.postMessage({shipyard:kind,message:String(message||'').slice(0,300)},'*')}catch(e){}}
+  window.addEventListener('error',function(e){say('preview-error',e.message||'script error')});
+  window.addEventListener('unhandledrejection',function(e){say('preview-error',(e.reason&&e.reason.message)||e.reason)});
+  window.addEventListener('load',function(){say('preview-ready','')});
+  function cssImage(el){var b=getComputedStyle(el).backgroundImage||'';var m=/url\\(["']?(.*?)["']?\\)/.exec(b);return m&&m[1];}
+  function collectMarks(){
+    var vw=innerWidth,vh=innerHeight,out=[];
+    var nodes=document.querySelectorAll('img,svg,canvas,[class*=logo],[id*=logo],[class*=icon],[id*=icon],[class*=brand],[class*=mark],[class*=emblem]');
+    for(var i=0;i<nodes.length&&out.length<10;i++){
+      var el=nodes[i],r=el.getBoundingClientRect();
+      if(r.width<36||r.height<36)continue;
+      if(r.bottom<0||r.top>vh||r.right<0||r.left>vw)continue;
+      var ratio=r.width/r.height;if(ratio<0.3||ratio>3.4)continue;
+      if(r.width*r.height>vw*vh*0.75)continue;
+      var tag=el.tagName.toLowerCase(),src=null,label='Logo';
+      try{
+        if(tag==='img'){src=el.currentSrc||el.src;label='Logo';}
+        else if(tag==='canvas'){src=el.toDataURL('image/png');label='Artwork';}
+        else if(tag==='svg'){var c=el.cloneNode(true);c.setAttribute('xmlns','http://www.w3.org/2000/svg');
+          if(!c.getAttribute('width')){c.setAttribute('width',Math.round(r.width));c.setAttribute('height',Math.round(r.height));}
+          src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(c.outerHTML)));label='Mark';}
+        else {src=cssImage(el);label='Artwork';}
+      }catch(e){}
+      if(!src)continue;
+      if(out.some(function(o){return o.src===src}))continue;
+      out.push({src:src,label:label,area:r.width*r.height,top:r.top});
+    }
+    out.sort(function(a,b){return (a.top-b.top)||(b.area-a.area)});
+    return out;
+  }
+  function collectGlyphs(){
+    var out=[],nodes=document.querySelectorAll('h1,h2,span,div,p,button,i'),n=Math.min(nodes.length,400);
+    for(var i=0;i<n&&out.length<4;i++){
+      var el=nodes[i];
+      if(el.children.length)continue;
+      var t=(el.textContent||'').trim();
+      if(!t||Array.from(t).length>2)continue;
+      if(!/\\p{Extended_Pictographic}/u.test(t))continue;
+      var r=el.getBoundingClientRect();
+      if(r.width<20||r.top>innerHeight)continue;
+      if(out.some(function(o){return o.text===t}))continue;
+      out.push({text:t,top:r.top});
+    }
+    return out;
+  }
+  window.addEventListener('message',function(e){
+    var d=e.data;if(!d||(d.shipyard!=='icon-scan'&&d.shipyard!=='icon-capture'))return;
+    function send(payload){try{parent.postMessage(Object.assign({shipyard:'icon-result'},payload),'*')}catch(x){}}
+    var bg='';
+    try{bg=getComputedStyle(document.body).backgroundColor||'';}catch(e2){}
+    var marks=[],glyphs=[];
+    try{marks=collectMarks()}catch(e3){}
+    try{glyphs=collectGlyphs()}catch(e4){}
+    function finish(screen){send({marks:marks,glyphs:glyphs,screen:screen||'',background:bg})}
+    if(typeof html2canvas!=='function')return finish('');
+    var side=Math.min(innerWidth,innerHeight);
+    try{
+      html2canvas(document.documentElement,{x:(innerWidth-side)/2,y:Math.min(innerHeight*0.06,innerHeight-side),
+        width:side,height:side,scale:Math.max(1,Math.min(3,1024/side)),logging:false,useCORS:true,allowTaint:true})
+        .then(function(c){finish(c.toDataURL('image/png'))}).catch(function(){finish('')});
+    }catch(e5){finish('')}
+  });
+})();<\/script>`;
+
+  const RENDERER_TAG = '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"><\/script>';
+
+  function buildPreview(files) {
+    const total = files.reduce((n, f) => n + f.bytes.length, 0);
+    if (total > 9e6) return { html: null, reason: 'Too big to preview here, but the build still captures screenshots from it.' };
+    const decoder = new TextDecoder();
+    const urls = new Map();
+    const dataUrl = (f) => `data:${MIME[f.path.split('.').pop().toLowerCase()] || 'application/octet-stream'};base64,${bytesToB64(f.bytes)}`;
+    const rewrite = (text) => {
+      for (const [p, u] of urls) {
+        const safe = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        text = text.replace(new RegExp(`(["'\`(])(?:\\./|/)?${safe}`, 'g'), `$1${u}`);
+      }
+      return text;
+    };
+    for (const f of files) if (!/\.(html?|css|m?js)$/i.test(f.path)) urls.set(f.path, dataUrl(f));
+    for (const f of files.filter((x) => /\.css$/i.test(x.path))) urls.set(f.path, `data:text/css;base64,${textToB64(rewrite(decoder.decode(f.bytes)))}`);
+    for (const f of files.filter((x) => /\.m?js$/i.test(x.path))) urls.set(f.path, `data:text/javascript;base64,${textToB64(rewrite(decoder.decode(f.bytes)))}`);
+    const index = files.find((f) => f.path === 'index.html');
+    let html = rewrite(decoder.decode(index.bytes));
+    const injected = SANDBOX_SHIM + RENDERER_TAG;
+    html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, (t) => t + injected) : injected + html;
+    return { html, reason: null };
+  }
+
+  let previewUrl = null;
+  let previewReady = false;
+  let previewTimer;
+  function clearPreview() {
+    clearTimeout(previewTimer);
+    const frame = $('#previewFrame');
+    frame.removeAttribute('srcdoc');
+    frame.removeAttribute('src');
+    if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+    $('#previewError').hidden = true;
+    $('#previewOpen').hidden = true;
+  }
+
+  function showPreview(upload) {
+    const frame = $('#phoneFrame');
+    const note = $('#phoneNote');
+    clearPreview();
+    if (!upload) { frame.hidden = true; note.hidden = true; return; }
+    let result;
+    try { result = buildPreview(upload.files); } catch (err) { result = { html: null, reason: `Couldn't build a preview here (${err.message}). The build still captures screenshots from the real game.` }; }
+    if (!result.html) {
+      frame.hidden = true;
+      note.hidden = false;
+      note.textContent = result.reason;
+      return;
+    }
+    // srcdoc, not a blob URL: Chrome refuses blob URLs inside a sandboxed frame.
+    // Asset paths are already rewritten to data: URLs, so nothing relative is left to resolve.
+    previewReady = false;
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(() => {
+      if (previewReady) return;
+      const box = $('#previewError');
+      box.hidden = false;
+      box.innerHTML = '<strong>The game hasn\'t drawn anything yet</strong><p style="margin:6px 0 0">It may just be slow, or it may need something the locked-down preview frame blocks. Open it in a new tab to check, then carry on — the build captures screenshots from the real game either way.</p>';
+    }, 7000);
+    $('#previewFrame').srcdoc = result.html;
+    frame.hidden = false;
+    note.hidden = false;
+    note.textContent = 'Your actual upload, running. Tap it.';
+    $('#previewOpen').hidden = false;
+  }
+
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (!data || typeof data !== 'object') return;
+    if (data.shipyard === 'preview-ready') { previewReady = true; clearTimeout(previewTimer); $('#previewError').hidden = true; return; }
+    if (data.shipyard === 'icon-result') {
+      if (!icon.pending) return;
+      const { resolve, timer } = icon.pending;
+      clearTimeout(timer);
+      icon.pending = null;
+      resolve({ marks: data.marks || [], glyphs: data.glyphs || [], screen: data.screen || '', background: data.background || '' });
+      return;
+    }
+    if (data.shipyard !== 'preview-error') return;
+    clearTimeout(previewTimer);
+    const box = $('#previewError');
+    box.hidden = false;
+    box.innerHTML = `<strong>The preview hit an error</strong><p style="margin:6px 0 0">${esc(data.message)}</p>` +
+      '<p style="margin:6px 0 0">Previews run in a locked-down frame with no storage, so some games only break here. Open it in a new tab to see whether the game itself is fine, and use Build previews only for real screenshots.</p>';
+  });
+
+  $('#openPreviewBtn').onclick = () => {
+    if (!state.upload) return;
+    try {
+      const result = buildPreview(state.upload.files);
+      if (!result.html) { toast(result.reason); return; }
+      const url = URL.createObjectURL(new Blob([result.html], { type: 'text/html' }));
+      window.open(url, '_blank', 'noopener');
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) { toast(err.message); }
+  };
+
+  // ---------- Icon studio ----------
+  // The preview frame is cross-origin, so the parent can't reach into it. The injected
+  // agent finds logo-ish elements and hands back their artwork; everything after that
+  // (palette, layout, styling) is drawn here on a canvas, instantly and offline.
+  const icon = { blob: null, dataUrl: null, pending: null, marks: [], palette: [], choice: null };
+  const ICON_SIZE = 1024;
+
+  function resetIcon() {
+    icon.blob = null;
+    icon.dataUrl = null;
+    icon.marks = [];
+    icon.palette = [];
+    icon.choice = null;
+    $('#iconIntro').hidden = false;
+    $('#iconStudio').hidden = true;
+    $('#iconIdeas').innerHTML = '';
+    $('#iconSwatches').innerHTML = '';
+    $('#iconScale').value = 62;
+    $('#iconOffset').value = 0;
+    $('#iconDesign').disabled = false;
+    $('#iconDesign').textContent = 'Design an icon from this game';
+  }
+
+  function askFrame(message, timeout = 15000) {
+    return new Promise((resolve, reject) => {
+      const frame = $('#previewFrame');
+      if (!frame.contentWindow) { reject(new Error('the preview is not running')); return; }
+      if (icon.pending) clearTimeout(icon.pending.timer);
+      const timer = setTimeout(() => { icon.pending = null; reject(new Error('the game did not answer in time')); }, timeout);
+      icon.pending = { resolve, reject, timer };
+      frame.contentWindow.postMessage(message, '*');
+    });
+  }
+
+  const loadImage = (src) => new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('that artwork could not be read'));
+    img.src = src;
+  });
+
+  /** Pull the handful of colours the artwork is actually made of. */
+  function paletteFrom(images) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const counts = new Map();
+    for (const img of images) {
+      ctx.clearRect(0, 0, 32, 32);
+      try { ctx.drawImage(img, 0, 0, 32, 32); } catch { continue; }
+      let data;
+      try { data = ctx.getImageData(0, 0, 32, 32).data; } catch { continue; }
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 128) continue;
+        const key = [data[i], data[i + 1], data[i + 2]].map((v) => Math.round(v / 24) * 24).join(',');
+        counts.set(key, (counts.get(key) || 0) + 1);
+      }
+    }
+    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([key]) => {
+      const [r, g, b] = key.split(',').map(Number);
+      return '#' + [r, g, b].map((v) => Math.min(255, v).toString(16).padStart(2, '0')).join('');
+    });
+    const picked = [];
+    for (const hex of sorted) {
+      if (picked.length >= 5) break;
+      const far = picked.every((p) => {
+        const d = [1, 3, 5].reduce((sum, i) => sum + Math.abs(parseInt(p.substr(i, 2), 16) - parseInt(hex.substr(i, 2), 16)), 0);
+        return d > 90;
+      });
+      if (far) picked.push(hex);
+    }
+    return picked;
+  }
+
+  const mix = (hex, target, amount) => {
+    const channel = (i) => {
+      const a = parseInt(hex.substr(i, 2), 16);
+      const b = parseInt(target.substr(i, 2), 16);
+      return Math.round(a + (b - a) * amount).toString(16).padStart(2, '0');
+    };
+    return '#' + channel(1) + channel(3) + channel(5);
+  };
+  const isLight = (hex) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.substr(i, 2), 16));
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.55;
+  };
+
+  /** Lay out one finished icon: background treatment plus the mark on top. */
+  function drawIcon({ mark, glyph, style, background, scale, offset }) {
+    const canvas = document.createElement('canvas');
+    canvas.width = ICON_SIZE;
+    canvas.height = ICON_SIZE;
+    const ctx = canvas.getContext('2d');
+    const base = background || '#1B2D4D';
+
+    if (style === 'playful') {
+      const glow = ctx.createRadialGradient(ICON_SIZE / 2, ICON_SIZE * 0.42, 40, ICON_SIZE / 2, ICON_SIZE * 0.5, ICON_SIZE * 0.75);
+      glow.addColorStop(0, mix(base, isLight(base) ? '#ffffff' : '#ffffff', 0.28));
+      glow.addColorStop(1, mix(base, '#000000', 0.12));
+      ctx.fillStyle = glow;
+    } else if (style === 'professional') {
+      const grad = ctx.createLinearGradient(0, 0, 0, ICON_SIZE);
+      grad.addColorStop(0, mix(base, '#ffffff', 0.1));
+      grad.addColorStop(1, mix(base, '#000000', 0.26));
+      ctx.fillStyle = grad;
+    } else {
+      ctx.fillStyle = base;
+    }
+    ctx.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
+
+    const factor = { playful: 1, professional: 0.84, flat: 0.92 }[style] || 1;
+    const side = ICON_SIZE * (scale / 100) * factor;
+    const centerY = ICON_SIZE / 2 + (offset / 100) * ICON_SIZE;
+
+    if (style === 'playful') {
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowBlur = 48;
+      ctx.shadowOffsetY = 18;
+    }
+    if (glyph) {
+      ctx.fillStyle = isLight(base) ? '#14213a' : '#ffffff';
+      ctx.font = `bold ${side}px system-ui, -apple-system, 'Segoe UI Emoji', 'Noto Color Emoji', Helvetica, Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(glyph, ICON_SIZE / 2, centerY + side * 0.04);
+    } else if (mark) {
+      const ratio = mark.naturalWidth / mark.naturalHeight || 1;
+      const w = ratio >= 1 ? side : side * ratio;
+      const h = ratio >= 1 ? side / ratio : side;
+      ctx.drawImage(mark, (ICON_SIZE - w) / 2, centerY - h / 2, w, h);
+    }
+    if (style === 'playful') ctx.restore();
+
+    return canvas;
+  }
+
+  function canvasToIcon(canvas) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => (blob ? resolve({ blob, dataUrl: canvas.toDataURL('image/png') }) : reject(new Error('the icon could not be encoded'))), 'image/png');
+    });
+  }
+
+  async function applyChoice(update = {}) {
+    Object.assign(icon.choice, update);
+    const mark = icon.marks[icon.choice.markIndex];
+    const canvas = drawIcon({
+      mark: mark && mark.img,
+      glyph: mark && mark.glyph,
+      style: $('input[name=iconStyle]:checked').value,
+      background: icon.choice.background,
+      scale: Number($('#iconScale').value),
+      offset: Number($('#iconOffset').value),
+    });
+    const made = await canvasToIcon(canvas);
+    icon.blob = made.blob;
+    icon.dataUrl = made.dataUrl;
+    $('#iconSquare').src = made.dataUrl;
+    $('#iconRound').src = made.dataUrl;
+  }
+
+  function renderSwatches() {
+    const swatches = [...icon.palette, $('#fColor').value, '#FFFFFF', '#14213A'];
+    $('#iconSwatches').innerHTML = swatches.map((hex, i) =>
+      `<button class="swatch${hex.toLowerCase() === String(icon.choice.background).toLowerCase() ? ' on' : ''}" data-hex="${esc(hex)}" style="background:${esc(hex)}" aria-label="Background ${esc(hex)}"></button>`).join('');
+    $$('#iconSwatches .swatch').forEach((button) => {
+      button.onclick = async () => {
+        await applyChoice({ background: button.dataset.hex });
+        renderSwatches();
+      };
+    });
+  }
+
+  async function renderIdeas() {
+    const style = $('input[name=iconStyle]:checked').value;
+    const tiles = await Promise.all(icon.marks.map(async (mark, index) => {
+      const background = mark.suggested || icon.palette[0] || $('#fColor').value;
+      const canvas = drawIcon({ mark: mark.img, glyph: mark.glyph, style, background, scale: 62, offset: 0 });
+      return { index, background, dataUrl: canvas.toDataURL('image/png'), label: mark.label };
+    }));
+    $('#iconIdeas').innerHTML = tiles.map((tile) =>
+      `<button class="idea${icon.choice && icon.choice.markIndex === tile.index ? ' on' : ''}" data-index="${tile.index}" data-bg="${esc(tile.background)}">
+         <img src="${tile.dataUrl}" alt=""><span>${esc(tile.label)}</span></button>`).join('');
+    $$('#iconIdeas .idea').forEach((button) => {
+      button.onclick = async () => {
+        await applyChoice({ markIndex: Number(button.dataset.index), background: button.dataset.bg });
+        renderIdeas();
+        renderSwatches();
+      };
+    });
+  }
+
+  async function designIcon() {
+    const button = $('#iconDesign');
+    button.disabled = true;
+    button.textContent = 'Looking through the game…';
+    try {
+      const found = await askFrame({ shipyard: 'icon-scan' });
+      const marks = [];
+
+      for (const candidate of found.marks.slice(0, 8)) {
+        try {
+          const img = await loadImage(candidate.src);
+          if (img.naturalWidth < 24) continue;
+          marks.push({ img, label: candidate.label });
+        } catch { /* skip artwork we can't read */ }
+      }
+      for (const glyph of found.glyphs.slice(0, 3)) marks.push({ glyph: glyph.text, label: 'Emblem' });
+
+      // Always offer a crop of the whole screen and a plain initials tile.
+      if (found.screen) {
+        try { marks.push({ img: await loadImage(found.screen), label: 'This screen' }); } catch { /* ignore */ }
+      }
+      const initials = ($('#fName').value.trim() || 'App').split(/[\s-]+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+      marks.push({ glyph: initials, label: 'Initials' });
+
+      icon.marks = marks;
+      icon.palette = paletteFrom(marks.filter((m) => m.img).map((m) => m.img));
+      if (!icon.palette.length) icon.palette = [found.background || $('#fColor').value];
+      icon.choice = { markIndex: 0, background: icon.palette[0] };
+
+      $('#iconIntro').hidden = true;
+      $('#iconStudio').hidden = false;
+      await applyChoice({});
+      await renderIdeas();
+      renderSwatches();
+      $('#iconHint').textContent = marks.length > 2
+        ? `Found ${marks.length} things worth using. Pick one, then adjust the style, colour, and size.`
+        : "Not much artwork on this screen. Play the preview to your title screen and look again, or adjust what's here.";
+    } catch (err) {
+      button.textContent = 'Design an icon from this game';
+      button.disabled = false;
+      toast(`Couldn't read the game (${err.message}). Let the preview finish loading and try again.`);
+      return;
+    }
+    button.disabled = false;
+    button.textContent = 'Design an icon from this game';
+  }
+
+  let iconTimer;
+  const redrawSoon = () => { clearTimeout(iconTimer); iconTimer = setTimeout(() => applyChoice({}), 120); };
+  $('#iconDesign').onclick = designIcon;
+  $('#iconRescan').onclick = designIcon;
+  $('#iconClear').onclick = resetIcon;
+  $('#iconScale').addEventListener('input', redrawSoon);
+  $('#iconOffset').addEventListener('input', redrawSoon);
+  $$('input[name=iconStyle]').forEach((radio) => radio.addEventListener('change', async () => {
+    await applyChoice({});
+    renderIdeas();
+  }));
+
+  // ---------- Wizard ----------
+  $('#fCategory').innerHTML = Object.entries(CATEGORIES).map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
+  $('#fPrice').innerHTML = PRICE_POINTS.map((p) => `<option value="${p}">$${p}</option>`).join('');
+  $('#destChoices').innerHTML = Object.entries(DESTS).map(([v, d], i) => `<label class="choice"><input type="radio" name="dest" value="${v}"${i === 0 ? ' checked' : ''}><span><strong>${esc(d.label)}</strong><small>${esc(d.help)}</small></span></label>`).join('');
+  $('#shipDestChoices').innerHTML = Object.entries(DESTS).map(([v, d]) => `<label class="choice"><input type="radio" name="shipDest" value="${v}"${v === 'testers' ? ' checked' : ''}><span><strong>${esc(d.label)}</strong><small>${esc(d.help)}</small></span></label>`).join('');
+
+  const STEP_LABELS = { 1: 'Step 1 of 4: the game', 2: 'Step 2 of 4: how it looks in the store', 3: 'Step 3 of 4: price and release', 4: 'Step 4 of 4: check and send' };
+  function goStep(n) {
+    state.step = n;
+    $$('#wizardSheet section[data-step]').forEach((s) => { s.hidden = Number(s.dataset.step) !== n; });
+    $$('#steps div').forEach((d, i) => d.classList.toggle('done', i < n));
+    $('#stepLabel').textContent = STEP_LABELS[n];
+    $('#wizardSheet .sheet-body').scrollTop = 0;
+    if (n === 4) renderReview();
+  }
+  function wizardError(list) {
+    const box = $('#wizardErrors');
+    if (!list.length) { box.hidden = true; return false; }
+    box.hidden = false;
+    box.innerHTML = `<strong>Fix these first</strong><ul>${list.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>`;
+    $('#wizardSheet .sheet-body').scrollTop = 0;
+    return true;
+  }
+
+  function updateCounts() {
+    $$('.count').forEach((el) => {
+      const input = $(`#${el.dataset.for}`);
+      if (!input) return;
+      const len = 'bytes' in el.dataset ? byteLength(input.value) : [...input.value].length;
+      const max = Number(el.dataset.max);
+      el.textContent = `${len}/${max}`;
+      el.classList.toggle('over', len > max);
+    });
+  }
+  $$('#wizardSheet input, #wizardSheet textarea').forEach((el) => el.addEventListener('input', updateCounts));
+
+  function applyDraft(draft, overwrite) {
+    const set = (sel, value) => { const el = $(sel); if (overwrite || !el.value.trim()) el.value = value ?? ''; };
+    set('#fName', draft.name);
+    set('#fSubtitle', draft.subtitle);
+    set('#fShort', draft.short);
+    set('#fDescription', draft.description);
+    set('#fKeywords', draft.keywords);
+    set('#fPromo', draft.promo);
+    set('#fNotes', draft.notes);
+    if (overwrite) {
+      $('#fCategory').value = draft.category || 'GAMES_CASUAL';
+      $('#fOrientation').value = draft.orientation || 'portrait';
+      $('#fColor').value = /^#[0-9a-f]{6}$/i.test(draft.color || '') ? draft.color : '#8FD3F4';
+      if (!state.editing && draft.name) {
+        const slug = slugify(draft.name);
+        $('#fSlug').value = slug;
+        $('#fBundle').value = bundleFor(slug);
+      }
+    }
+    updateCounts();
+  }
+
+  $('#fFiles').addEventListener('change', async () => {
+    const file = $('#fFiles').files[0];
+    const box = $('#analysis');
+    if (!file) { box.hidden = true; state.upload = null; return; }
+    box.hidden = false;
+    box.innerHTML = '<div class="found">Reading the game…</div>';
+    try {
+      const result = analyze(await readUpload(file));
+      state.upload = result;
+      const lines = [
+        `Named it ${esc(result.draft.name || 'nothing yet — add a name on the next step')}`,
+        `Category: ${esc(CATEGORIES[result.draft.category])}`,
+        `${result.draft.orientation === 'landscape' ? 'Landscape' : 'Portrait'}, background ${esc(result.draft.color)}`,
+        result.iconCandidate ? `Found an icon inside: ${esc(result.iconCandidate.path)}` : 'No icon inside — pick one below',
+      ];
+      const parts = [`<div class="found"><strong>${esc(result.summary)}</strong><ul>${lines.map((l) => `<li>${l}</li>`).join('')}</ul></div>`];
+      if (result.warnings.length) parts.push(`<div class="warn"><strong>Worth knowing</strong><ul>${result.warnings.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>`);
+      if (result.blockers.length) parts.push(`<div class="errors"><strong>These will get it rejected</strong><ul>${result.blockers.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>`);
+      box.innerHTML = parts.join('');
+      applyDraft(result.draft, !state.editing);
+    } catch (err) {
+      state.upload = null;
+      box.innerHTML = `<div class="errors">${esc(err.message)}</div>`;
+    }
+  });
+
+  $('#redraftBtn').onclick = () => {
+    if (!state.upload) { toast('Upload the game first'); return; }
+    applyDraft(state.upload.draft, true);
+    toast('Drafted again from the game');
+  };
+  $('#fName').addEventListener('input', () => {
+    if (state.editing) return;
+    const slug = slugify($('#fName').value);
+    $('#fSlug').value = slug;
+    $('#fBundle').value = slug ? bundleFor(slug) : '';
+  });
+  $$('input[name=price]').forEach((r) => r.addEventListener('change', () => {
+    $('#priceTierField').hidden = $('input[name=price]:checked').value !== 'paid';
+  }));
+
+  $$('#wizardSheet [data-next]').forEach((btn) => {
+    btn.onclick = () => {
+      const target = Number(btn.dataset.next);
+      const problems = [];
+      if (target === 2) {
+        if (!state.editing && !state.upload) problems.push('Choose the game files.');
+        if (state.upload && state.upload.blockers.length) problems.push('The problems listed above will get the app rejected. Fix them and upload again.');
+        if (!wizardError(problems)) { showPreview(state.upload); goStep(2); }
+      } else if (target === 3) {
+        if (!$('#fName').value.trim()) problems.push('Add a name.');
+        if (!$('#fShort').value.trim()) problems.push('Add the one-line description. Google Play requires it.');
+        if (!$('#fDescription').value.trim()) problems.push('Add a description.');
+        if ($$('.count.over').length) problems.push('Some fields are over the store limit.');
+        if (!wizardError(problems)) goStep(3);
+      } else if (target === 4) {
+        if (!/^[a-z0-9][a-z0-9-]{0,48}$/.test($('#fSlug').value.trim())) problems.push('Folder can only use lowercase letters, numbers, and dashes.');
+        if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test($('#fBundle').value.trim())) problems.push('App ID must look like llc.elevatr.quackiepond. Set your prefix under Publisher.');
+        if (!/^\d+\.\d+\.\d+$/.test($('#fVersion').value.trim())) problems.push('Version must look like 1.0.0.');
+        if (!state.editing && state.games.some((g) => g.slug === $('#fSlug').value.trim())) problems.push('A game already uses that folder. Pick another name.');
+        if (!wizardError(problems)) goStep(4);
+      }
+    };
+  });
+  $$('#wizardSheet [data-back]').forEach((btn) => { btn.onclick = () => goStep(Number(btn.dataset.back)); });
+  $$('input[name=dest]').forEach((r) => r.addEventListener('change', () => {
+    reviewArmed = false;
+    $('#submitBtn').textContent = DESTS[$('input[name=dest]:checked').value].cta;
+  }));
+
+  function currentValues() {
+    const price = $('input[name=price]:checked').value;
+    return {
+      name: $('#fName').value.trim(),
+      slug: state.editing ? state.editing.slug : $('#fSlug').value.trim(),
+      bundleId: state.editing ? state.editing.bundleId : $('#fBundle').value.trim(),
+      version: $('#fVersion').value.trim(),
+      orientation: $('#fOrientation').value,
+      appleSubcategory: $('#fCategory').value,
+      backgroundColor: $('#fColor').value.toUpperCase(),
+      pricing: { model: price, price: price === 'paid' ? $('#fPrice').value : '0' },
+      subtitle: $('#fSubtitle').value.trim(),
+      short: $('#fShort').value.trim(),
+      description: $('#fDescription').value.trim(),
+      keywords: $('#fKeywords').value.trim().replace(/\s*,\s*/g, ','),
+      promo: $('#fPromo').value.trim(),
+      notes: $('#fNotes').value.trim(),
+      platforms: $('input[name=platforms]:checked').value,
+    };
+  }
+
+  async function loadPreviewThumbs(slug) {
+    const thumbs = await listRepoDir(`games/${slug}/store/previews/thumbs`);
+    const shots = thumbs.filter((f) => /^apple-\d+\.jpg$/.test(f.name)).sort((a, b) => a.name.localeCompare(b.name)).slice(0, 6);
+    const images = await pool(shots, 3, (f) => readRepoImage(f.path));
+    const featureEntry = thumbs.find((f) => f.name === 'feature.jpg');
+    const feature = featureEntry ? await readRepoImage(featureEntry.path) : null;
+    return { images, feature };
+  }
+
+  async function renderReview() {
+    const v = currentValues();
+    const c = state.config || {};
+    const rows = [
+      ['Game', `${v.name}, version ${v.version}`],
+      ['Publisher', c.companyName || 'Not set — open Publisher'],
+      ['App ID', v.bundleId],
+      ['Price', v.pricing.model === 'free' ? 'Free' : `$${v.pricing.price}, set once in each console`],
+      ['Stores', { both: 'App Store and Google Play', ios: 'App Store only', android: 'Google Play only' }[v.platforms]],
+      ['Icon', $('#fIcon').files[0] ? 'Your uploaded PNG' : icon.blob ? 'Cropped from the game' : state.upload && state.upload.iconCandidate ? 'Found inside your upload' : 'Made during the build'],
+      ['Support', c.siteUrl ? `${c.siteUrl}/support.html` : 'Not set — open Publisher'],
+      ['Privacy', c.siteUrl ? `${c.siteUrl}/privacy.html` : 'Not set — open Publisher'],
+    ];
+    $('#reviewSummary').innerHTML = rows.map(([k, val]) => `<div><dt>${esc(k)}</dt><dd>${esc(val)}</dd></div>`).join('');
+
+    const checks = [];
+    if (!c.companyName || !c.siteUrl || !c.review || !c.review.phone) checks.push('Publisher details are incomplete. Both stores reject listings without a working support link and a review contact.');
+    if (!state.editing && !$('#fIcon').files[0] && !icon.blob && !(state.upload && state.upload.iconCandidate)) checks.push("No icon chosen, so the build will crop one from your game's title screen. Go back a step to make one you can see first.");
+    if (v.pricing.model === 'paid') checks.push('Paid apps need tax and banking forms finished in both consoles before a price can be set. Do that before submitting for approval.');
+    $('#reviewChecks').innerHTML = checks.length ? `<div class="warn"><strong>Before approval</strong><ul>${checks.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
+
+    const block = $('#previewBlock');
+    block.hidden = true;
+    if (state.editing) {
+      try {
+        const { images, feature } = await loadPreviewThumbs(v.slug);
+        if (images.length) {
+          $('#previewThumbs').innerHTML = images.map((src, i) => `<img src="${src}" alt="Screenshot ${i + 1}">`).join('');
+          $('#previewFeature').innerHTML = feature ? `<img src="${feature}" alt="Store banner">` : '';
+          block.hidden = false;
+        }
+      } catch { /* previews are optional */ }
+    }
+  }
+
+  function startDemo() {
+    state.demo = true;
+    try { state.config = JSON.parse(localStorage.getItem(DEMO_CONFIG_KEY) || 'null') || state.config; } catch { /* ignore */ }
+    $('#connectSheet').close();
+    toast('Demo mode: nothing gets saved or submitted');
+    openWizard(null);
+  }
+
+  async function openWizard(slug) {
+    if (!usable()) { openConnect(); return; }
+    const game = slug ? state.games.find((g) => g.slug === slug) : null;
+    state.editing = game || null;
+    state.upload = null;
+    $('#wizardErrors').hidden = true;
+    $('#analysis').hidden = true;
+    $('#saveProgress').textContent = '';
+    $('#fFiles').value = '';
+    $('#fIcon').value = '';
+    resetIcon();
+    clearPreview();
+    $('#phoneFrame').hidden = true;
+    $('#phoneNote').hidden = true;
+    $('#wizardTitle').textContent = game ? `Edit ${game.name}` : state.demo ? 'Upload a game (demo)' : 'Upload a game';
+    $('#wizardSub').textContent = game ? 'Change the files or the listing, bump the version, then send it again.' : 'Drop in a zip or a single HTML file. Shipyard reads it and drafts the rest.';
+    $('#fFilesHint').textContent = game ? 'Leave empty to keep the current game files.' : 'A zip of the folder containing index.html, or one self-contained .html file.';
+    $('#fIconHint').textContent = game ? 'Leave empty to keep the current icon.' : "Optional. Shipyard makes one from your game's title screen if you don't supply one.";
+    $('#fSlug').disabled = Boolean(game);
+    $('#fBundle').disabled = Boolean(game);
+
+    applyDraft({ name: '', subtitle: '', short: '', description: '', keywords: '', promo: '', notes: '', category: 'GAMES_CASUAL', orientation: 'portrait', color: '#8FD3F4' }, true);
+    $('#fSlug').value = game ? game.slug : '';
+    $('#fBundle').value = game ? (game.bundleId || '') : '';
+    $('#fVersion').value = game ? (game.version || '1.0.0') : '1.0.0';
+    $('input[name=price][value=free]').checked = true;
+    $('#priceTierField').hidden = true;
+    $('input[name=platforms][value=both]').checked = true;
+    $('input[name=dest][value=previews]').checked = true;
+    $('#submitBtn').textContent = DESTS.previews.cta;
+    goStep(1);
+    $('#wizardSheet').showModal();
+
+    if (game) {
+      $('#analysis').hidden = false;
+      $('#analysis').innerHTML = '<div class="found">Loading the current listing…</div>';
+      try {
+        const texts = await Promise.all(Object.values(STORE_FILES).map((f) => readRepoText(`games/${game.slug}/store/${f}`)));
+        const values = Object.fromEntries(Object.keys(STORE_FILES).map((k, i) => [k, (texts[i] || '').trim()]));
+        applyDraft({ ...values, name: game.name || '', category: game.appleSubcategory, orientation: game.orientation, color: game.backgroundColor }, true);
+        $('#fSlug').value = game.slug;
+        $('#fBundle').value = game.bundleId || '';
+        $('#fVersion').value = game.version || '1.0.0';
+        if (game.pricing && game.pricing.model === 'paid') {
+          $('input[name=price][value=paid]').checked = true;
+          $('#priceTierField').hidden = false;
+          if (PRICE_POINTS.includes(game.pricing.price)) $('#fPrice').value = game.pricing.price;
+        }
+        $('#analysis').innerHTML = '<div class="found">Current listing loaded. Upload files above only if the game itself changed.</div>';
+      } catch (err) {
+        $('#analysis').innerHTML = `<div class="errors">${esc(explain(err))}</div>`;
+      }
+    }
+  }
+  $('#addBtn').onclick = () => openWizard(null);
+
+  async function commitFiles({ files, replacePrefix, message, onProgress }) {
+    const ref = await gh(`${repoPath()}/git/ref/heads/${encPath(S.branch)}`);
+    const parentSha = ref.object.sha;
+    const parent = await gh(`${repoPath()}/git/commits/${parentSha}`);
+    let done = 0;
+    const entries = await pool(files, 4, async (f) => {
+      const blob = await gh(`${repoPath()}/git/blobs`, { method: 'POST', body: JSON.stringify({ content: f.base64, encoding: 'base64' }) });
+      done += 1;
+      if (onProgress) onProgress(`Uploading ${done} of ${files.length} files…`);
+      return { path: f.path, mode: '100644', type: 'blob', sha: blob.sha };
+    });
+    if (replacePrefix) {
+      const tree = await gh(`${repoPath()}/git/trees/${parent.tree.sha}?recursive=1`);
+      if (tree.truncated) throw new Error('The repo is too large to replace game files safely from here.');
+      const keep = new Set(files.map((f) => f.path));
+      for (const item of tree.tree) {
+        if (item.type === 'blob' && item.path.startsWith(replacePrefix) && !keep.has(item.path)) entries.push({ path: item.path, mode: '100644', type: 'blob', sha: null });
+      }
+    }
+    if (onProgress) onProgress('Saving…');
+    const tree = await gh(`${repoPath()}/git/trees`, { method: 'POST', body: JSON.stringify({ base_tree: parent.tree.sha, tree: entries }) });
+    const commit = await gh(`${repoPath()}/git/commits`, { method: 'POST', body: JSON.stringify({ message, tree: tree.sha, parents: [parentSha] }) });
+    await gh(`${repoPath()}/git/refs/heads/${encPath(S.branch)}`, { method: 'PATCH', body: JSON.stringify({ sha: commit.sha }) });
+  }
+
+  const dispatch = (slug, platforms, destination) => gh(`${repoPath()}/actions/workflows/ship.yml/dispatches`, {
+    method: 'POST', body: JSON.stringify({ ref: S.branch, inputs: { game: slug, platforms, destination } }),
+  });
+
+  async function iconProblem(file) {
+    if (file.type && file.type !== 'image/png') return 'The icon must be a PNG.';
+    try {
+      const bmp = await createImageBitmap(file);
+      if (bmp.width !== bmp.height) return `The icon is ${bmp.width} × ${bmp.height}. It must be square.`;
+      if (bmp.width < 1024) return `The icon is ${bmp.width} px. It must be at least 1024 × 1024.`;
+    } catch { return 'That icon file couldn’t be read as an image.'; }
+    return null;
+  }
+
+  let reviewArmed = false;
+  let armTimer;
+  $('#submitBtn').onclick = async () => {
+    const dest = $('input[name=dest]:checked').value;
+    const btn = $('#submitBtn');
+    if (dest === 'review' && !reviewArmed) {
+      reviewArmed = true;
+      btn.textContent = 'Tap again to submit for approval';
+      clearTimeout(armTimer);
+      armTimer = setTimeout(() => { reviewArmed = false; btn.textContent = DESTS[dest].cta; }, 5000);
+      return;
+    }
+    reviewArmed = false;
+    const v = currentValues();
+    const progress = (t) => { $('#saveProgress').textContent = t; };
+    if (state.demo) {
+      progress('Demo mode, so nothing was saved. Everything up to here is exactly what happens for real — connect a repo under the gear icon to send it.');
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const base = `games/${v.slug}`;
+      const previous = Object.assign({}, state.editing);
+      delete previous.slug;
+      const gameJson = {
+        ...previous,
+        name: v.name, bundleId: v.bundleId, version: v.version, orientation: v.orientation,
+        backgroundColor: v.backgroundColor, appleSubcategory: v.appleSubcategory, pricing: v.pricing,
+        screenshots: previous.screenshots || DEFAULT_SHOTS,
+      };
+      const files = [{ path: `${base}/game.json`, base64: textToB64(JSON.stringify(gameJson, null, 2) + '\n') }];
+      for (const [key, name] of Object.entries(STORE_FILES)) files.push({ path: `${base}/store/${name}`, base64: textToB64(v[key] + '\n') });
+
+      const iconFile = $('#fIcon').files[0];
+      if (iconFile) {
+        const problem = await iconProblem(iconFile);
+        if (problem) throw new Error(problem);
+        files.push({ path: `${base}/icon.png`, base64: bytesToB64(new Uint8Array(await iconFile.arrayBuffer())) });
+      } else if (icon.blob) {
+        files.push({ path: `${base}/icon.png`, base64: bytesToB64(new Uint8Array(await icon.blob.arrayBuffer())) });
+      } else if (state.upload && state.upload.iconCandidate) {
+        files.push({ path: `${base}/icon.png`, base64: bytesToB64(state.upload.iconCandidate.bytes) });
+      }
+
+      let replacePrefix = null;
+      if (state.upload) {
+        progress('Packing the game…');
+        for (const f of state.upload.files) files.push({ path: `${base}/www/${f.path}`, base64: bytesToB64(f.bytes) });
+        replacePrefix = `${base}/www/`;
+      }
+
+      await commitFiles({ files, replacePrefix, message: `${state.editing ? 'Update' : 'Add'} ${v.name} ${v.version}`, onProgress: progress });
+      progress('Starting the build…');
+      await dispatch(v.slug, v.platforms, dest);
+      $('#wizardSheet').close();
+      toast(dest === 'review' ? `${v.name} submitted for approval` : `${v.name} saved, build started`);
+      setTimeout(loadBoard, 4000);
+    } catch (err) {
+      progress(err.status ? explain(err) : err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = DESTS[$('input[name=dest]:checked').value].cta;
+    }
+  };
+
+  // ---------- Quick ship ----------
+  async function openShip(slug) {
+    const game = state.games.find((g) => g.slug === slug);
+    if (!game) return;
+    state.shipping = game;
+    $('#shipTitle').textContent = game.name || slug;
+    $('#shipMeta').textContent = `Version ${game.version || '1.0.0'}${game.pricing && game.pricing.model === 'paid' ? `, $${game.pricing.price}` : ', free'}`;
+    $('input[name=shipDest][value=testers]').checked = true;
+    $('input[name=shipPlatforms][value=both]').checked = true;
+    shipArmed = false;
+    $('#shipBtn').textContent = DESTS.testers.short;
+    const run = state.runs.get(slug);
+    const link = $('#runLink');
+    link.hidden = !run;
+    if (run) { link.href = run.html_url; link.textContent = run.conclusion === 'failure' ? 'See why the last build failed' : 'Open build log'; }
+    $('#shipPreviews').hidden = true;
+    $('#shipSheet').showModal();
+    try {
+      const { images } = await loadPreviewThumbs(slug);
+      if (images.length) {
+        $('#shipThumbs').innerHTML = images.map((src, i) => `<img src="${src}" alt="Screenshot ${i + 1}">`).join('');
+        $('#shipPreviews').hidden = false;
+      }
+    } catch { /* optional */ }
+  }
+  $$('input[name=shipDest]').forEach((r) => r.addEventListener('change', () => {
+    shipArmed = false;
+    $('#shipBtn').textContent = DESTS[$('input[name=shipDest]:checked').value].short;
+  }));
+
+  let shipArmed = false;
+  let shipTimer;
+  $('#shipBtn').onclick = async () => {
+    const dest = $('input[name=shipDest]:checked').value;
+    const platforms = $('input[name=shipPlatforms]:checked').value;
+    const btn = $('#shipBtn');
+    if (dest === 'review' && !shipArmed) {
+      shipArmed = true;
+      btn.textContent = 'Tap again to submit for approval';
+      clearTimeout(shipTimer);
+      shipTimer = setTimeout(() => { shipArmed = false; btn.textContent = DESTS[dest].short; }, 5000);
+      return;
+    }
+    shipArmed = false;
+    btn.disabled = true;
+    try {
+      await dispatch(state.shipping.slug, platforms, dest);
+      $('#shipSheet').close();
+      toast(`${state.shipping.name}: started ${DESTS[dest].done}`);
+      setTimeout(loadBoard, 5000);
+    } catch (err) {
+      toast(explain(err));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = DESTS[dest].short;
+    }
+  };
+  $('#editFromShip').onclick = () => { const slug = state.shipping && state.shipping.slug; $('#shipSheet').close(); openWizard(slug); };
+
+  // ---------- Wiring ----------
+  $$('[data-close]').forEach((b) => { b.onclick = () => b.closest('dialog').close(); });
+  $$('dialog.sheet').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+  $('#wizardSheet').addEventListener('close', clearPreview);
+  $('#settingsBtn').onclick = openConnect;
+  $('#refreshBtn').onclick = loadBoard;
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadBoard(); });
+  setInterval(setChecked, 30000);
+
+  render();
+  setChecked();
+  if (connected()) loadBoard(); else openConnect();
+})();
+</script>
+</body>
+</html>

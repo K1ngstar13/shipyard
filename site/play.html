@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Loading…</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #13213B; overflow: hidden; }
+  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
+  #back {
+    position: fixed; top: calc(10px + env(safe-area-inset-top)); left: calc(10px + env(safe-area-inset-left));
+    width: 40px; height: 40px; border: 0; border-radius: 50%; background: rgba(10,18,36,.55); color: #fff;
+    font: 20px/1 system-ui, sans-serif; display: grid; place-items: center; cursor: pointer; z-index: 2;
+    transition: opacity .4s; backdrop-filter: blur(4px);
+  }
+  #back.faded { opacity: .18; }
+  #back:hover, #back:focus-visible { opacity: 1; }
+  #message {
+    position: fixed; inset: 0; display: grid; place-content: center; gap: 10px; justify-items: center;
+    color: #B9CCEE; font: 16px/1.5 system-ui, -apple-system, sans-serif; padding: 24px; text-align: center;
+  }
+  #message a { color: #FFB43A; }
+</style>
+</head>
+<body>
+<div id="message">Loading…</div>
+<script>
+  const slug = new URLSearchParams(location.search).get('g') || '';
+  const message = document.getElementById('message');
+  const standalone = window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || window.navigator.standalone === true;
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function fail(text) {
+    message.innerHTML = `${esc(text)}<br><a href="launcher.html">Back to apps</a>`;
+  }
+
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
+    fail('No app was named in the link.');
+  } else {
+    fetch('apps.json', { cache: 'no-store' })
+      .then((r) => { if (!r.ok) throw new Error('apps.json is missing. Run the site build.'); return r.json(); })
+      .then((data) => {
+        const app = data.apps.find((a) => a.slug === slug);
+        if (!app) throw new Error(`No app called ${slug}.`);
+
+        document.title = app.name;
+        const theme = document.createElement('meta');
+        theme.name = 'theme-color';
+        theme.content = app.backgroundColor || '#13213B';
+        document.head.appendChild(theme);
+        document.body.style.background = app.backgroundColor || '#13213B';
+
+        // Per-app manifest: Add to Home Screen then gives this game its own icon and name.
+        const manifest = document.createElement('link');
+        manifest.rel = 'manifest';
+        manifest.href = app.manifest;
+        document.head.appendChild(manifest);
+
+        const icon = document.createElement('link');
+        icon.rel = 'apple-touch-icon';
+        icon.href = app.icon || '';
+        if (app.icon) document.head.appendChild(icon);
+
+        const frame = document.createElement('iframe');
+        frame.src = app.direct;
+        frame.title = app.name;
+        frame.allow = 'autoplay; fullscreen; gamepad; accelerometer; gyroscope';
+        frame.onload = () => message.remove();
+        document.body.appendChild(frame);
+
+        // Installed to the home screen, this is the app — no chrome on top of it.
+        if (!standalone) {
+          const back = document.createElement('button');
+          back.id = 'back';
+          back.textContent = '‹';
+          back.setAttribute('aria-label', 'Back to apps');
+          back.onclick = () => { location.href = 'launcher.html'; };
+          document.body.appendChild(back);
+          setTimeout(() => back.classList.add('faded'), 4000);
+        }
+      })
+      .catch((err) => fail(err.message));
+  }
+</script>
+</body>
+</html>

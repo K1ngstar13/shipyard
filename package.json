@@ -1,0 +1,22 @@
+{
+  "name": "shipyard",
+  "private": true,
+  "type": "module",
+  "description": "Upload HTML games and ship them to the App Store and Google Play",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "preflight": "node scripts/preflight.mjs",
+    "assets": "node scripts/store-assets.mjs",
+    "prepare-app": "node scripts/prepare-app.mjs",
+    "site": "node scripts/build-site.mjs",
+    "preview": "node scripts/build-site.mjs all && node scripts/serve.mjs",
+    "serve": "node scripts/serve.mjs",
+    "icon": "node scripts/make-icon.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.63.0",
+    "sharp": "0.35.4"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "companyName": "King Games",
+  "bundlePrefix": "com.kinggames",
+  "language": "en-US",
+  "siteUrl": "https://your-shipyard-site.pages.dev",
+  "contactEmail": "you@example.com",
+  "appleTeamId": "ABCDE12345",
+  "matchGitUrl": "https://github.com/K1ngstar13/shipyard-certs.git",
+  "review": {
+    "firstName": "King",
+    "lastName": "YourLastName",
+    "phone": "+1 541 555 0100",
+    "email": "you@example.com"
+  }
+}

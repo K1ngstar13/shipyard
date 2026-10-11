@@ -1,0 +1,210 @@
+# Shipyard fastlane lanes. Run by .github/workflows/ship.yml:
+#   bundle exec fastlane ios ship
+#   bundle exec fastlane android ship
+# Required env: GAME, DESTINATION, BUILD_NUMBER, SHIPYARD_ROOT (plus store secrets).
+require "json"
+require "fileutils"
+
+opt_out_usage
+skip_docs
+
+ROOT = ENV["SHIPYARD_ROOT"] || File.expand_path("..", Dir.pwd)
+
+def slug
+  ENV.fetch("GAME")
+end
+
+def game
+  @game ||= JSON.parse(File.read(File.join(ROOT, "games", slug, "game.json")))
+end
+
+def shipyard_config
+  @shipyard_config ||= JSON.parse(File.read(File.join(ROOT, "shipyard.config.json")))
+end
+
+def build_dir
+  File.join(ROOT, "build", slug)
+end
+
+def destination
+  ENV.fetch("DESTINATION", "testers")
+end
+
+def build_number
+  ENV.fetch("BUILD_NUMBER")
+end
+
+def app_version
+  game["version"] || "1.0.0"
+end
+
+def ensure_bundle_id(identifier, name)
+  return if Spaceship::ConnectAPI::BundleId.find(identifier)
+
+  UI.message("Registering bundle ID #{identifier} with Apple")
+  Spaceship::ConnectAPI::BundleId.create(
+    name: "Shipyard #{name}".gsub(/[^A-Za-z0-9 ]/, "").strip,
+    platform: "IOS",
+    identifier: identifier
+  )
+rescue StandardError => e
+  UI.user_error!("Couldn't register bundle ID #{identifier} (#{e.message}). " \
+                 "Register it at developer.apple.com > Certificates, IDs & Profiles > Identifiers, then run Ship again.")
+end
+
+platform :ios do
+  desc "Build, sign, and send a game to TestFlight or App Store review"
+  lane :ship do
+    bundle_id = game.fetch("bundleId")
+    ios_dir = File.join(build_dir, "app", "ios", "App")
+    project = File.join(ios_dir, "App.xcodeproj")
+    workspace = File.join(ios_dir, "App.xcworkspace")
+    UI.user_error!("No iOS project at #{project}. The prepare step didn't run.") unless File.exist?(project)
+
+    setup_ci
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_content: ENV.fetch("ASC_KEY_P8"),
+      duration: 1200,
+      in_house: false
+    )
+
+    ensure_bundle_id(bundle_id, game.fetch("name"))
+
+    app = Spaceship::ConnectAPI::App.find(bundle_id)
+    if app.nil? && destination != "build-only"
+      UI.user_error!(
+        "#{game['name']} isn't in App Store Connect yet. Create it once: App Store Connect > Apps > + > New App, " \
+        "choose bundle ID #{bundle_id} and SKU #{slug}. Then run Ship again."
+      )
+    end
+
+    team_id = shipyard_config.fetch("appleTeamId")
+    match(
+      type: "appstore",
+      app_identifier: bundle_id,
+      api_key: api_key,
+      team_id: team_id,
+      git_url: shipyard_config.fetch("matchGitUrl"),
+      git_basic_authorization: ENV.fetch("MATCH_GIT_BASIC_AUTHORIZATION"),
+      readonly: false
+    )
+    profile_name = ENV.fetch("sigh_#{bundle_id}_appstore_profile-name")
+
+    update_code_signing_settings(
+      path: project,
+      use_automatic_signing: false,
+      team_id: team_id,
+      targets: ["App"],
+      build_configurations: ["Release"],
+      code_sign_identity: "Apple Distribution",
+      profile_name: profile_name,
+      bundle_identifier: bundle_id
+    )
+
+    build_options = {
+      scheme: "App",
+      configuration: "Release",
+      clean: true,
+      output_directory: File.join(build_dir, "out"),
+      output_name: "#{slug}.ipa",
+      export_method: "app-store",
+      export_options: { signingStyle: "manual", provisioningProfiles: { bundle_id => profile_name } },
+      # iPhone-only keeps screenshot requirements to one size; iPads still run it.
+      xcargs: "MARKETING_VERSION=#{app_version} CURRENT_PROJECT_VERSION=#{build_number} TARGETED_DEVICE_FAMILY=1"
+    }
+    if File.exist?(workspace)
+      build_options[:workspace] = workspace
+    else
+      build_options[:project] = project
+    end
+    ipa = build_app(build_options)
+
+    case destination
+    when "build-only"
+      UI.success("Built #{File.basename(ipa)}. Download it from the run's ios-build artifact.")
+    when "testers", "closed-test"
+      upload_to_testflight(api_key: api_key, ipa: ipa, skip_waiting_for_build_processing: true)
+      UI.success("Uploaded #{game['name']} #{app_version} (#{build_number}) to TestFlight. " \
+                 "It appears for testers once Apple finishes processing.")
+    when "review"
+      metadata_path = File.join(build_dir, "store", "apple", "metadata")
+      live_version = begin
+        app.get_live_app_store_version
+      rescue StandardError
+        nil
+      end
+      if live_version.nil?
+        # Apple doesn't allow "What's New" text on a game's first version.
+        FileUtils.rm_f(File.join(metadata_path, shipyard_config.fetch("language", "en-US"), "release_notes.txt"))
+      end
+
+      upload_to_app_store(
+        api_key: api_key,
+        ipa: ipa,
+        app_version: app_version,
+        metadata_path: metadata_path,
+        screenshots_path: File.join(build_dir, "store", "apple", "screenshots"),
+        overwrite_screenshots: true,
+        force: true,
+        submit_for_review: true,
+        automatic_release: true,
+        run_precheck_before_submit: false,
+        precheck_include_in_app_purchases: false,
+        submission_information: {
+          add_id_info_uses_idfa: false,
+          content_rights_contains_third_party_content: false
+        }
+      )
+      UI.success("Submitted #{game['name']} #{app_version} for App Store review.")
+    else
+      UI.user_error!("Unknown destination: #{destination}")
+    end
+  end
+end
+
+platform :android do
+  desc "Build, sign, and send a game to a Google Play track"
+  lane :ship do
+    android_dir = File.join(build_dir, "app", "android")
+    UI.user_error!("No Android project at #{android_dir}. The prepare step didn't run.") unless File.exist?(File.join(android_dir, "gradlew"))
+
+    gradle(task: "bundle", build_type: "Release", project_dir: android_dir, print_command: false)
+    aab = lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH]
+    out_dir = File.join(build_dir, "out")
+    FileUtils.mkdir_p(out_dir)
+    FileUtils.cp(aab, File.join(out_dir, "#{slug}.aab"))
+
+    track = { "testers" => "internal", "closed-test" => "alpha", "review" => "production" }[destination]
+    if track.nil?
+      UI.success("Built #{slug}.aab. Download it from the run's android-build artifact.")
+      next
+    end
+
+    params = {
+      package_name: game.fetch("bundleId"),
+      aab: aab,
+      track: track,
+      release_status: "completed",
+      json_key_data: ENV.fetch("PLAY_JSON_KEY"),
+      metadata_path: File.join(build_dir, "store", "google"),
+      sync_image_upload: true,
+      skip_upload_apk: true
+    }
+
+    begin
+      upload_to_play_store(params)
+    rescue StandardError => e
+      raise unless e.message.to_s =~ /draft app/i
+
+      UI.important("This game is still a draft in Play Console, so the release is saved as a draft. " \
+                   "Finish the Play Console setup tasks, then roll out the release once by hand.")
+      upload_to_play_store(params.merge(release_status: "draft"))
+    end
+
+    label = { "internal" => "internal testing", "alpha" => "closed testing", "production" => "production review" }[track]
+    UI.success("Sent #{game['name']} #{app_version} (#{build_number}) to Google Play #{label}.")
+  end
+end

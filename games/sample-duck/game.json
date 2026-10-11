@@ -1,0 +1,38 @@
+{
+  "name": "Sample Duck",
+  "bundleId": "com.kinggames.sampleduck",
+  "version": "1.0.0",
+  "orientation": "portrait",
+  "backgroundColor": "#8FD3F4",
+  "appleSubcategory": "GAMES_CASUAL",
+  "screenshots": [
+    {
+      "wait": 1800
+    },
+    {
+      "tap": [
+        0.5,
+        0.62
+      ],
+      "wait": 1200
+    },
+    {
+      "tap": [
+        0.5,
+        0.62
+      ],
+      "wait": 1200
+    },
+    {
+      "tap": [
+        0.5,
+        0.86
+      ],
+      "wait": 1000
+    }
+  ],
+  "pricing": {
+    "model": "free",
+    "price": "0"
+  }
+}

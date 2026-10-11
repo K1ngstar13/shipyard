@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support</title>
+<style>
+  body { margin: 0; background: #F3F6FB; color: #172340; font: 17px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+  main { max-width: 680px; margin: 0 auto; padding: 48px 20px 64px; }
+  h1 { font-size: 40px; line-height: 1.05; margin: 0 0 8px; }
+  h2 { font-size: 21px; margin: 32px 0 6px; }
+  p, li { max-width: 64ch; }
+  .muted { color: #52607C; }
+  a { color: #2E5BBA; }
+</style>
+<script src="site-config.js"></script>
+</head>
+<body>
+<main>
+  <h1>Support</h1>
+  <p class="muted">Help for games by <span data-company></span>.</p>
+
+  <h2>Contact us</h2>
+  <p>Email <a data-email></a> with the game's name, your device model, and what happened. We usually reply within two business days.</p>
+
+  <h2>Common fixes</h2>
+  <ul>
+    <li><strong>No sound:</strong> check that your phone isn't on silent and the volume is up, then reopen the game.</li>
+    <li><strong>Game looks stuck:</strong> close the game fully and open it again. Your progress is saved on your device.</li>
+    <li><strong>Lost progress after reinstalling:</strong> progress is stored on the device, so uninstalling a game removes it.</li>
+  </ul>
+
+  <h2>Privacy</h2>
+  <p>Read our <a href="privacy.html">privacy policy</a>.</p>
+</main>
+<script>
+  const site = window.SHIPYARD_SITE || {};
+  document.querySelectorAll('[data-company]').forEach((el) => { el.textContent = site.company || 'us'; });
+  document.querySelectorAll('[data-email]').forEach((el) => { el.textContent = site.email; el.href = 'mailto:' + site.email; });
+</script>
+</body>
+</html>

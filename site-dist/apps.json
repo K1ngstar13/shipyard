@@ -1,0 +1,26 @@
+{
+  "publisher": "King Games",
+  "generated": "2026-10-11T16:03:32.017Z",
+  "apps": [
+    {
+      "slug": "sample-duck",
+      "name": "Sample Duck",
+      "version": "1.0.0",
+      "tagline": "Tap a duck. Watch a pond.",
+      "launch": "/play.html?g=sample-duck",
+      "direct": "/apps/sample-duck/index.html",
+      "manifest": "/apps/sample-duck/app.webmanifest",
+      "icon": "/apps/sample-duck/icon-512.png",
+      "previews": [
+        "/apps/sample-duck/previews/apple-01.jpg",
+        "/apps/sample-duck/previews/apple-02.jpg",
+        "/apps/sample-duck/previews/apple-03.jpg"
+      ],
+      "backgroundColor": "#8FD3F4",
+      "orientation": "portrait",
+      "category": "GAMES_CASUAL",
+      "price": "Free",
+      "bundleId": "com.kinggames.sampleduck"
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13213B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Apps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="site-config.js"></script>
+<style>
+  :root {
+    --board: #13213B; --row: #1B2D4D; --line: #2C4270; --amber: #FFB43A; --sky: #B9CCEE;
+    --display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+    --body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100dvh; background: var(--board); color: #EEF3FF; font: 16px/1.45 var(--body);
+    padding: calc(20px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  header { margin-bottom: 26px; }
+  .publisher { color: var(--sky); font-weight: 600; font-size: 14px; }
+  h1 { margin: 4px 0 0; font-family: var(--display); font-weight: 800; color: var(--amber); font-size: clamp(50px, 15vw, 76px); line-height: .9; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .app {
+    display: grid; gap: 10px; justify-items: center; text-align: center; text-decoration: none; color: inherit;
+    background: var(--row); border: 1px solid var(--line); border-radius: 18px; padding: 18px 12px 16px;
+  }
+  .app:hover { background: #223760; }
+  .app:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+  .app img, .app .fallback {
+    width: 88px; height: 88px; border-radius: 22px; background: #0B1528; display: grid; place-items: center;
+    font-family: var(--display); font-size: 38px; color: var(--amber); box-shadow: 0 8px 20px rgba(0,0,0,.35);
+  }
+  .app strong { font-family: var(--display); font-weight: 700; font-size: 23px; line-height: 1; }
+  .app span { color: var(--sky); font-size: 13px; }
+  .empty, .error { border: 1px dashed var(--line); border-radius: 16px; padding: 24px; color: var(--sky); }
+  .error { border-style: solid; border-color: rgba(255,107,91,.5); color: #FFD3CD; }
+  footer { margin-top: 28px; color: var(--sky); font-size: 13px; }
+  footer a { color: var(--sky); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="publisher" id="publisher"></div>
+    <h1>Apps</h1>
+  </header>
+  <div id="grid" class="grid"></div>
+  <footer>
+    <p id="tip">Tap an app to play it. On your phone, open one and use Add to Home Screen to give it its own icon.</p>
+    <p><a href="privacy.html">Privacy</a> · <a href="support.html">Support</a></p>
+  </footer>
+</div>
+<script>
+  const grid = document.getElementById('grid');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  fetch('apps.json', { cache: 'no-store' })
+    .then((r) => { if (!r.ok) throw new Error('apps.json is missing. Run the site build.'); return r.json(); })
+    .then((data) => {
+      document.getElementById('publisher').textContent = data.publisher || '';
+      if (data.publisher) document.title = `${data.publisher} apps`;
+      if (!data.apps.length) {
+        grid.outerHTML = '<div class="empty">No apps built yet. Add a game in the control panel, then run the site build.</div>';
+        return;
+      }
+      grid.innerHTML = data.apps.map((app) => `
+        <a class="app" href="${esc(app.launch)}">
+          ${app.icon ? `<img src="${esc(app.icon)}" alt="">` : `<span class="fallback">${esc((app.name || '?')[0])}</span>`}
+          <strong>${esc(app.name)}</strong>
+          <span>${esc(app.version)} · ${esc(app.price)}</span>
+        </a>`).join('');
+    })
+    .catch((err) => { grid.outerHTML = `<div class="error">${esc(err.message)}</div>`; });
+</script>
+</body>
+</html>
