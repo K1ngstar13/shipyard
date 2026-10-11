@@ -1,0 +1,1 @@
+board,deck,turn,offline,relax,casual,quiet,simple,daily

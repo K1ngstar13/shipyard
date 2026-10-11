@@ -1,0 +1,38 @@
+{
+  "name": "Block Pals",
+  "bundleId": "elevatr.llc.blockpals",
+  "version": "1.0.0",
+  "orientation": "portrait",
+  "backgroundColor": "#17102B",
+  "appleSubcategory": "GAMES_BOARD",
+  "pricing": {
+    "model": "paid",
+    "price": "0.99"
+  },
+  "screenshots": [
+    {
+      "wait": 2500
+    },
+    {
+      "tap": [
+        0.5,
+        0.62
+      ],
+      "wait": 2000
+    },
+    {
+      "tap": [
+        0.5,
+        0.5
+      ],
+      "wait": 2000
+    },
+    {
+      "tap": [
+        0.5,
+        0.5
+      ],
+      "wait": 2000
+    }
+  ]
+}
