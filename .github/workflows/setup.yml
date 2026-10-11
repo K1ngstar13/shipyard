@@ -1,0 +1,65 @@
+name: One-time setup
+run-name: One-time setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      replace_android_key:
+        description: Make a NEW Android upload key. Only use this after Google approves an upload key reset.
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Create signing secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create missing secrets
+        env:
+          GH_TOKEN: ${{ secrets.SHIPYARD_TOKEN }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          REPLACE_KEY: ${{ inputs.replace_android_key }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::Add the SHIPYARD_TOKEN secret first (docs/SETUP.md, step 3)."
+            exit 1
+          fi
+
+          existing=$(gh secret list --repo "$REPO" --json name --jq '.[].name')
+          has() { echo "$existing" | grep -qx "$1"; }
+
+          if has MATCH_PASSWORD; then
+            echo "✔ MATCH_PASSWORD already exists, kept it."
+          else
+            openssl rand -base64 30 | tr -d '\n' | gh secret set MATCH_PASSWORD --repo "$REPO"
+            echo "✔ Created MATCH_PASSWORD (encrypts your Apple certificates)."
+          fi
+
+          if has ANDROID_KEYSTORE_BASE64 && [ "$REPLACE_KEY" != "true" ]; then
+            echo "✔ Android upload key already exists, kept it."
+          else
+            pass=$(openssl rand -hex 24)
+            echo "::add-mask::$pass"
+            keystore="$RUNNER_TEMP/upload.keystore"
+            keytool -genkeypair -storetype PKCS12 -keystore "$keystore" -alias upload \
+              -keyalg RSA -keysize 4096 -validity 10000 \
+              -storepass "$pass" -keypass "$pass" -dname "CN=Shipyard Upload Key, O=$OWNER"
+            base64 -w0 "$keystore" | gh secret set ANDROID_KEYSTORE_BASE64 --repo "$REPO"
+            printf '%s' "$pass" | gh secret set ANDROID_KEYSTORE_PASSWORD --repo "$REPO"
+            mkdir -p cert
+            keytool -exportcert -rfc -alias upload -keystore "$keystore" -storepass "$pass" > cert/upload_certificate.pem
+            rm -f "$keystore"
+            echo "✔ Created the Android upload key and saved it as a secret."
+          fi
+
+      - name: Save public upload certificate
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-upload-certificate
+          path: cert/upload_certificate.pem
+          if-no-files-found: ignore
