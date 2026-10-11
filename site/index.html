@@ -119,8 +119,10 @@
   .progress { margin-top: 10px; color: var(--ink-soft); font-size: 14px; min-height: 20px; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 14px; }
 
-  .phone { width: 258px; height: 540px; margin: 0 auto 8px; border-radius: 32px; border: 7px solid #1B2D4D; overflow: hidden; background: #000; }
-  .phone iframe { width: 100%; height: 100%; border: 0; display: block; }
+  /* The frame runs the game at a real 390x844 phone viewport and scales the result
+     down, so games see a phone-sized screen instead of a cramped 258px one. */
+  .phone { width: 258px; height: 558px; margin: 0 auto 8px; border-radius: 32px; border: 7px solid #1B2D4D; overflow: hidden; background: #000; }
+  .phone iframe { width: 390px; height: 844px; border: 0; display: block; transform: scale(0.6615); transform-origin: top left; }
   .phone-note { text-align: center; color: var(--ink-soft); font-size: 13px; margin: 0 0 18px; }
   .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin-bottom: 8px; }
   .thumbs img, .wide img { width: 100%; border-radius: 8px; border: 1px solid #CFD8E7; background: #fff; display: block; }
@@ -272,8 +274,8 @@
 
       <div id="iconStudio" hidden>
         <div class="icon-top">
-          <figure class="icon-hero"><img id="iconSquare" alt="App icon"><figcaption>Store</figcaption></figure>
-          <figure class="icon-hero"><img id="iconRound" alt=""><figcaption>Home screen</figcaption></figure>
+          <figure class="icon-hero"><img id="iconSquare" alt="App icon" hidden><figcaption>Store</figcaption></figure>
+          <figure class="icon-hero"><img id="iconRound" alt="" hidden><figcaption>Home screen</figcaption></figure>
           <div class="icon-meta">
             <p class="hint" id="iconHint">Pick an idea below, then adjust it.</p>
             <div class="icon-actions">
@@ -1036,6 +1038,10 @@
     icon.marks = [];
     icon.palette = [];
     icon.choice = null;
+    $('#iconSquare').hidden = true;
+    $('#iconRound').hidden = true;
+    $('#iconSquare').removeAttribute('src');
+    $('#iconRound').removeAttribute('src');
     $('#iconIntro').hidden = false;
     $('#iconStudio').hidden = true;
     $('#iconIdeas').innerHTML = '';
@@ -1099,7 +1105,25 @@
     return picked;
   }
 
-  const mix = (hex, target, amount) => {
+  /** Games report colours as rgb(); canvas gradients need hex. */
+  function toHex(value, fallback = '#1B2D4D') {
+    if (!value) return fallback;
+    const text = String(value).trim();
+    if (/^#[0-9a-f]{6}$/i.test(text)) return text.toLowerCase();
+    if (/^#[0-9a-f]{3}$/i.test(text)) return '#' + text.slice(1).split('').map((c) => c + c).join('').toLowerCase();
+    const rgb = text.match(/rgba?\(([^)]+)\)/i);
+    if (rgb) {
+      const parts = rgb[1].split(',').map((n) => parseFloat(n));
+      if (parts.length >= 3 && parts.slice(0, 3).every((n) => Number.isFinite(n))) {
+        if (parts[3] === 0) return fallback; // fully transparent tells us nothing
+        return '#' + parts.slice(0, 3).map((n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0')).join('');
+      }
+    }
+    return fallback;
+  }
+
+  const mix = (rawHex, target, amount) => {
+    const hex = toHex(rawHex);
     const channel = (i) => {
       const a = parseInt(hex.substr(i, 2), 16);
       const b = parseInt(target.substr(i, 2), 16);
@@ -1107,7 +1131,8 @@
     };
     return '#' + channel(1) + channel(3) + channel(5);
   };
-  const isLight = (hex) => {
+  const isLight = (rawHex) => {
+    const hex = toHex(rawHex);
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.substr(i, 2), 16));
     return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.55;
   };
@@ -1118,7 +1143,7 @@
     canvas.width = ICON_SIZE;
     canvas.height = ICON_SIZE;
     const ctx = canvas.getContext('2d');
-    const base = background || '#1B2D4D';
+    const base = toHex(background, toHex($('#fColor').value));
 
     if (style === 'playful') {
       const glow = ctx.createRadialGradient(ICON_SIZE / 2, ICON_SIZE * 0.42, 40, ICON_SIZE / 2, ICON_SIZE * 0.5, ICON_SIZE * 0.75);
@@ -1184,6 +1209,8 @@
     icon.dataUrl = made.dataUrl;
     $('#iconSquare').src = made.dataUrl;
     $('#iconRound').src = made.dataUrl;
+    $('#iconSquare').hidden = false;
+    $('#iconRound').hidden = false;
   }
 
   function renderSwatches() {
@@ -1236,14 +1263,15 @@
 
       // Always offer a crop of the whole screen and a plain initials tile.
       if (found.screen) {
-        try { marks.push({ img: await loadImage(found.screen), label: 'This screen' }); } catch { /* ignore */ }
+        try { marks.push({ img: await loadImage(found.screen), label: 'Title area' }); } catch { /* ignore */ }
       }
       const initials = ($('#fName').value.trim() || 'App').split(/[\s-]+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
       marks.push({ glyph: initials, label: 'Initials' });
 
       icon.marks = marks;
       icon.palette = paletteFrom(marks.filter((m) => m.img).map((m) => m.img));
-      if (!icon.palette.length) icon.palette = [found.background || $('#fColor').value];
+      icon.palette = icon.palette.map((hex) => toHex(hex));
+      if (!icon.palette.length) icon.palette = [toHex(found.background, $('#fColor').value)];
       icon.choice = { markIndex: 0, background: icon.palette[0] };
 
       $('#iconIntro').hidden = true;
@@ -1251,9 +1279,12 @@
       await applyChoice({});
       await renderIdeas();
       renderSwatches();
+      const noCrop = !found.screen;
       $('#iconHint').textContent = marks.length > 2
         ? `Found ${marks.length} things worth using. Pick one, then adjust the style, colour, and size.`
-        : "Not much artwork on this screen. Play the preview to your title screen and look again, or adjust what's here.";
+        : noCrop
+          ? "Only found loose artwork — a crop of the screen itself failed, which happens with newer CSS colour syntax. Pick what's here, or upload your own PNG on step 1."
+          : "Not much artwork on this screen. Play the preview to your title screen and look again, or adjust what's here.";
     } catch (err) {
       button.textContent = 'Design an icon from this game';
       button.disabled = false;
