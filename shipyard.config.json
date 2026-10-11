@@ -1,15 +1,15 @@
 {
-  "companyName": "King Games",
-  "bundlePrefix": "com.kinggames",
+  "companyName": "Elevatr LLC",
+  "bundlePrefix": "elevatr.llc",
   "language": "en-US",
-  "siteUrl": "https://your-shipyard-site.pages.dev",
-  "contactEmail": "you@example.com",
-  "appleTeamId": "ABCDE12345",
+  "siteUrl": "https://elevatr.llc",
+  "contactEmail": "king@elevatr.llc",
+  "appleTeamId": "NCK8U6BV97",
   "matchGitUrl": "https://github.com/K1ngstar13/shipyard-certs.git",
   "review": {
-    "firstName": "King",
-    "lastName": "YourLastName",
-    "phone": "+1 541 555 0100",
-    "email": "you@example.com"
+    "firstName": "Ryan",
+    "lastName": "King",
+    "phone": "+15417401990",
+    "email": "king@elevatr.llc"
   }
 }
