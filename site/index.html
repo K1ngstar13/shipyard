@@ -605,10 +605,12 @@
     try {
       await gh(repoPath());
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(S));
+      state.demo = false;
       state.config = null;
       $('#connectSheet').close();
       toast('Connected');
-      loadBoard();
+      await loadBoard();
+      offerDemoDetails();
     } catch (err) {
       Object.assign(S, prev);
       box.hidden = false; box.textContent = explain(err);
@@ -624,6 +626,16 @@
   };
 
   // ---------- Publisher ----------
+  const PROFILE_DRAFT_KEY = 'shipyard.profileDraft';
+  const PROFILE_FIELDS = ['pCompany', 'pPrefix', 'pSite', 'pEmail', 'pFirst', 'pLast', 'pPhone', 'pTeam', 'pCerts'];
+
+  function saveProfileDraft() {
+    const draft = Object.fromEntries(PROFILE_FIELDS.map((id) => [id, $('#' + id).value]));
+    if (PROFILE_FIELDS.every((id) => !draft[id].trim())) return;
+    try { localStorage.setItem(PROFILE_DRAFT_KEY, JSON.stringify(draft)); } catch { /* ignore */ }
+  }
+  const clearProfileDraft = () => { try { localStorage.removeItem(PROFILE_DRAFT_KEY); } catch { /* ignore */ } };
+
   function openProfile() {
     if (!usable()) { openConnect(); return; }
     const c = state.config || {};
@@ -637,11 +649,20 @@
     $('#pPhone').value = r.phone || '';
     $('#pTeam').value = c.appleTeamId || '';
     $('#pCerts').value = c.matchGitUrl || '';
+    let draft = null;
+    try { draft = JSON.parse(localStorage.getItem(PROFILE_DRAFT_KEY) || 'null'); } catch { /* ignore */ }
+    if (draft) PROFILE_FIELDS.forEach((id) => { if (draft[id]) $('#' + id).value = draft[id]; });
+
     $('#profileErrors').hidden = true;
-    $('#profileProgress').textContent = '';
+    $('#profileProgress').textContent = connected()
+      ? (draft ? 'Picked up where you left off.' : '')
+      : 'Not connected, so Save keeps these on this device only.';
+    $('#profileSave').textContent = connected() ? 'Save publisher details' : 'Save on this device';
     $('#profileSheet').showModal();
   }
   $('#profileBtn').onclick = openProfile;
+  PROFILE_FIELDS.forEach((id) => $('#' + id).addEventListener('input', saveProfileDraft));
+  $('#profileSheet').addEventListener('close', saveProfileDraft);
 
   $('#profileSave').onclick = async () => {
     const next = {
@@ -666,7 +687,7 @@
     box.hidden = true;
 
     const btn = $('#profileSave');
-    if (state.demo) {
+    if (!connected()) {
       localStorage.setItem(DEMO_CONFIG_KEY, JSON.stringify(next));
       state.config = next;
       $('#profileSheet').close();
@@ -685,13 +706,27 @@
         onProgress: (t) => { $('#profileProgress').textContent = t; },
       });
       state.config = next;
+      clearProfileDraft();
       $('#profileProgress').textContent = '';
       $('#profileSheet').close();
-      toast('Publisher details saved');
+      toast('Publisher details saved to your repo');
     } catch (err) {
       $('#profileProgress').textContent = explain(err);
     } finally { btn.disabled = false; }
   };
+
+  /** Publisher details typed during the demo aren't lost when you connect. */
+  function offerDemoDetails() {
+    let saved;
+    try { saved = JSON.parse(localStorage.getItem(DEMO_CONFIG_KEY) || 'null'); } catch { return; }
+    if (!saved || !saved.companyName) return;
+    const live = state.config || {};
+    const placeholder = !live.companyName || /example\.com|ABCDE12345|your-shipyard-site/.test(JSON.stringify(live));
+    if (!placeholder) return;
+    state.config = { ...live, ...saved };
+    openProfile();
+    $('#profileProgress').textContent = 'These are the details you entered before connecting. Press Save to put them in your repo.';
+  }
 
   // ---------- Reading an upload ----------
   let jszipPromise;
@@ -1663,7 +1698,13 @@
 
   // ---------- Wiring ----------
   $$('[data-close]').forEach((b) => { b.onclick = () => b.closest('dialog').close(); });
-  $$('dialog.sheet').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+  $$('dialog.sheet').forEach((dialog) => {
+    // A drag that starts in a field and ends over the backdrop is still a click on the
+    // backdrop, which used to close the sheet and throw away whatever was typed.
+    let pressedBackdrop = false;
+    dialog.addEventListener('mousedown', (e) => { pressedBackdrop = e.target === dialog; });
+    dialog.addEventListener('click', (e) => { if (e.target === dialog && pressedBackdrop) dialog.close(); pressedBackdrop = false; });
+  });
   $('#wizardSheet').addEventListener('close', clearPreview);
   $('#settingsBtn').onclick = openConnect;
   $('#refreshBtn').onclick = loadBoard;
