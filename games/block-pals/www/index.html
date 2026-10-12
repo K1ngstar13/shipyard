@@ -6,13 +6,15 @@
 <meta name="theme-color" content="#17102b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="description" content="Block Pals — a block puzzle where every level you clear feeds a pet.">
-<title>Block Pals</title>
+<meta name="description" content="Block Pets — a block puzzle where every level you clear feeds a pet.">
+<title>Block Pets</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23241a3d'/%3E%3Crect x='10' y='10' width='20' height='20' rx='5' fill='%23ff5d73'/%3E%3Crect x='34' y='10' width='20' height='20' rx='5' fill='%23ffd93d'/%3E%3Crect x='10' y='34' width='20' height='20' rx='5' fill='%233ddbb0'/%3E%3Ctext x='44' y='51' font-size='22' text-anchor='middle'%3E%F0%9F%A6%86%3C/text%3E%3C/svg%3E">
 <style>
+/* Original block lettering, embedded so the title also works offline. */
+@font-face{font-family:'Block Pets Logo';src:url(data:font/woff;base64,d09GRgABAAAAAAQkAAoAAAAACCgAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAABZAAAAC0AAABgRpBEUWNtYXAAAAGoAAAAfAAAAKQEDAS8Z2x5ZgAAAjwAAADwAAAEEH8bXppoZWFkAAAA9AAAADYAAAA2L1InkGhoZWEAAAEsAAAAHwAAACQFegHGaG10eAAAAZQAAAAUAAAAHAbWASxsb2NhAAACJAAAABgAAAAYBLsF/m1heHAAAAFMAAAAGAAAACAAGQA2bmFtZQAAAywAAADUAAABfZ1CcShwb3N0AAAEAAAAACIAAAA4AM8A4wABAAAAAQAAVRn28F8PPPUAAwPoAAAAAObx8foAAAAA5vHx+gAyAAACJgK8AAAAAwACAAAAAAAAeJxjYGRgYFb4b8HAwBTBYMRgxKTGABRBAcwAPTMCRgB4nGNgZGBg4GYwYeBlAAEmBjQAAAfJAFB4nGNgZnJkVmBgZWBhIAwYkTn2QACkFBhKmBX+WzAwAE05gaZegYEBAJO0BGkAAAB4nGOKYDBijGNgYALS6BAALYoDCHicXY5NCoJwEMV/5Ve2ciEh8Uc8S+EqISFPYLgqMNCDdIeO4kk6yfQUVw28mTfzhjcDbAFPSJU3S/V5q2YkmuwoOFNSUdNwp+PJi9FMGwUnKReu3GilPOgZzOwLNrGGfVYyex8WZBxxYo5cHvMHAaFu+UTsif/7H680EsIAAAAAAAAASAB2AMMA8QFAAXsBqwHZAgh4nJWTTQqDMBCFXywiRUsXErrookihXVQoJHiXHsADeJSuepoewAP0KK6lE6P1L4k2kEyMMm++5wQhBOBdvDc2CBBijxgHHHHCGVfcgDhLuJ9JntDso/lMsGdd5CzN60iv82fvkTsGqAZzPVSH5IFxku4wB6vMGkC0wHq30dpiwl8sHRPO1oKlbuYFal3PlJo32k/S+GFbrMVukVpqdzs2OYmB4Ux9K1rKkiBJqP6UZRP0Ab1b4lbkW0d1zt7rnDD3nBp2+bV+j/eCVdrvTsHeaX//T01SkXn9sCRflVv1B2/3/qBXyKHccQ/xBXEN5914nH2PwYrCMBRFT7U6iDKzUnfS9UDE7lwL7hTEhftSQhGLgbQK8yPzC36F/za3ToS68UGS8+579yUBRvwS0UTE12NvosOHsn/uMmUSOG719BhiAvcZs1RnFA+kzNgG7vDJKXCXOT+B41ZPT9Nvgft8c1+VLj8lO1tXycYVbm+LS5n5dWmvWe3No9oUm5pJD9ZXR3dO0vnitRJsrChx5HpGwg5LTSXaSCu09lIKLurJ8Kx1Wq7iWplpeZ/Op8+QcpDmpR2VnzUz1QcXbz0vt/0BKw4+UXicY2BiwA+4gZiZQZVBn8GIQY1Bj8GYQYPBnMEMAA/kAbMAAA==) format('woff');font-style:normal;font-weight:800;font-display:swap}
 :root{
   --ink:#241a3d; --ink-deep:#17102b; --ink-soft:#332552;
   --cream:#fff6e6; --cream-dim:#e8dcc6;
@@ -20,6 +22,7 @@
   --mint:#3ddbb0; --berry:#4aa8ff; --lemon:#ffd93d;
   --gold:#ffd93d;
   --shadow:0 6px 0 rgba(0,0,0,.32);
+  --logo:'Block Pets Logo', 'Arial Black', sans-serif;
   --display:'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
   --body:'Nunito', system-ui, -apple-system, sans-serif;
 }
@@ -70,10 +73,11 @@ button{font-family:var(--body);cursor:pointer;border:none;color:inherit;backgrou
 h1,h2,h3{font-family:var(--display);margin:0;font-weight:800;line-height:1.05}
 
 /* ---------- title ---------- */
-#home{align-items:center;justify-content:center;text-align:center;gap:6px}
+#home{align-items:center;justify-content:center;justify-content:safe center;text-align:center;gap:6px}
+#home>*{flex-shrink:0}
 .logo{margin:8px 0 2px;display:flex;gap:6px}
 .logo span{
-  font-family:var(--display);font-weight:800;font-size:clamp(34px,12vw,54px);color:#2b1c4d;
+  font-family:var(--logo);font-weight:800;font-size:clamp(34px,12vw,54px);line-height:1;color:#2b1c4d;
   background:var(--lemon);width:1.15em;height:1.15em;display:grid;place-items:center;border-radius:16px;
   box-shadow:0 7px 0 rgba(0,0,0,.35), inset 0 -6px 0 rgba(0,0,0,.12), inset 0 5px 0 rgba(255,255,255,.45);
   animation:tilt 3.4s ease-in-out infinite;
@@ -83,7 +87,12 @@ h1,h2,h3{font-family:var(--display);margin:0;font-weight:800;line-height:1.05}
 .logo span:nth-child(4){background:var(--berry);animation-delay:.45s}
 .logo span:nth-child(5){background:var(--grape);color:#fff;animation-delay:.6s}
 @keyframes tilt{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-7px) rotate(2deg)}}
-.logo2{font-family:var(--display);font-size:clamp(30px,10vw,46px);color:var(--cream);letter-spacing:1px;text-shadow:0 5px 0 rgba(0,0,0,.35)}
+.logo2{margin:8px 0 10px}
+.logo2 span{font-size:clamp(30px,10vw,46px)}
+.logo2 span:nth-child(1){background:var(--melon);animation-delay:.1s}
+.logo2 span:nth-child(2){background:var(--lemon);animation-delay:.25s}
+.logo2 span:nth-child(3){background:var(--grape);color:#fff;animation-delay:.4s}
+.logo2 span:nth-child(4){background:var(--mint);animation-delay:.55s}
 .tag{color:#c9b8ee;font-weight:600;font-size:15px;max-width:270px;margin:2px 0 14px}
 .buddy-peek{font-size:64px;filter:drop-shadow(0 10px 8px rgba(0,0,0,.45));animation:bob 2.2s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-10px) rotate(3deg)}}
@@ -238,7 +247,7 @@ canvas{touch-action:none;display:block}
 .kb kbd{background:var(--ink-soft);border-radius:6px;padding:2px 6px;font-family:var(--body);font-size:11px;
   color:#e6dcff;box-shadow:0 2px 0 #150e2a;margin:0 1px}
 .deskside{display:none;position:fixed;left:44px;top:50%;transform:translateY(-50%);width:250px;z-index:5}
-.deskside .dn{font-family:var(--display);font-weight:800;font-size:34px;line-height:1;color:var(--cream);text-shadow:0 5px 0 rgba(0,0,0,.4)}
+.deskside .dn{font-family:var(--logo);font-weight:800;font-size:34px;line-height:1;color:var(--cream);text-shadow:0 5px 0 rgba(0,0,0,.4)}
 .deskside .dt{color:#a794d0;font-size:13px;font-weight:700;margin:6px 0 18px}
 .deskside h4{font-family:var(--display);font-size:12px;letter-spacing:1.5px;color:#7e6bb0;margin:0 0 8px;text-transform:uppercase}
 .deskside li{list-style:none;font-size:12.5px;color:#c9b8ee;font-weight:700;margin-bottom:7px;display:flex;gap:8px;align-items:center}
@@ -257,7 +266,7 @@ canvas{touch-action:none;display:block}
 </head>
 <body>
 <aside class="deskside">
-  <div class="dn">BLOCK<br>PALS</div>
+  <div class="dn" aria-label="Block Pets">BLOCK<br>PETS</div>
   <div class="dt">Clear blocks. Earn coins. Feed the flock.</div>
   <h4>Mouse</h4>
   <ul>
@@ -279,8 +288,8 @@ canvas{touch-action:none;display:block}
 
   <!-- HOME -->
   <section id="home" class="screen on">
-    <div class="logo"><span>B</span><span>L</span><span>O</span><span>C</span><span>K</span></div>
-    <div class="logo2">PALS</div>
+    <div class="logo" aria-label="Block"><span>B</span><span>L</span><span>O</span><span>C</span><span>K</span></div>
+    <div class="logo logo2" aria-label="Pets"><span>P</span><span>E</span><span>T</span><span>S</span></div>
     <p class="tag">Clear blocks. Earn coins. Feed the flock.</p>
     <div class="buddy-peek" id="homePet">🦆</div>
     <button class="btn" id="bPlay">PLAY</button>
@@ -360,7 +369,7 @@ canvas{touch-action:none;display:block}
       <div class="stat" id="stClean"><span class="ic">🫧</span><div style="flex:1"><div class="lbl">Clean</div><div class="bar"><i></i></div></div><button class="care" data-care="clean">Wash 10</button></div>
     </div>
     <div class="perk" id="perkBox">—</div>
-    <h3 class="sectitle">Your pals</h3>
+    <h3 class="sectitle">Your pets</h3>
     <div class="petrow" id="petRow"></div>
     <h3 class="sectitle">Shop</h3>
     <div class="shop" id="shop"></div>
@@ -373,7 +382,7 @@ canvas{touch-action:none;display:block}
 <script>
 "use strict";
 /* =========================================================================
-   BLOCK PALS — single-file block puzzle + pet keeper
+   BLOCK PETS — single-file block puzzle + pet keeper
    ========================================================================= */
 
 /* ---------- storage (artifact storage → localStorage → memory) ---------- */
