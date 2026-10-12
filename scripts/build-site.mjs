@@ -9,6 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT, loadConfig, loadGame, fail, flatIcon, paddedIcon, cornerColor } from './lib.mjs';
+import { privacyPage } from './privacy.mjs';
 
 const target = process.argv[2] || 'all';
 if (!['apps', 'panel', 'all'].includes(target)) fail('Pass apps, panel, or all.');
@@ -27,6 +28,7 @@ const copy = (name, as = name) => {
 
 // Privacy and support go on both: the stores link to them, and they must always answer.
 copy('site-config.js');
+copy('vendor');
 copy('privacy.html');
 copy('support.html');
 
@@ -81,6 +83,9 @@ if (target === 'apps' || target === 'all') {
     };
     fs.writeFileSync(path.join(appDir, 'app.webmanifest'), JSON.stringify(manifest, null, 2));
 
+    // Each app gets its own privacy page. This is the URL the stores check.
+    fs.writeFileSync(path.join(appDir, 'privacy.html'), privacyPage(game, config));
+
     const previewsDir = path.join(game.dir, 'store', 'previews', 'thumbs');
     const previews = fs.existsSync(previewsDir)
       ? fs.readdirSync(previewsDir).filter((f) => /^apple-\d+\.jpg$/.test(f)).sort()
@@ -97,6 +102,7 @@ if (target === 'apps' || target === 'all') {
       launch: `/play.html?g=${slug}`,
       direct: `/apps/${slug}/index.html`,
       manifest: `/apps/${slug}/app.webmanifest`,
+      privacy: `/apps/${slug}/privacy.html`,
       icon: fs.existsSync(game.paths.icon) ? `/apps/${slug}/icon-512.png` : null,
       previews: previews.map((f) => `/apps/${slug}/previews/${f}`),
       backgroundColor: game.backgroundColor,
@@ -107,6 +113,31 @@ if (target === 'apps' || target === 'all') {
     });
     console.log(`✔ ${slug}`);
   }
+
+  // One page listing every app's privacy details, to link from the company site.
+  const indexRows = apps.map((app) =>
+    `    <li><a href="${app.privacy}">${app.name}</a> — ${app.price}</li>`).join('\n');
+  fs.writeFileSync(path.join(OUT, 'app-privacy.html'), `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>App privacy details</title>
+<style>body{margin:0;background:#F3F6FB;color:#172340;font:17px/1.6 system-ui,-apple-system,sans-serif}
+main{max-width:680px;margin:0 auto;padding:48px 20px}h1{font-size:38px;margin:0 0 6px}
+.muted{color:#52607C}a{color:#2E5BBA}ul{padding-left:20px}</style></head>
+<body><main><h1>App privacy details</h1>
+<p class="muted">Each app published by ${config.companyName || ''} has its own page describing exactly what that app does.</p>
+<ul>
+${indexRows}
+</ul>
+<p>Our company-wide policy is at <a href="privacy.html">privacy.html</a>.</p>
+</main></body></html>
+`);
+
+  // A paste-in block for the main company site, so elevatr.llc links to each app's page.
+  const base = (config.siteUrl || '').replace(/\/+$/, '');
+  fs.writeFileSync(path.join(OUT, 'app-privacy-links.html'),
+    `<!-- Paste into your company privacy page. Regenerated on every build. -->\n<h2>App-specific privacy details</h2>\n<p>Each app we publish has its own page describing exactly what that app does:</p>\n<ul>\n`
+    + apps.map((app) => `  <li><a href="${base}${app.privacy}">${app.name}</a></li>`).join('\n')
+    + `\n</ul>\n`);
 
   fs.writeFileSync(path.join(OUT, 'apps.json'), JSON.stringify({
     publisher: config.companyName || '',

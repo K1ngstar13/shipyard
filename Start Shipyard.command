@@ -20,19 +20,22 @@ MSG
 fi
 
 NODE_MAJOR=$(node -p "process.versions.node.split('.')[0]")
-if [ "$NODE_MAJOR" -lt 20 ]; then
+if [ "$NODE_MAJOR" -lt 22 ]; then
   printf '  Node %s is too old. Install the LTS version from https://nodejs.org and try again.\n\n' "$(node -v)"
   read -r -p "  Press return to close. " _
   exit 1
 fi
 
-if [ ! -d node_modules ]; then
+node scripts/start.mjs --stop-only
+
+if [ ! -d node_modules ] || [ ! -f node_modules/.shipyard-lock ] || ! cmp -s package-lock.json node_modules/.shipyard-lock; then
   echo "  First run, installing what Shipyard needs. This takes a minute."
-  if ! npm install --no-audit --no-fund --loglevel=error; then
+  if ! npm ci --no-audit --no-fund --loglevel=error; then
     printf '\n  That install failed. Check your internet connection and try again.\n\n'
     read -r -p "  Press return to close. " _
     exit 1
   fi
+  cp package-lock.json node_modules/.shipyard-lock
 fi
 
 echo "  Building the site…"
@@ -42,24 +45,5 @@ if ! node scripts/build-site.mjs all; then
   exit 1
 fi
 
-PORT="${PORT:-4173}"
-node scripts/serve.mjs &
-SERVER_PID=$!
-trap 'kill $SERVER_PID 2>/dev/null' EXIT INT TERM
-sleep 1
-
-open "http://localhost:${PORT}/panel.html" 2>/dev/null
-
-cat <<MSG
-
-  Shipyard is running.
-
-    Control panel   http://localhost:${PORT}/panel.html
-    Your apps       http://localhost:${PORT}/launcher.html
-
-  Leave this window open while you work.
-  Close it, or press control-C, to stop.
-
-MSG
-
-wait $SERVER_PID
+# The server opens the browser only after this release is listening.
+node scripts/start.mjs

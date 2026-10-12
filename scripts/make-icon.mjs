@@ -17,7 +17,12 @@ const game = loadGame(slug);
 const target = game.paths.icon;
 
 if (fs.existsSync(target) && !force) {
-  console.log('✔ icon.png already exists, keeping it');
+  const meta = await sharp(target).metadata();
+  if (meta.hasAlpha) {
+    const png = await sharp(target).flatten({ background: game.backgroundColor }).removeAlpha().png().toBuffer();
+    fs.writeFileSync(target, png);
+    console.log('✔ preserved app artwork and removed source-icon transparency');
+  } else console.log('✔ icon.png already exists, keeping it');
   process.exit(0);
 }
 
