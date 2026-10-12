@@ -1,3 +1,5 @@
+Read [STORE-CONNECTION.md](docs/STORE-CONNECTION.md) for the failed TestFlight run, missing keys, and recording screenshots after upgrading.
+
 # Shipyard
 
 Upload a game from your phone. Shipyard reads it, drafts the whole store listing, plays it back to you in a phone frame, captures screenshots of real gameplay, and sends it to TestFlight, Google Play, or straight into store review.

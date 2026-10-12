@@ -98,7 +98,7 @@ if (!fs.existsSync(index)) {
   if (/fonts\.(googleapis|gstatic)\.com/.test(code)) {
     warn('The game uses Google Fonts from the internet. Fonts fall back to system fonts offline; bundle the font files for a consistent look.');
   }
-  if (/http:\/\/(?!localhost|127\.0\.0\.1)/i.test(code)) {
+  if (/http:\/\/(?!localhost|127\.0\.0\.1|www\.w3\.org\/(?:2000\/svg|1999\/xhtml|1999\/xlink))/i.test(code)) {
     warn('The game references plain http:// links. iOS blocks insecure requests; use https:// or bundle the files.');
   }
   const payments = ['paypal.me', 'paypal.com', 'buymeacoffee', 'ko-fi.com', 'patreon.com', 'cash.app', 'venmo.com', 'stripe.com'];

@@ -38,6 +38,19 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Check store connection before preparing assets
+        env:
+          PLATFORMS: ${{ inputs.platforms }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          SHIPYARD_TOKEN: ${{ secrets.SHIPYARD_TOKEN }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          PLAY_JSON_KEY: ${{ secrets.PLAY_JSON_KEY }}
+        run: node scripts/check-store-secrets.mjs
+
       - name: Build number
         run: echo "BUILD_NUMBER=$(( ${{ github.run_number }} * 10 + ${{ github.run_attempt }} ))" >> "$GITHUB_ENV"
 
@@ -73,7 +86,10 @@ jobs:
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
 
-      - uses: actions/upload-artifact@v4
+      - name: Include the prepared icon in the build artifact
+        run: cp "games/$GAME/icon.png" "build/$GAME/store/app-icon.png"
+
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: store-assets
           path: build/${{ inputs.game }}/store
@@ -125,10 +141,13 @@ jobs:
 
       - run: npm ci
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: store-assets
           path: build/${{ inputs.game }}/store
+
+      - name: Use the prepared app icon
+        run: cp "build/$GAME/store/app-icon.png" "games/$GAME/icon.png"
 
       - name: Create Android project
         run: node scripts/prepare-app.mjs "$GAME" android
@@ -148,7 +167,7 @@ jobs:
           ANDROID_KEY_ALIAS: upload
         run: bundle exec fastlane android ship
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: android-build
@@ -204,10 +223,13 @@ jobs:
 
       - run: npm ci
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: store-assets
           path: build/${{ inputs.game }}/store
+
+      - name: Use the prepared app icon
+        run: cp "build/$GAME/store/app-icon.png" "games/$GAME/icon.png"
 
       - name: Create iOS project
         run: node scripts/prepare-app.mjs "$GAME" ios
@@ -221,7 +243,7 @@ jobs:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
         run: bundle exec fastlane ios ship
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ios-build

@@ -33,6 +33,7 @@
 
   .top { display: flex; align-items: center; gap: 8px; padding: 14px 0 0; }
   .brand { font-weight: 700; color: var(--sky); margin-right: auto; }
+  .ver { font-weight: 500; color: #6F86B4; font-size: 13px; margin-left: 4px; }
   .icon-btn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--sky); }
   .icon-btn:hover { background: var(--row); }
   .icon-btn svg { width: 20px; height: 20px; }
@@ -77,9 +78,12 @@
   .sheet .sub { margin: 6px 0 0; color: var(--ink-soft); font-size: 14px; overflow-wrap: anywhere; }
   .close { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--paper-2); color: var(--ink); font-size: 22px; }
 
-  .steps { display: flex; gap: 6px; margin-bottom: 16px; }
-  .steps div { flex: 1; height: 4px; border-radius: 2px; background: #CFD8E7; }
-  .steps div.done { background: var(--ink); }
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+  .steps button { min-height: 36px; border: 1px solid #C9D3E5; border-radius: 9px; background: #fff; color: var(--ink-soft); font-size: 12px; padding: 6px 3px; }
+  .steps button[aria-current=step] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .steps button:disabled { opacity: .45; cursor: default; }
+  .wizard-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 14px; }
+  .wizard-tools .hint { flex: 1; min-width: 140px; }
   .step-label { font-weight: 600; color: var(--ink-soft); font-size: 13px; margin: 0 0 16px; }
 
   .field { display: grid; gap: 6px; margin-bottom: 16px; }
@@ -119,10 +123,10 @@
   .progress { margin-top: 10px; color: var(--ink-soft); font-size: 14px; min-height: 20px; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 14px; }
 
-  /* The frame runs the game at a real 390x844 phone viewport and scales the result
+  /* The frame runs the game at a real 430x932 phone viewport and scales the result
      down, so games see a phone-sized screen instead of a cramped 258px one. */
-  .phone { width: 258px; height: 558px; margin: 0 auto 8px; border-radius: 32px; border: 7px solid #1B2D4D; overflow: hidden; background: #000; }
-  .phone iframe { width: 390px; height: 844px; border: 0; display: block; transform: scale(0.6615); transform-origin: top left; }
+  .phone { width: 258px; height: 543px; margin: 0 auto 8px; border-radius: 32px; border: 7px solid #1B2D4D; overflow: hidden; background: #000; }
+  .phone iframe { width: 430px; height: 932px; border: 0; display: block; transform: scale(0.567442); transform-origin: top left; }
   .phone-note { text-align: center; color: var(--ink-soft); font-size: 13px; margin: 0 0 18px; }
   .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin-bottom: 8px; }
   .thumbs img, .wide img { width: 100%; border-radius: 8px; border: 1px solid #CFD8E7; background: #fff; display: block; }
@@ -138,6 +142,15 @@
   .idea img { width: 100%; aspect-ratio: 1; border-radius: 12px; border: 1px solid #CFD8E7; display: block; }
   .idea span { font-size: 11px; color: var(--ink-soft); }
   .idea.on { border-color: var(--ink); }
+  .checks { display: grid; gap: 6px; margin: 8px 0 18px; }
+  .check { display: flex; gap: 10px; align-items: start; padding: 10px 12px; border: 1.5px solid #CFD8E7; border-radius: 12px; background: #fff; }
+  .check input { width: 20px; height: 20px; margin: 2px 0 0; flex: none; }
+  .check strong { display: block; font-size: 15px; font-weight: 600; }
+  .check small { display: block; color: var(--ink-soft); font-size: 13px; line-height: 1.4; }
+  .check.on { border-color: var(--ink); }
+  .shot { margin: 0; display: grid; gap: 4px; justify-items: center; }
+  .shot img { width: 100%; border-radius: 10px; border: 1px solid #CFD8E7; display: block; background: #fff; }
+  .shot .text-btn { font-size: 12px; padding: 2px 0; }
   .icon-swatches { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 18px; }
   .swatch { width: 38px; height: 38px; border-radius: 10px; border: 2px solid #CFD8E7; }
   .swatch.on { border-color: var(--ink); box-shadow: inset 0 0 0 2px #fff; }
@@ -149,6 +162,9 @@
   .summary > div:first-child { border-top: 0; }
   .summary dt { flex: none; width: 104px; color: var(--ink-soft); }
   .summary dd { margin: 0; overflow-wrap: anywhere; }
+  .summary dd { flex: 1; }
+  .summary .text-btn { flex: none; font-size: 12px; align-self: flex-start; padding: 0; }
+  .shot-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 
   .toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translate(-50%,20px); background: #fff; color: var(--ink); padding: 12px 16px; border-radius: 12px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100% - 32px); }
   .toast.show { opacity: 1; transform: translate(-50%,0); }
@@ -158,7 +174,7 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">Shipyard</div>
+    <div class="brand">Shipyard <span class="ver">2.3.2</span></div>
     <button class="icon-btn" id="profileBtn" aria-label="Publisher details">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     </button>
@@ -219,6 +235,11 @@
     <div class="field"><label for="pPrefix">App ID prefix</label><input id="pPrefix" type="text" autocapitalize="off" spellcheck="false" placeholder="llc.elevatr"><p class="hint">Each game becomes the prefix plus its name, like llc.elevatr.quackiepond.</p></div>
     <div class="field"><label for="pSite">Website</label><input id="pSite" type="url" autocapitalize="off" spellcheck="false" placeholder="https://elevatr.pages.dev"><p class="hint">Where your privacy and support pages live. Both stores require working links.</p></div>
     <div class="field"><label for="pEmail">Contact email</label><input id="pEmail" type="email" autocapitalize="off" spellcheck="false"></div>
+    <div class="field">
+      <label for="pSiteRepo">Website repo</label>
+      <input id="pSiteRepo" type="text" autocapitalize="off" spellcheck="false" placeholder="K1ngstar13/elevatr-site">
+      <p class="hint">Optional. If your website is a GitHub repo, Shipyard writes each app's privacy page straight into it, so the live URL is on your own domain. Add that repo to your token's access list. Leave empty to host the pages on the Shipyard site instead.</p>
+    </div>
     <div class="group-title">App review contact</div>
     <p class="hint" style="margin-bottom:12px">Apple wants someone they can reach if a reviewer gets stuck. Not shown publicly.</p>
     <div class="pair">
@@ -241,9 +262,17 @@
       <div><h2 id="wizardTitle">Upload a game</h2><p class="sub" id="wizardSub">Drop in a zip or a single HTML file. Shipyard reads it and drafts the rest.</p></div>
       <button class="close" data-close aria-label="Close">×</button>
     </div>
-    <div class="steps" id="steps"><div></div><div></div><div></div><div></div></div>
-    <p class="step-label" id="stepLabel">Step 1 of 4: the game</p>
+    <nav class="steps" id="steps" aria-label="Editing steps"><button type="button" data-go-step="1">1 · Game</button><button type="button" data-go-step="2">2 · Icon</button><button type="button" data-go-step="3">3 · Screens</button><button type="button" data-go-step="4">4 · Listing</button><button type="button" data-go-step="5">5 · Privacy</button><button type="button" data-go-step="6">6 · Price</button><button type="button" data-go-step="7">7 · Review</button></nav>
+    <div class="wizard-tools"><button class="text-btn" id="saveDraftBtn" type="button">Save draft</button><span class="hint" id="draftStatus" role="status">Edits stay here until you choose Save and build or send.</span></div>
+    <p class="step-label" id="stepLabel">Step 1 of 7: the game</p>
     <div id="wizardErrors" class="errors" hidden></div>
+
+    <div id="stage" hidden>
+      <div class="phone" id="phoneFrame" hidden><iframe id="previewFrame" title="Game preview" sandbox="allow-scripts allow-same-origin allow-modals allow-pointer-lock" allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"></iframe></div>
+      <p class="phone-note" id="phoneNote" hidden></p>
+      <div id="previewError" class="warn" hidden></div>
+      <p class="phone-note" id="previewOpen" hidden><button class="text-btn" id="openPreviewBtn">Open the game in a new tab</button></p>
+    </div>
 
     <section data-step="1">
       <div class="field">
@@ -260,12 +289,8 @@
       <button class="primary" data-next="2">Continue</button>
     </section>
 
-    <section data-step="2" hidden>
-      <div class="phone" id="phoneFrame" hidden><iframe id="previewFrame" title="Game preview" sandbox="allow-scripts allow-modals allow-pointer-lock" allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"></iframe></div>
-      <p class="phone-note" id="phoneNote" hidden></p>
-      <div id="previewError" class="warn" hidden></div>
-      <p class="phone-note" id="previewOpen" hidden><button class="text-btn" id="openPreviewBtn">Open the game in a new tab</button></p>
 
+    <section data-step="2" hidden>
       <div class="legend">App icon</div>
       <div id="iconIntro">
         <button class="secondary" id="iconDesign">Design an icon from this game</button>
@@ -302,6 +327,30 @@
         <label class="slider">Move up and down <input type="range" id="iconOffset" min="-25" max="25" value="0"></label>
         <p class="hint" style="margin:10px 0 18px">Uploading your own PNG on step 1 overrides all of this. Skip it and the build crops one for you.</p>
       </div>
+      <div class="actions">
+        <button class="secondary" data-back="1">Back</button>
+        <button class="primary" data-next="3" style="flex:1 1 100%">Continue</button>
+      </div>
+    </section>
+
+    <section data-step="3" hidden>
+      <div id="recordIntro">
+        <p class="hint" style="margin:0 0 12px">Play the game in the frame above and press the button when you reach a screen worth showing. Shipyard saves this exact screen at full resolution for both stores.</p>
+        <button class="secondary" id="recordShot">Use this screen as a screenshot</button>
+        <p class="hint" style="margin:10px 0 18px">Shoppers scroll past title screens. Aim for a level in progress, a reward moment, and whatever makes your game look fun.</p>
+      </div>
+      <div class="legend">Screens so far <span class="count" id="shotCount"></span></div>
+      <div class="thumbs" id="shotList"></div>
+      <div class="field"><label for="fScreens">Add your own screenshots</label><input id="fScreens" type="file" accept="image/png" multiple><p class="hint">PNG images. You can remove or reorder any selected screen below.</p></div>
+      <p class="hint" id="shotHint" style="margin:8px 0 18px">Nothing recorded yet. Without any, the build guesses with a few taps, which usually lands on menus.</p>
+      <div class="actions">
+        <button class="secondary" data-back="2">Back</button>
+        <button class="text-btn" id="shotClear">Clear them all</button>
+        <button class="primary" data-next="4" style="flex:1 1 100%">Continue</button>
+      </div>
+    </section>
+
+    <section data-step="4" hidden>
       <div class="field"><label for="fName">Name <span class="count" data-for="fName" data-max="30"></span></label><input id="fName" type="text" maxlength="60"></div>
       <div class="field"><label for="fSubtitle">Subtitle <span class="count" data-for="fSubtitle" data-max="30"></span></label><input id="fSubtitle" type="text"><p class="hint">Shown under the name on the App Store, and searched.</p></div>
       <div class="field"><label for="fShort">One-line description <span class="count" data-for="fShort" data-max="80"></span></label><input id="fShort" type="text"><p class="hint">The line Google Play shows at the top.</p></div>
@@ -315,13 +364,41 @@
       </div>
       <div class="field"><label for="fColor">Background color</label><input id="fColor" type="color" value="#8FD3F4"></div>
       <div class="actions">
-        <button class="secondary" data-back="1">Back</button>
-        <button class="secondary" id="redraftBtn">Draft again from the game</button>
-        <button class="primary" data-next="3" style="flex:1 1 100%">Continue</button>
+        <button class="secondary" data-back="3">Back</button>
+        <button class="secondary" id="redraftBtn">Replace listing with a fresh draft</button>
+        <button class="primary" data-next="5" style="flex:1 1 100%">Continue</button>
       </div>
     </section>
 
-    <section data-step="3" hidden>
+    <section data-step="5" hidden>
+      <p class="hint" style="margin:0 0 14px">Both stores ask what each app does with data, and the answers have to match the app you submit. Shipyard reads your game's code and ticks what it finds; correct anything it got wrong.</p>
+      <div id="privacyFound" class="found" hidden></div>
+
+      <div class="legend">Does this app do any of these?</div>
+      <div class="checks" id="privacyChecks"></div>
+
+      <div class="field">
+        <label for="pvThird">Third-party services it uses</label>
+        <input id="pvThird" type="text" placeholder="Google Analytics, AdMob, Firebase">
+        <p class="hint">Named in the policy so the stores can see them. Leave empty if none.</p>
+      </div>
+
+      <div class="legend">Who is it for?</div>
+      <div class="segmented">
+        <label><input type="radio" name="pvKids" value="no" checked><span>13 and over</span></label>
+        <label><input type="radio" name="pvKids" value="mixed"><span>All ages</span></label>
+        <label><input type="radio" name="pvKids" value="yes"><span>Children</span></label>
+      </div>
+      <p class="hint" id="pvKidsHint" style="margin:-8px 0 16px">Picking Children brings extra rules: no ads, no tracking, and a stricter review on both stores.</p>
+
+      <div class="found" id="privacySummary"></div>
+      <div class="actions">
+        <button class="secondary" data-back="4">Back</button>
+        <button class="primary" data-next="6" style="flex:1 1 100%">Continue</button>
+      </div>
+    </section>
+
+    <section data-step="6" hidden>
       <div class="pair">
         <div class="field"><label for="fSlug">Folder</label><input id="fSlug" type="text" autocapitalize="off" spellcheck="false"></div>
         <div class="field"><label for="fVersion">Version</label><input id="fVersion" type="text" inputmode="decimal" value="1.0.0"></div>
@@ -335,7 +412,7 @@
       <div class="field" id="priceTierField" hidden>
         <label for="fPrice">Price point</label>
         <select id="fPrice"></select>
-        <p class="hint">Shipyard records this and reminds you where to set it. Both stores make you set price in their console, once per app, after your tax and banking forms are done. Neither allows it over an API.</p>
+        <p class="hint">Shipyard records this price for your listing. Confirm the matching price in each store console before release.</p>
       </div>
       <div class="legend">Stores</div>
       <div class="segmented">
@@ -343,23 +420,24 @@
         <label><input type="radio" name="platforms" value="ios"><span>App Store</span></label>
         <label><input type="radio" name="platforms" value="android"><span>Google Play</span></label>
       </div>
-      <div class="actions"><button class="secondary" data-back="2">Back</button><button class="primary" data-next="4" style="flex:1 1 100%">Continue</button></div>
+      <div class="actions"><button class="secondary" data-back="5">Back</button><button class="primary" data-next="7" style="flex:1 1 100%">Continue</button></div>
     </section>
 
-    <section data-step="4" hidden>
+    <section data-step="7" hidden>
       <div id="reviewChecks"></div>
       <div class="summary" id="reviewSummary"></div>
       <div id="previewBlock" hidden>
         <div class="legend" style="margin-bottom:8px">Store previews</div>
         <div class="thumbs" id="previewThumbs"></div>
         <div class="wide" id="previewFeature"></div>
-        <p class="hint" style="margin:8px 0 16px">Captured from your game on a virtual phone. This is what shoppers see.</p>
+        <p class="hint" style="margin:8px 0 16px">Review the images that will be used in your store listing.</p>
       </div>
       <div class="legend">What happens next</div>
       <div class="choices" id="destChoices"></div>
       <button class="primary" id="submitBtn">Save and build previews</button>
+      <button class="secondary" id="saveListingBtn" type="button" style="width:100%;margin-top:10px">Save edits to GitHub without a build</button>
       <div class="progress" id="saveProgress" role="status"></div>
-      <div class="actions"><button class="secondary" data-back="3">Back</button></div>
+      <div class="actions"><button class="secondary" data-back="6">Back</button></div>
     </section>
   </div>
 </dialog>
@@ -398,7 +476,7 @@
   const SETTINGS_KEY = 'shipyard.settings';
   const S = Object.assign({ owner: '', repo: 'shipyard', branch: 'main', token: '' }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'));
   const DEMO_CONFIG_KEY = 'shipyard.demoConfig';
-  const state = { config: null, games: [], runs: new Map(), shown: new Map(), lastChecked: null, poll: null, loading: false, editing: null, shipping: null, upload: null, step: 1, demo: false };
+  const state = { config: null, games: [], runs: new Map(), shown: new Map(), lastChecked: null, poll: null, loading: false, editing: null, shipping: null, upload: null, existingUpload: null, step: 1, maxStep: 1, wizardSession: 0, uploadRevision: 0, draftReady: false, artworkDirty: false, demo: false };
 
   const CATEGORIES = {
     GAMES_CASUAL: 'Casual', GAMES_PUZZLE: 'Puzzle', GAMES_SIMULATION: 'Simulation', GAMES_FAMILY: 'Family',
@@ -651,6 +729,7 @@
     $('#pPhone').value = r.phone || '';
     $('#pTeam').value = c.appleTeamId || '';
     $('#pCerts').value = c.matchGitUrl || '';
+    $('#pSiteRepo').value = c.siteRepo || '';
     let draft = null;
     try { draft = JSON.parse(localStorage.getItem(PROFILE_DRAFT_KEY) || 'null'); } catch { /* ignore */ }
     if (draft) PROFILE_FIELDS.forEach((id) => { if (draft[id]) $('#' + id).value = draft[id]; });
@@ -675,6 +754,9 @@
       contactEmail: $('#pEmail').value.trim(),
       appleTeamId: $('#pTeam').value.trim().toUpperCase(),
       matchGitUrl: $('#pCerts').value.trim(),
+      siteRepo: $('#pSiteRepo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, ''),
+      siteRepoBranch: (state.config && state.config.siteRepoBranch) || 'main',
+      siteRepoPath: (state.config && state.config.siteRepoPath) || 'apps',
       language: (state.config && state.config.language) || 'en-US',
       review: { firstName: $('#pFirst').value.trim(), lastName: $('#pLast').value.trim(), phone: $('#pPhone').value.trim(), email: $('#pEmail').value.trim() },
     };
@@ -684,6 +766,7 @@
     if (!/^https:\/\/\S+\.\S+/.test(next.siteUrl)) problems.push('Website must be a working https link.');
     if (!/^\S+@\S+\.\S+$/.test(next.contactEmail)) problems.push('Add a contact email.');
     if (!next.review.firstName || !next.review.lastName || !next.review.phone) problems.push('Apple needs a review contact name and phone.');
+    if (next.siteRepo && !/^[\w.-]+\/[\w.-]+$/.test(next.siteRepo)) problems.push('Website repo should look like owner/repo.');
     const box = $('#profileErrors');
     if (problems.length) { box.hidden = false; box.innerHTML = `<strong>Fix these first</strong><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>`; return; }
     box.hidden = true;
@@ -836,9 +919,10 @@
     }
 
     const iconCandidate = files.filter((f) => /\.png$/i.test(f.path) && /(icon|logo|apple-touch)/i.test(f.path)).sort((a, b) => b.bytes.length - a.bytes.length)[0] || null;
+    const privacySignals = PRIVACY_SIGNALS.filter((signal) => signal.test.test(code)).map((signal) => signal.key);
 
     return {
-      files, totalBytes, blockers, warnings, iconCandidate,
+      files, totalBytes, blockers, warnings, iconCandidate, privacySignals,
       draft: { name, subtitle, short, description, keywords: keywords.join(','), promo: found.length ? `New: ${found[0]}.` : '', notes: 'First release.', category: genre.id, orientation: landscape ? 'landscape' : 'portrait', color },
       summary: `${files.length} file${files.length === 1 ? '' : 's'}, ${(totalBytes / 1e6).toFixed(1)} MB. Reads as a ${genre.label} game${found.length ? ` with ${found[0]}` : ''}.`,
     };
@@ -907,8 +991,25 @@
     }
     return out;
   }
+  var recording=false;
+  document.addEventListener('click',function(ev){
+    if(!recording)return;
+    try{parent.postMessage({shipyard:'tap',x:ev.clientX/innerWidth,y:ev.clientY/innerHeight},'*')}catch(x){}
+  },true);
   window.addEventListener('message',function(e){
-    var d=e.data;if(!d||(d.shipyard!=='icon-scan'&&d.shipyard!=='icon-capture'))return;
+    var d=e.data;if(!d)return;
+    if(d.shipyard==='record'){recording=!!d.on;return;}
+    if(d.shipyard==='shoot'){
+      var out=function(u,err){try{parent.postMessage({shipyard:'shot',dataUrl:u||'',error:err||''},'*')}catch(x){}};
+      if(typeof html2canvas!=='function')return out('','the renderer could not load');
+      try{html2canvas(document.documentElement,{x:0,y:0,width:innerWidth,height:innerHeight,
+        scale:d.scale||3,logging:false,useCORS:true,allowTaint:false,
+        onclone:function(doc){var style=doc.createElement('style');style.textContent='*{animation:none!important;transition:none!important;caret-color:transparent!important}';doc.head.appendChild(style)}})
+        .then(function(c){out(c.toDataURL('image/png'))}).catch(function(err){out('',(err&&err.message)||'render failed')});
+      }catch(err){out('',String(err))}
+      return;
+    }
+    if(d.shipyard!=='icon-scan'&&d.shipyard!=='icon-capture')return;
     function send(payload){try{parent.postMessage(Object.assign({shipyard:'icon-result'},payload),'*')}catch(x){}}
     var bg='';
     try{bg=getComputedStyle(document.body).backgroundColor||'';}catch(e2){}
@@ -926,7 +1027,7 @@
   });
 })();<\/script>`;
 
-  const RENDERER_TAG = '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"><\/script>';
+  const RENDERER_TAG = '<script src="' + new URL('vendor/html2canvas.min.js', location.href).href + '"><\/script>';
 
   function buildPreview(files) {
     const total = files.reduce((n, f) => n + f.bytes.length, 0);
@@ -977,8 +1078,8 @@
       note.textContent = result.reason;
       return;
     }
-    // srcdoc, not a blob URL: Chrome refuses blob URLs inside a sandboxed frame.
-    // Asset paths are already rewritten to data: URLs, so nothing relative is left to resolve.
+    // A data URL has its own opaque origin. allow-same-origin lets html2canvas
+    // read its own cloned document without exposing the panel's token storage.
     previewReady = false;
     clearTimeout(previewTimer);
     previewTimer = setTimeout(() => {
@@ -987,7 +1088,7 @@
       box.hidden = false;
       box.innerHTML = '<strong>The game hasn\'t drawn anything yet</strong><p style="margin:6px 0 0">It may just be slow, or it may need something the locked-down preview frame blocks. Open it in a new tab to check, then carry on — the build captures screenshots from the real game either way.</p>';
     }, 7000);
-    $('#previewFrame').srcdoc = result.html;
+    $('#previewFrame').src = 'data:text/html;base64,' + textToB64(result.html);
     frame.hidden = false;
     note.hidden = false;
     note.textContent = 'Your actual upload, running. Tap it.';
@@ -995,9 +1096,22 @@
   }
 
   window.addEventListener('message', (event) => {
+    if (event.source !== $('#previewFrame').contentWindow) return;
     const data = event.data;
     if (!data || typeof data !== 'object') return;
-    if (data.shipyard === 'preview-ready') { previewReady = true; clearTimeout(previewTimer); $('#previewError').hidden = true; return; }
+    if (data.shipyard === 'preview-ready') { previewReady = true; clearTimeout(previewTimer); $('#previewError').hidden = true; setRecording(state.step === 3); return; }
+    if (data.shipyard === 'tap') {
+      if (state.step === 3) shots.steps.push({ tap: [Number(data.x.toFixed(3)), Number(data.y.toFixed(3))], wait: 1200, shot: false });
+      return;
+    }
+    if (data.shipyard === 'shot') {
+      if (!shots.pending) return;
+      const { resolve, reject, timer } = shots.pending;
+      clearTimeout(timer);
+      shots.pending = null;
+      if (data.dataUrl) resolve(data.dataUrl); else reject(new Error(data.error || 'nothing came back'));
+      return;
+    }
     if (data.shipyard === 'icon-result') {
       if (!icon.pending) return;
       const { resolve, timer } = icon.pending;
@@ -1033,6 +1147,7 @@
   const ICON_SIZE = 1024;
 
   function resetIcon() {
+    if (icon.pending) { clearTimeout(icon.pending.timer); icon.pending.reject(new Error('Game artwork changed')); icon.pending = null; }
     icon.blob = null;
     icon.dataUrl = null;
     icon.marks = [];
@@ -1194,6 +1309,7 @@
   }
 
   async function applyChoice(update = {}) {
+    if (!icon.choice) return;
     Object.assign(icon.choice, update);
     const mark = icon.marks[icon.choice.markIndex];
     const canvas = drawIcon({
@@ -1211,6 +1327,7 @@
     $('#iconRound').src = made.dataUrl;
     $('#iconSquare').hidden = false;
     $('#iconRound').hidden = false;
+    scheduleDraft();
   }
 
   function renderSwatches() {
@@ -1307,21 +1424,329 @@
     renderIdeas();
   }));
 
+  // ---------- Screen recorder ----------
+  // Taps you make in the preview are remembered as a route; the build replays that route
+  // in a real browser so the screenshots are full resolution, not html2canvas guesses.
+  const shots = { steps: [], thumbs: [], pending: null, revision: 0, changed: false };
+  let reviewRevision = 0;
+
+  function renderShots() {
+    $('#shotCount').textContent = shots.thumbs.length ? `${shots.thumbs.length} of 6` : '';
+    $('#shotList').innerHTML = shots.thumbs.map((thumb, i) =>
+      `<figure class="shot"><img src="${thumb}" alt="Screen ${i + 1}"><div class="shot-actions"><button class="text-btn" data-move="${i}" data-direction="-1"${i === 0 ? ' disabled' : ''} aria-label="Move screen ${i + 1} earlier">←</button><button class="text-btn" data-drop="${i}">Remove</button><button class="text-btn" data-move="${i}" data-direction="1"${i === shots.thumbs.length - 1 ? ' disabled' : ''} aria-label="Move screen ${i + 1} later">→</button></div></figure>`).join('');
+    $$('#shotList [data-drop]').forEach((button) => {
+      button.onclick = () => {
+        const index = Number(button.dataset.drop);
+        shots.thumbs.splice(index, 1); shots.revision++; shots.changed = true;
+        const shotPositions = shots.steps.map((step, n) => (step.shot ? n : -1)).filter((n) => n >= 0);
+        if (shotPositions[index] !== undefined) shots.steps[shotPositions[index]].shot = false;
+        renderShots(); scheduleDraft();
+      };
+    });
+    $$('#shotList [data-move]').forEach(button => { button.onclick = () => {
+      const from = Number(button.dataset.move), to = from + Number(button.dataset.direction);
+      if (to < 0 || to >= shots.thumbs.length) return;
+      [shots.thumbs[from], shots.thumbs[to]] = [shots.thumbs[to], shots.thumbs[from]];
+      shots.changed = true; shots.revision++; renderShots(); scheduleDraft();
+    }; });
+    $('#shotHint').textContent = shots.thumbs.length
+      ? 'These exact screenshots will appear in review and be saved for both stores.'
+      : state.artworkDirty ? 'This game file changed. Capture new screens here; old screenshots will not be reused.' : 'No selected screens. The build will capture fresh screenshots from the game.';
+    $('#recordShot').disabled = shots.thumbs.length >= 6;
+  }
+
+  function resetShots() {
+    if (shots.pending) { clearTimeout(shots.pending.timer); shots.pending.reject(new Error('Screenshot selection changed')); shots.pending = null; }
+    shots.steps = [];
+    shots.thumbs = []; shots.revision++; shots.changed = true;
+    renderShots(); scheduleDraft();
+  }
+
+  function setRecording(on) {
+    const frame = $('#previewFrame');
+    if (frame.contentWindow) frame.contentWindow.postMessage({ shipyard: 'record', on }, '*');
+  }
+
+  function shootScreen() {
+    return new Promise((resolve, reject) => {
+      const frame = $('#previewFrame');
+      if (!frame.contentWindow) { reject(new Error('the preview is not running')); return; }
+      if (shots.pending) clearTimeout(shots.pending.timer);
+      const timer = setTimeout(() => { shots.pending = null; reject(new Error('the game did not answer in time')); }, 15000);
+      shots.pending = { resolve, reject, timer };
+      frame.contentWindow.postMessage({ shipyard: 'shoot', scale: 3 }, '*');
+    });
+  }
+
+  $('#recordShot').onclick = async () => {
+    const button = $('#recordShot');
+    button.disabled = true;
+    const was = button.textContent;
+    button.textContent = 'Capturing…';
+    try {
+      const dataUrl = await shootScreen();
+      shots.steps.push({ wait: 900, shot: true });
+      shots.thumbs.push(dataUrl); shots.revision++; shots.changed = true;
+      renderShots(); scheduleDraft();
+      toast(`Screen ${shots.thumbs.length} recorded`);
+      $('#phoneFrame').scrollIntoView({block:'center', behavior:'auto'});
+    } catch (err) {
+      $('#shotHint').textContent = `Screenshot not saved: ${err.message}. Wait for the game to finish loading and try again.`;
+      toast('Screenshot could not be captured. Nothing was added.');
+    } finally {
+      button.textContent = was;
+      button.disabled = shots.thumbs.length >= 6;
+    }
+  };
+  $('#shotClear').onclick = resetShots;
+  $('#fScreens').onchange = async () => {
+    const session = state.wizardSession;
+    try {
+      for (const file of $('#fScreens').files) {
+        if (shots.thumbs.length >= 6) break;
+        const image = await createImageBitmap(file);
+        const canvas = document.createElement('canvas'); canvas.width = 1290; canvas.height = 2796;
+        const context = canvas.getContext('2d'); context.fillStyle = $('#fColor').value; context.fillRect(0, 0, canvas.width, canvas.height);
+        const scale = Math.min(canvas.width / image.width, canvas.height / image.height);
+        context.drawImage(image, (canvas.width - image.width * scale) / 2, (canvas.height - image.height * scale) / 2, image.width * scale, image.height * scale); image.close();
+        if (session !== state.wizardSession) return;
+        shots.thumbs.push(canvas.toDataURL('image/png')); shots.steps.push({ wait: 900, shot: true }); shots.changed = true; shots.revision++;
+      }
+      renderShots(); scheduleDraft();
+    } catch (err) { toast('Screenshot could not be read: ' + err.message); }
+    finally { $('#fScreens').value = ''; }
+  };
+
+  // ---------- Privacy ----------
+  // Same signal list the build uses, so the panel and preflight agree.
+  const PRIVACY_SIGNALS = [
+    { key: 'accounts', label: 'Accounts or sign-in', note: 'Players create an account or log in', test: /firebase\/auth|signInWith|type=["']password["']|auth0|supabase\.auth|oauth/i },
+    { key: 'analytics', label: 'Analytics', note: 'Anything counting screens, sessions, or events', test: /google-analytics|googletagmanager|gtag\(|mixpanel|amplitude|posthog|plausible\.io|segment\.com|firebase\/analytics|matomo/i },
+    { key: 'ads', label: 'Advertising', note: 'Ads shown inside the app', test: /admob|adsbygoogle|applovin|unityads|ironsource|vungle|adsense|doubleclick/i },
+    { key: 'crashReports', label: 'Crash reporting', note: 'Sentry, Crashlytics, Bugsnag and the like', test: /sentry\.io|bugsnag|crashlytics|rollbar/i },
+    { key: 'location', label: 'Location', note: "Asks for the player's position", test: /navigator\.geolocation|watchPosition|getCurrentPosition/i },
+    { key: 'cameraMic', label: 'Camera or microphone', note: 'Takes photos, video, or audio', test: /getUserMedia|MediaRecorder|navigator\.mediaDevices/i },
+    { key: 'contacts', label: 'Contacts', note: "Reads the phone's address book", test: /navigator\.contacts|ContactsManager/i },
+    { key: 'userContent', label: 'Messages or shared content', note: 'Players send things to each other', test: /new WebSocket|socket\.io|firebase\/(firestore|database)|supabase\.from/i },
+    { key: 'purchases', label: 'Purchases', note: 'Anything bought inside the app', test: /in-?app ?purchase|RevenueCat|StoreKit|BillingClient/i },
+    { key: 'network', label: 'Talks to a server', note: 'Fetches anything from the internet while running', test: /fetch\(\s*["'`]https?:|XMLHttpRequest|axios\./i },
+  ];
+
+  $('#privacyChecks').innerHTML = PRIVACY_SIGNALS.map((signal) =>
+    `<label class="check"><input type="checkbox" data-pv="${signal.key}">
+       <span><strong>${esc(signal.label)}</strong><small>${esc(signal.note)}</small></span></label>`).join('');
+
+  function privacyAnswers() {
+    const answers = { childrenAudience: $('input[name=pvKids]:checked').value, thirdParties: $('#pvThird').value.trim() };
+    $$('#privacyChecks input[data-pv]').forEach((box) => { answers[box.dataset.pv] = box.checked; });
+    return answers;
+  }
+
+  function renderPrivacySummary() {
+    const answers = privacyAnswers();
+    const on = PRIVACY_SIGNALS.filter((s) => answers[s.key] && s.key !== 'network').map((s) => s.label.toLowerCase());
+    $('#privacySummary').innerHTML = on.length
+      ? `<strong>This app collects data.</strong> Shipyard writes a privacy page naming ${esc(on.join(', '))}, publishes it at your site, and generates the exact answers for both store questionnaires.`
+      : '<strong>This app collects nothing.</strong> Shipyard writes a privacy page saying so, and the store answers become "Data Not Collected", which is the fastest path through review.';
+    $$('#privacyChecks .check').forEach((label) => label.classList.toggle('on', label.querySelector('input').checked));
+  }
+  $$('#privacyChecks input[data-pv]').forEach((box) => box.addEventListener('change', renderPrivacySummary));
+  $$('input[name=pvKids]').forEach((radio) => radio.addEventListener('change', renderPrivacySummary));
+  $('#pvThird').addEventListener('input', renderPrivacySummary);
+
+  function applyPrivacy(answers, detected) {
+    $$('#privacyChecks input[data-pv]').forEach((box) => { box.checked = Boolean(answers[box.dataset.pv]); });
+    $('#pvThird').value = answers.thirdParties || '';
+    const kids = $(`input[name=pvKids][value="${answers.childrenAudience || 'no'}"]`);
+    if (kids) kids.checked = true;
+    const box = $('#privacyFound');
+    const names = (detected || []).map((key) => (PRIVACY_SIGNALS.find((s) => s.key === key) || {}).label).filter(Boolean);
+    box.hidden = !names.length;
+    if (names.length) box.innerHTML = `<strong>Found in your game's code:</strong> ${esc(names.join(', '))}. Ticked below. Untick anything that isn't really there.`;
+    renderPrivacySummary();
+  }
+
+  // ---------- Editable drafts (device only; never contain credentials) ----------
+  const touchedFields = new Set();
+  const DRAFT_FIELDS = ['fName', 'fSubtitle', 'fShort', 'fDescription', 'fKeywords', 'fPromo', 'fNotes', 'fCategory', 'fOrientation', 'fColor', 'fSlug', 'fBundle', 'fVersion', 'fPrice'];
+  let draftTimer;
+  let draftDatabase;
+  let lastListingName = '';
+  let existingIcon = null;
+  const draftKey = () => [S.owner || 'demo', S.repo, S.branch, state.editing?.slug || '_new'].join('/');
+  function draftDb() {
+    if (!draftDatabase) draftDatabase = new Promise((resolve, reject) => {
+      const request = indexedDB.open('shipyard.drafts', 1);
+      request.onupgradeneeded = () => request.result.createObjectStore('drafts');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    return draftDatabase;
+  }
+  async function draftOperation(mode, key, value) {
+    const db = await draftDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('drafts', mode === 'get' ? 'readonly' : 'readwrite');
+      const store = transaction.objectStore('drafts');
+      const request = mode === 'get' ? store.get(key) : mode === 'delete' ? store.delete(key) : store.put(value, key);
+      transaction.oncomplete = () => resolve(request.result);
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+    });
+  }
+  function draftSnapshot() {
+    return {
+      fields: Object.fromEntries(DRAFT_FIELDS.map(id => [id, $('#' + id).value])),
+      radios: Object.fromEntries(['price', 'platforms', 'dest'].map(name => [name, $(`input[name=${name}]:checked`).value])),
+      privacy: privacyAnswers(), upload: state.upload, step: state.step,
+      screenshots: [...shots.thumbs], screenshotSteps: [...shots.steps], screenshotsChanged: shots.changed,
+      iconFile: $('#fIcon').files[0] || null, iconBlob: icon.blob, iconData: icon.dataUrl,
+      iconMarks: icon.marks.map(mark => ({src:mark.img?.src, glyph:mark.glyph, label:mark.label, suggested:mark.suggested})),
+      iconChoice: icon.choice, iconPalette: icon.palette, iconStyle: $('input[name=iconStyle]:checked').value,
+      iconScale: $('#iconScale').value, iconOffset: $('#iconOffset').value,
+      artworkDirty: state.artworkDirty, updated: new Date().toISOString(),
+    };
+  }
+  async function saveDraft(announce = false) {
+    clearTimeout(draftTimer);
+    if (!state.draftReady) return;
+    const session = state.wizardSession;
+    const key = draftKey(), snapshot = draftSnapshot();
+    try {
+      await draftOperation('put', key, snapshot);
+      if (session === state.wizardSession) $('#draftStatus').textContent = 'Draft saved on this device, including selected artwork.';
+      if (announce) toast('Draft saved. No build or store upload started.');
+    } catch {
+      if (session === state.wizardSession) $('#draftStatus').textContent = 'Draft could not be saved on this device. Keep this window open until you save to GitHub.';
+    }
+  }
+  function scheduleDraft() {
+    if (!state.draftReady) return;
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(() => saveDraft(), 400);
+  }
+  async function restoreDraft(saved) {
+    if (!saved?.fields) return;
+    for (const id of DRAFT_FIELDS) if (saved.fields[id] !== undefined) $('#' + id).value = saved.fields[id];
+    for (const [name, value] of Object.entries(saved.radios || {})) {
+      const radio = $$(`input[name=${name}]`).find(el => el.value === value);
+      if (radio) radio.checked = true;
+    }
+    state.upload = saved.upload || null;
+    state.artworkDirty = Boolean(saved.artworkDirty);
+    shots.thumbs = saved.screenshots || []; shots.steps = saved.screenshotSteps || []; shots.changed = Boolean(saved.screenshotsChanged); shots.revision++;
+    renderShots(); applyPrivacy(saved.privacy || {}, []); privacyTouched = true;
+    icon.blob = saved.iconBlob || null; icon.dataUrl = saved.iconData || null;
+    icon.marks = await Promise.all((saved.iconMarks || []).map(async mark => ({...mark, img:mark.src ? await loadImage(mark.src).catch(() => null) : undefined})));
+    icon.choice = saved.iconChoice || null; icon.palette = saved.iconPalette || [];
+    const style = $$('input[name=iconStyle]').find(radio => radio.value === saved.iconStyle);
+    if (style) style.checked = true;
+    $('#iconScale').value = saved.iconScale || 62; $('#iconOffset').value = saved.iconOffset || 0;
+    if (saved.iconFile) { const files = new DataTransfer(); files.items.add(saved.iconFile); $('#fIcon').files = files.files; }
+    if (icon.dataUrl) {
+      for (const id of ['iconSquare', 'iconRound']) { $('#' + id).src = icon.dataUrl; $('#' + id).hidden = false; }
+      $('#iconIntro').hidden = true; $('#iconStudio').hidden = false;
+      $('#iconHint').textContent = 'Your saved icon. Look again at the game to create and adjust new ideas.';
+      if (icon.choice && icon.marks.length) { await renderIdeas(); renderSwatches(); }
+    }
+    $('#priceTierField').hidden = $('input[name=price]:checked').value !== 'paid';
+    $('#submitBtn').textContent = DESTS[$('input[name=dest]:checked').value].cta;
+    if (state.upload) $('#fFilesHint').textContent = 'Your uploaded game files were restored with this draft. Choose another file to replace them.';
+    lastListingName = $('#fName').value.trim(); updateCounts();
+    // Review is always explicit. Reopening a finished draft lands on its listing.
+    goStep(saved.step === 7 ? 4 : Math.max(1, Math.min(6, saved.step || 1)));
+    $('#draftStatus').textContent = 'Restored your saved draft and artwork.';
+  }
+  $('#saveDraftBtn').onclick = () => saveDraft(true);
+  for (const event of ['input', 'change']) $('#wizardSheet').addEventListener(event, (e) => {
+    if (e.target.id) touchedFields.add(e.target.id);
+    if (e.target.name) touchedFields.add(e.target.name);
+    scheduleDraft();
+  });
+
+  function renameListing(oldName, newName) {
+    if (!oldName || !newName || oldName === newName) return;
+    for (const id of ['fShort', 'fDescription', 'fPromo', 'fNotes']) {
+      const field = $('#' + id);
+      field.value = field.value.split(oldName).join(newName);
+    }
+    $('#wizardTitle').textContent = `${state.editing ? 'Edit' : 'Upload'} ${newName}`;
+    updateCounts();
+  }
+
+  async function readExistingGame(slug) {
+    const base = `games/${slug}/www/`, files = [];
+    async function visit(directory) {
+      const entries = await listRepoDir(directory);
+      for (const item of entries) {
+        const repoFile = item.path || `${directory}/${item.name}`;
+        if (item.type === 'dir') { await visit(repoFile); continue; }
+        if (item.type !== 'file') continue;
+        if (files.length >= 500) throw new Error('Upload the game ZIP to preview this large folder.');
+        const data = await gh(`${repoPath()}/contents/${encPath(repoFile)}?ref=${enc(S.branch)}`);
+        if (!data.content) throw new Error('Upload the HTML or ZIP to preview this game.');
+        files.push({ path: repoFile.slice(base.length), bytes: Uint8Array.from(atob(data.content.replace(/\s/g, '')), c => c.charCodeAt(0)) });
+      }
+    }
+    await visit(base.slice(0, -1));
+    return files.length ? analyze(files) : null;
+  }
+  async function loadExistingScreens(slug, session, revision) {
+    let entries = await listRepoDir(`games/${slug}/store/screenshots/apple`);
+    entries = entries.filter(f => /\.png$/i.test(f.name)).sort((a, b) => a.name.localeCompare(b.name));
+    if (!entries.length) entries = (await listRepoDir(`games/${slug}/store/previews`)).filter(f => /^apple-\d+\.png$/.test(f.name)).sort((a, b) => a.name.localeCompare(b.name));
+    const images = await pool(entries.slice(0, 6), 3, f => readRepoImage(f.path || `games/${slug}/store/previews/${f.name}`));
+    if (session !== state.wizardSession || revision !== shots.revision || state.upload || shots.changed) return;
+    shots.thumbs = images; shots.steps = images.map(() => ({ wait: 900, shot: true })); shots.revision++;
+    renderShots();
+    if (state.step === 7) renderReview();
+  }
+
   // ---------- Wizard ----------
   $('#fCategory').innerHTML = Object.entries(CATEGORIES).map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
   $('#fPrice').innerHTML = PRICE_POINTS.map((p) => `<option value="${p}">$${p}</option>`).join('');
   $('#destChoices').innerHTML = Object.entries(DESTS).map(([v, d], i) => `<label class="choice"><input type="radio" name="dest" value="${v}"${i === 0 ? ' checked' : ''}><span><strong>${esc(d.label)}</strong><small>${esc(d.help)}</small></span></label>`).join('');
   $('#shipDestChoices').innerHTML = Object.entries(DESTS).map(([v, d]) => `<label class="choice"><input type="radio" name="shipDest" value="${v}"${v === 'testers' ? ' checked' : ''}><span><strong>${esc(d.label)}</strong><small>${esc(d.help)}</small></span></label>`).join('');
 
-  const STEP_LABELS = { 1: 'Step 1 of 4: the game', 2: 'Step 2 of 4: how it looks in the store', 3: 'Step 3 of 4: price and release', 4: 'Step 4 of 4: check and send' };
+  let privacyTouched = false;
+  const STEP_LABELS = {
+    1: 'Step 1 of 7: the game',
+    2: 'Step 2 of 7: the app icon',
+    3: 'Step 3 of 7: screenshots',
+    4: 'Step 4 of 7: the store listing',
+    5: 'Step 5 of 7: privacy',
+    6: 'Step 6 of 7: price and release',
+    7: 'Step 7 of 7: check and send',
+  };
   function goStep(n) {
+    n = Math.max(1, Math.min(7, Number(n)));
     state.step = n;
+    state.maxStep = Math.max(state.maxStep, n);
     $$('#wizardSheet section[data-step]').forEach((s) => { s.hidden = Number(s.dataset.step) !== n; });
-    $$('#steps div').forEach((d, i) => d.classList.toggle('done', i < n));
+    $$('#steps button').forEach((button) => {
+      const target = Number(button.dataset.goStep);
+      button.disabled = !state.editing && target > state.maxStep;
+      if (target === n) button.setAttribute('aria-current', 'step'); else button.removeAttribute('aria-current');
+    });
     $('#stepLabel').textContent = STEP_LABELS[n];
+    $('#stage').hidden = !(n === 2 || n === 3);
+    if ((n === 2 || n === 3) && !$('#previewFrame').getAttribute('src')) showPreview(state.upload || state.existingUpload);
+    if (n === 5 && !privacyTouched) {
+      privacyTouched = true;
+      const detected = (state.upload && state.upload.privacySignals) || [];
+      const existing = (state.editing && state.editing.privacy) || {};
+      const answers = { childrenAudience: 'no', thirdParties: '', ...existing };
+      if (!state.editing) for (const key of detected) answers[key] = true;
+      applyPrivacy(answers, state.editing ? [] : detected);
+    }
+    setRecording(n === 3);
+    if (n === 3) $('#phoneNote').textContent = 'Play here, then save the screen you want to show in the store.';
+    else if (n === 2) $('#phoneNote').textContent = 'Your actual upload, running. Tap it.';
     $('#wizardSheet .sheet-body').scrollTop = 0;
-    if (n === 4) renderReview();
+    if (n === 7) renderReview();
+    scheduleDraft();
   }
+  $$('#steps [data-go-step]').forEach(button => { button.onclick = () => goStep(Number(button.dataset.goStep)); });
   function wizardError(list) {
     const box = $('#wizardErrors');
     if (!list.length) { box.hidden = true; return false; }
@@ -1344,7 +1769,8 @@
   $$('#wizardSheet input, #wizardSheet textarea').forEach((el) => el.addEventListener('input', updateCounts));
 
   function applyDraft(draft, overwrite) {
-    const set = (sel, value) => { const el = $(sel); if (overwrite || !el.value.trim()) el.value = value ?? ''; };
+    const canSet = el => overwrite === true || (overwrite === 'untouched' ? !touchedFields.has(el.id) : !el.value.trim());
+    const set = (sel, value) => { const el = $(sel); if (canSet(el)) el.value = value ?? ''; };
     set('#fName', draft.name);
     set('#fSubtitle', draft.subtitle);
     set('#fShort', draft.short);
@@ -1353,27 +1779,33 @@
     set('#fPromo', draft.promo);
     set('#fNotes', draft.notes);
     if (overwrite) {
-      $('#fCategory').value = draft.category || 'GAMES_CASUAL';
-      $('#fOrientation').value = draft.orientation || 'portrait';
-      $('#fColor').value = /^#[0-9a-f]{6}$/i.test(draft.color || '') ? draft.color : '#8FD3F4';
+      set('#fCategory', draft.category || 'GAMES_CASUAL');
+      set('#fOrientation', draft.orientation || 'portrait');
+      set('#fColor', /^#[0-9a-f]{6}$/i.test(draft.color || '') ? draft.color : '#8FD3F4');
       if (!state.editing && draft.name) {
         const slug = slugify(draft.name);
         $('#fSlug').value = slug;
         $('#fBundle').value = bundleFor(slug);
       }
     }
+    lastListingName = $('#fName').value.trim();
     updateCounts();
   }
 
   $('#fFiles').addEventListener('change', async () => {
+    const session = state.wizardSession, uploadRevision = ++state.uploadRevision;
     const file = $('#fFiles').files[0];
     const box = $('#analysis');
-    if (!file) { box.hidden = true; state.upload = null; return; }
+    if (!file) { box.hidden = true; state.upload = null; state.uploadLoading = false; state.uploadError = null; return; }
+    state.uploadLoading = true; state.uploadError = null;
     box.hidden = false;
     box.innerHTML = '<div class="found">Reading the game…</div>';
     try {
       const result = analyze(await readUpload(file));
+      if (session !== state.wizardSession || uploadRevision !== state.uploadRevision) return;
+      const oldName = $('#fName').value.trim();
       state.upload = result;
+      state.artworkDirty = true; existingIcon = null; resetIcon(); resetShots(); clearPreview();
       const lines = [
         `Named it ${esc(result.draft.name || 'nothing yet — add a name on the next step')}`,
         `Category: ${esc(CATEGORIES[result.draft.category])}`,
@@ -1384,23 +1816,44 @@
       if (result.warnings.length) parts.push(`<div class="warn"><strong>Worth knowing</strong><ul>${result.warnings.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>`);
       if (result.blockers.length) parts.push(`<div class="errors"><strong>These will get it rejected</strong><ul>${result.blockers.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>`);
       box.innerHTML = parts.join('');
-      applyDraft(result.draft, !state.editing);
+      if (state.editing) {
+        if (!touchedFields.has('fName') && result.draft.name) {
+          $('#fName').value = result.draft.name; renameListing(oldName, result.draft.name);
+        }
+        applyDraft(result.draft, false);
+      } else applyDraft(result.draft, 'untouched');
+      lastListingName = $('#fName').value.trim();
+      if (state.step === 2 || state.step === 3) showPreview(result);
+      scheduleDraft();
     } catch (err) {
+      if (session !== state.wizardSession || uploadRevision !== state.uploadRevision) return;
       state.upload = null;
+      state.uploadError = err.message;
       box.innerHTML = `<div class="errors">${esc(err.message)}</div>`;
+    } finally {
+      if (session === state.wizardSession && uploadRevision === state.uploadRevision) state.uploadLoading = false;
     }
   });
 
   $('#redraftBtn').onclick = () => {
-    if (!state.upload) { toast('Upload the game first'); return; }
-    applyDraft(state.upload.draft, true);
+    const source = state.upload || state.existingUpload;
+    if (!source) { toast('Choose a game file on step 1 first'); return; }
+    applyDraft(source.draft, true); scheduleDraft();
     toast('Drafted again from the game');
   };
   $('#fName').addEventListener('input', () => {
+    const name = $('#fName').value.trim();
+    $('#wizardTitle').textContent = `${state.editing ? 'Edit' : 'Upload'} ${name || 'a game'}`;
     if (state.editing) return;
     const slug = slugify($('#fName').value);
     $('#fSlug').value = slug;
     $('#fBundle').value = slug ? bundleFor(slug) : '';
+  });
+  $('#fName').addEventListener('change', () => {
+    const name = $('#fName').value.trim();
+    renameListing(lastListingName, name);
+    if (name) lastListingName = name;
+    scheduleDraft();
   });
   $$('input[name=price]').forEach((r) => r.addEventListener('change', () => {
     $('#priceTierField').hidden = $('input[name=price]:checked').value !== 'paid';
@@ -1409,23 +1862,28 @@
   $$('#wizardSheet [data-next]').forEach((btn) => {
     btn.onclick = () => {
       const target = Number(btn.dataset.next);
+      if (btn.closest('section').hidden || target !== state.step + 1) return;
       const problems = [];
       if (target === 2) {
+        if (state.uploadLoading) problems.push('Wait for the game file to finish loading.');
+        if (state.uploadError) problems.push(state.uploadError);
         if (!state.editing && !state.upload) problems.push('Choose the game files.');
         if (state.upload && state.upload.blockers.length) problems.push('The problems listed above will get the app rejected. Fix them and upload again.');
-        if (!wizardError(problems)) { showPreview(state.upload); goStep(2); }
-      } else if (target === 3) {
+        if (!wizardError(problems)) goStep(2);
+      } else if (target === 3 || target === 4 || target === 6) {
+        goStep(target);
+      } else if (target === 5) {
         if (!$('#fName').value.trim()) problems.push('Add a name.');
         if (!$('#fShort').value.trim()) problems.push('Add the one-line description. Google Play requires it.');
         if (!$('#fDescription').value.trim()) problems.push('Add a description.');
         if ($$('.count.over').length) problems.push('Some fields are over the store limit.');
-        if (!wizardError(problems)) goStep(3);
-      } else if (target === 4) {
+        if (!wizardError(problems)) goStep(5);
+      } else if (target === 7) {
         if (!/^[a-z0-9][a-z0-9-]{0,48}$/.test($('#fSlug').value.trim())) problems.push('Folder can only use lowercase letters, numbers, and dashes.');
         if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test($('#fBundle').value.trim())) problems.push('App ID must look like llc.elevatr.quackiepond. Set your prefix under Publisher.');
         if (!/^\d+\.\d+\.\d+$/.test($('#fVersion').value.trim())) problems.push('Version must look like 1.0.0.');
         if (!state.editing && state.games.some((g) => g.slug === $('#fSlug').value.trim())) problems.push('A game already uses that folder. Pick another name.');
-        if (!wizardError(problems)) goStep(4);
+        if (!wizardError(problems)) goStep(7);
       }
     };
   });
@@ -1465,7 +1923,33 @@
     return { images, feature };
   }
 
+  async function currentBanner(v) {
+    let source = icon.dataUrl;
+    const file = $('#fIcon').files[0];
+    if (file) source = 'data:image/png;base64,' + bytesToB64(new Uint8Array(await file.arrayBuffer()));
+    else if (!source && state.upload?.iconCandidate) source = 'data:image/png;base64,' + bytesToB64(state.upload.iconCandidate.bytes);
+    else if (!source && state.editing && !state.upload) {
+      if (!existingIcon) existingIcon = readRepoImage(`games/${state.editing.slug}/icon.png`).catch(() => null);
+      source = await existingIcon;
+    }
+    const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 500;
+    const ctx = canvas.getContext('2d'); ctx.fillStyle = v.backgroundColor; ctx.fillRect(0, 0, 1024, 500);
+    if (source) { try { const image = await loadImage(source); ctx.drawImage(image, 74, 100, 300, 300); } catch { /* fresh icon will be made during the build */ } }
+    const rgb = [1, 3, 5].map(i => parseInt(v.backgroundColor.slice(i, i + 2), 16));
+    ctx.fillStyle = rgb[0] * .299 + rgb[1] * .587 + rgb[2] * .114 > 150 ? '#172340' : '#FFFFFF';
+    let size = 74; ctx.font = `bold ${size}px system-ui, sans-serif`;
+    while (ctx.measureText(v.name).width > 530 && size > 20) ctx.font = `bold ${--size}px system-ui, sans-serif`;
+    ctx.fillText(v.name, 432, 232); ctx.font = '31px system-ui, sans-serif';
+    const lines = []; for (const word of (v.subtitle || v.short).split(/\s+/)) {
+      if (lines.length && ctx.measureText(lines.at(-1) + ' ' + word).width <= 530) lines[lines.length - 1] += ' ' + word;
+      else if (lines.length < 2) lines.push(word);
+    }
+    lines.forEach((line, i) => ctx.fillText(line, 432, 294 + i * 42));
+    return canvas.toDataURL('image/png');
+  }
   async function renderReview() {
+    const revision = ++reviewRevision;
+    const shotRevision = shots.revision;
     const v = currentValues();
     const c = state.config || {};
     const rows = [
@@ -1474,11 +1958,20 @@
       ['App ID', v.bundleId],
       ['Price', v.pricing.model === 'free' ? 'Free' : `$${v.pricing.price}, set once in each console`],
       ['Stores', { both: 'App Store and Google Play', ios: 'App Store only', android: 'Google Play only' }[v.platforms]],
-      ['Icon', $('#fIcon').files[0] ? 'Your uploaded PNG' : icon.blob ? 'Cropped from the game' : state.upload && state.upload.iconCandidate ? 'Found inside your upload' : 'Made during the build'],
+      ['Icon', $('#fIcon').files[0] ? 'Your uploaded PNG' : icon.blob ? 'Designed from the game' : state.upload && state.upload.iconCandidate ? 'Found inside your upload' : 'Made during the build'],
+      ['Screens', shots.thumbs.length ? `${shots.thumbs.length} selected screenshot${shots.thumbs.length === 1 ? '' : 's'}` : 'Fresh screenshots will be made during the build'],
+      ['Privacy', (() => {
+        const answers = privacyAnswers();
+        const on = PRIVACY_SIGNALS.filter((s2) => answers[s2.key] && s2.key !== 'network').length;
+        return on ? `${on} thing${on === 1 ? '' : 's'} disclosed, page generated` : 'Collects nothing, page generated';
+      })()],
       ['Support', c.siteUrl ? `${c.siteUrl}/support.html` : 'Not set — open Publisher'],
-      ['Privacy', c.siteUrl ? `${c.siteUrl}/privacy.html` : 'Not set — open Publisher'],
+      ['Policy URL', c.siteUrl ? `${c.siteUrl}/privacy.html` : 'Not set — open Publisher'],
     ];
-    $('#reviewSummary').innerHTML = rows.map(([k, val]) => `<div><dt>${esc(k)}</dt><dd>${esc(val)}</dd></div>`).join('');
+    const editSteps = { Game: 4, 'App ID': 6, Price: 6, Stores: 6, Icon: 2, Screens: 3, Privacy: 5 };
+    $('#reviewSummary').innerHTML = rows.map(([k, val]) => `<div><dt>${esc(k)}</dt><dd>${esc(val)}</dd><button class="text-btn" type="button" ${editSteps[k] ? `data-review-edit="${editSteps[k]}"` : 'data-review-profile'} aria-label="Edit ${esc(k)}">Edit</button></div>`).join('');
+    $$('#reviewSummary [data-review-edit]').forEach(button => { button.onclick = () => goStep(Number(button.dataset.reviewEdit)); });
+    $$('#reviewSummary [data-review-profile]').forEach(button => { button.onclick = openProfile; });
 
     const checks = [];
     if (!c.companyName || !c.siteUrl || !c.review || !c.review.phone) checks.push('Publisher details are incomplete. Both stores reject listings without a working support link and a review contact.');
@@ -1488,16 +1981,16 @@
 
     const block = $('#previewBlock');
     block.hidden = true;
-    if (state.editing) {
-      try {
-        const { images, feature } = await loadPreviewThumbs(v.slug);
-        if (images.length) {
-          $('#previewThumbs').innerHTML = images.map((src, i) => `<img src="${src}" alt="Screenshot ${i + 1}">`).join('');
-          $('#previewFeature').innerHTML = feature ? `<img src="${feature}" alt="Store banner">` : '';
-          block.hidden = false;
-        }
-      } catch { /* previews are optional */ }
+    $('#previewThumbs').innerHTML = '';
+    $('#previewFeature').innerHTML = '';
+    if (shots.thumbs.length) {
+      $('#previewThumbs').innerHTML = shots.thumbs.map((src, i) => `<img src="${src}" alt="Selected screenshot ${i + 1}">`).join('');
+      block.hidden = false;
     }
+    const feature = await currentBanner(v);
+    if (revision !== reviewRevision || shotRevision !== shots.revision || state.step !== 7) return;
+    $('#previewFeature').innerHTML = `<img src="${feature}" alt="Current store banner for ${esc(v.name)}">`;
+    block.hidden = false;
   }
 
   function startDemo() {
@@ -1508,8 +2001,13 @@
     openWizard(null);
   }
 
-  async function openWizard(slug) {
+  async function openWizard(slug, startStep = 1) {
     if (!usable()) { openConnect(); return; }
+    clearTimeout(draftTimer);
+    const session = ++state.wizardSession;
+    state.uploadRevision++; state.uploadLoading = false; state.uploadError = null; state.draftReady = false; state.artworkDirty = false; state.existingUpload = null;
+    reviewArmed = false; clearTimeout(armTimer);
+    touchedFields.clear(); existingIcon = null;
     const game = slug ? state.games.find((g) => g.slug === slug) : null;
     state.editing = game || null;
     state.upload = null;
@@ -1519,6 +2017,9 @@
     $('#fFiles').value = '';
     $('#fIcon').value = '';
     resetIcon();
+    resetShots();
+    shots.changed = false;
+    privacyTouched = false;
     clearPreview();
     $('#phoneFrame').hidden = true;
     $('#phoneNote').hidden = true;
@@ -1526,10 +2027,10 @@
     $('#wizardSub').textContent = game ? 'Change the files or the listing, bump the version, then send it again.' : 'Drop in a zip or a single HTML file. Shipyard reads it and drafts the rest.';
     $('#fFilesHint').textContent = game ? 'Leave empty to keep the current game files.' : 'A zip of the folder containing index.html, or one self-contained .html file.';
     $('#fIconHint').textContent = game ? 'Leave empty to keep the current icon.' : "Optional. Shipyard makes one from your game's title screen if you don't supply one.";
-    $('#fSlug').disabled = Boolean(game);
-    $('#fBundle').disabled = Boolean(game);
+    $('#fSlug').disabled = false; $('#fSlug').readOnly = Boolean(game);
+    $('#fBundle').disabled = false; $('#fBundle').readOnly = Boolean(game);
 
-    applyDraft({ name: '', subtitle: '', short: '', description: '', keywords: '', promo: '', notes: '', category: 'GAMES_CASUAL', orientation: 'portrait', color: '#8FD3F4' }, true);
+    applyDraft({ name: game?.name || '', subtitle: '', short: '', description: '', keywords: '', promo: '', notes: '', category: game?.appleSubcategory || 'GAMES_CASUAL', orientation: game?.orientation || 'portrait', color: game?.backgroundColor || '#8FD3F4' }, true);
     $('#fSlug').value = game ? game.slug : '';
     $('#fBundle').value = game ? (game.bundleId || '') : '';
     $('#fVersion').value = game ? (game.version || '1.0.0') : '1.0.0';
@@ -1538,33 +2039,52 @@
     $('input[name=platforms][value=both]').checked = true;
     $('input[name=dest][value=previews]').checked = true;
     $('#submitBtn').textContent = DESTS.previews.cta;
-    goStep(1);
+    state.maxStep = game ? 7 : 1;
+    applyPrivacy(game?.privacy || { childrenAudience: 'no' }, []);
+    $('#draftStatus').textContent = 'Loading your editable listing…';
+    goStep(game ? startStep : 1);
     $('#wizardSheet').showModal();
+    const savedDraft = draftOperation('get', draftKey()).catch(() => null);
 
     if (game) {
       $('#analysis').hidden = false;
       $('#analysis').innerHTML = '<div class="found">Loading the current listing…</div>';
       try {
         const texts = await Promise.all(Object.values(STORE_FILES).map((f) => readRepoText(`games/${game.slug}/store/${f}`)));
+        if (session !== state.wizardSession) return;
         const values = Object.fromEntries(Object.keys(STORE_FILES).map((k, i) => [k, (texts[i] || '').trim()]));
-        applyDraft({ ...values, name: game.name || '', category: game.appleSubcategory, orientation: game.orientation, color: game.backgroundColor }, true);
-        $('#fSlug').value = game.slug;
-        $('#fBundle').value = game.bundleId || '';
-        $('#fVersion').value = game.version || '1.0.0';
-        if (game.pricing && game.pricing.model === 'paid') {
+        const currentName = $('#fName').value.trim() || game.name;
+        for (const key of Object.keys(values)) values[key] = values[key].split(game.name).join(currentName);
+        applyDraft({ ...values, name: state.upload ? currentName : game.name || '', category: game.appleSubcategory, orientation: game.orientation, color: game.backgroundColor }, 'untouched');
+        if (game.pricing && game.pricing.model === 'paid' && !touchedFields.has('fPrice') && !touchedFields.has('price')) {
           $('input[name=price][value=paid]').checked = true;
           $('#priceTierField').hidden = false;
           if (PRICE_POINTS.includes(game.pricing.price)) $('#fPrice').value = game.pricing.price;
         }
         $('#analysis').innerHTML = '<div class="found">Current listing loaded. Upload files above only if the game itself changed.</div>';
       } catch (err) {
+        if (session !== state.wizardSession) return;
         $('#analysis').innerHTML = `<div class="errors">${esc(explain(err))}</div>`;
       }
+    }
+    const saved = await savedDraft;
+    if (session !== state.wizardSession) return;
+    if (saved && !touchedFields.size && !state.upload) await restoreDraft(saved);
+    state.draftReady = true;
+    if (!saved) $('#draftStatus').textContent = 'Edit any field. Your draft saves automatically on this device.';
+    if (game) {
+      const revision = shots.revision;
+      loadExistingScreens(game.slug, session, revision).then(() => { if (session === state.wizardSession) scheduleDraft(); }).catch(() => {});
+      readExistingGame(game.slug).then(upload => {
+        if (session !== state.wizardSession) return;
+        state.existingUpload = upload;
+        if (!state.upload && (state.step === 2 || state.step === 3)) showPreview(upload);
+      }).catch(() => { /* A fresh upload remains available when the repository can't be previewed. */ });
     }
   }
   $('#addBtn').onclick = () => openWizard(null);
 
-  async function commitFiles({ files, replacePrefix, message, onProgress }) {
+  async function commitFiles({ files, replacePrefix, replacePrefixes = [], message, onProgress }) {
     const ref = await gh(`${repoPath()}/git/ref/heads/${encPath(S.branch)}`);
     const parentSha = ref.object.sha;
     const parent = await gh(`${repoPath()}/git/commits/${parentSha}`);
@@ -1575,12 +2095,13 @@
       if (onProgress) onProgress(`Uploading ${done} of ${files.length} files…`);
       return { path: f.path, mode: '100644', type: 'blob', sha: blob.sha };
     });
-    if (replacePrefix) {
+    const prefixes = [...replacePrefixes, ...(replacePrefix ? [replacePrefix] : [])];
+    if (prefixes.length) {
       const tree = await gh(`${repoPath()}/git/trees/${parent.tree.sha}?recursive=1`);
       if (tree.truncated) throw new Error('The repo is too large to replace game files safely from here.');
       const keep = new Set(files.map((f) => f.path));
       for (const item of tree.tree) {
-        if (item.type === 'blob' && item.path.startsWith(replacePrefix) && !keep.has(item.path)) entries.push({ path: item.path, mode: '100644', type: 'blob', sha: null });
+        if (item.type === 'blob' && prefixes.some((prefix) => item.path.startsWith(prefix)) && !keep.has(item.path)) entries.push({ path: item.path, mode: '100644', type: 'blob', sha: null });
       }
     }
     if (onProgress) onProgress('Saving…');
@@ -1605,10 +2126,21 @@
 
   let reviewArmed = false;
   let armTimer;
-  $('#submitBtn').onclick = async () => {
+  async function saveGame(build = true) {
     const dest = $('input[name=dest]:checked').value;
-    const btn = $('#submitBtn');
-    if (dest === 'review' && !reviewArmed) {
+    const btn = build ? $('#submitBtn') : $('#saveListingBtn');
+    const problems = [];
+    if (state.uploadLoading) problems.push('Wait for the game file to finish loading.');
+    if (state.uploadError) problems.push('Choose a valid game file on step 1: ' + state.uploadError);
+    if (!$('#fName').value.trim() || !$('#fShort').value.trim() || !$('#fDescription').value.trim()) problems.push('Complete the name and descriptions on Listing (step 4).');
+    if ($$('.count.over').length) problems.push('Some listing fields are over the store limit.');
+    if (!/^[a-z0-9][a-z0-9-]{0,48}$/.test($('#fSlug').value.trim())) problems.push('Choose a valid folder on Price (step 6).');
+    if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test($('#fBundle').value.trim())) problems.push('Choose a valid App ID on Price (step 6).');
+    if (!/^\d+\.\d+\.\d+$/.test($('#fVersion').value.trim())) problems.push('Version must look like 1.0.0.');
+    if (!state.editing && !state.upload) problems.push('Choose a game file on step 1.');
+    if (state.upload?.blockers.length) problems.push('Fix the game-file problems on step 1.');
+    if (wizardError(problems)) return;
+    if (build && dest === 'review' && !reviewArmed) {
       reviewArmed = true;
       btn.textContent = 'Tap again to submit for approval';
       clearTimeout(armTimer);
@@ -1622,7 +2154,7 @@
       progress('Demo mode, so nothing was saved. Everything up to here is exactly what happens for real — connect a repo under the gear icon to send it.');
       return;
     }
-    btn.disabled = true;
+    $('#submitBtn').disabled = true; $('#saveListingBtn').disabled = true;
     try {
       const base = `games/${v.slug}`;
       const previous = Object.assign({}, state.editing);
@@ -1631,7 +2163,8 @@
         ...previous,
         name: v.name, bundleId: v.bundleId, version: v.version, orientation: v.orientation,
         backgroundColor: v.backgroundColor, appleSubcategory: v.appleSubcategory, pricing: v.pricing,
-        screenshots: previous.screenshots || DEFAULT_SHOTS,
+        privacy: privacyAnswers(),
+        screenshots: shots.thumbs.length && shots.steps.some((step) => step.shot) ? shots.steps : (state.upload || shots.changed ? DEFAULT_SHOTS : previous.screenshots || DEFAULT_SHOTS),
       };
       const files = [{ path: `${base}/game.json`, base64: textToB64(JSON.stringify(gameJson, null, 2) + '\n') }];
       for (const [key, name] of Object.entries(STORE_FILES)) files.push({ path: `${base}/store/${name}`, base64: textToB64(v[key] + '\n') });
@@ -1647,6 +2180,17 @@
         files.push({ path: `${base}/icon.png`, base64: bytesToB64(state.upload.iconCandidate.bytes) });
       }
 
+      const replacePrefixes = [];
+      if (shots.thumbs.length || shots.changed || state.upload) {
+        for (const [i, image] of shots.thumbs.entries()) {
+          if (!image.startsWith('data:image/png;base64,')) throw new Error('A selected screenshot is not a captured PNG. Capture it again.');
+          const name = String(i + 1).padStart(2, '0') + '.png';
+          for (const store of ['apple', 'google']) files.push({ path: `${base}/store/screenshots/${store}/${name}`, base64: image.split(',')[1] });
+        }
+        replacePrefixes.push(`${base}/store/screenshots/apple/`, `${base}/store/screenshots/google/`);
+      }
+      if (state.upload || shots.changed || v.name !== previous.name || v.subtitle) replacePrefixes.push(`${base}/store/previews/`);
+      if (state.upload && !iconFile && !icon.blob && !state.upload.iconCandidate) replacePrefixes.push(`${base}/icon.png`);
       let replacePrefix = null;
       if (state.upload) {
         progress('Packing the game…');
@@ -1654,19 +2198,25 @@
         replacePrefix = `${base}/www/`;
       }
 
-      await commitFiles({ files, replacePrefix, message: `${state.editing ? 'Update' : 'Add'} ${v.name} ${v.version}`, onProgress: progress });
-      progress('Starting the build…');
-      await dispatch(v.slug, v.platforms, dest);
+      await commitFiles({ files, replacePrefix, replacePrefixes, message: `${state.editing ? 'Update' : 'Add'} ${v.name} ${v.version}`, onProgress: progress });
+      if (build) { progress('Starting the build…'); await dispatch(v.slug, v.platforms, dest); }
+      clearTimeout(draftTimer);
+      await draftOperation('delete', draftKey()).catch(() => {});
+      state.draftReady = false;
+      const saved = { ...gameJson, slug: v.slug };
+      state.games = [...state.games.filter(game => game.slug !== v.slug), saved]; render();
       $('#wizardSheet').close();
-      toast(dest === 'review' ? `${v.name} submitted for approval` : `${v.name} saved, build started`);
+      toast(build ? `${v.name} saved; workflow queued. Check its result for upload or submission status.` : `${v.name} saved to GitHub. No build or store upload started.`);
       setTimeout(loadBoard, 4000);
     } catch (err) {
       progress(err.status ? explain(err) : err.message);
     } finally {
-      btn.disabled = false;
-      btn.textContent = DESTS[$('input[name=dest]:checked').value].cta;
+      $('#submitBtn').disabled = false; $('#saveListingBtn').disabled = false;
+      $('#submitBtn').textContent = DESTS[$('input[name=dest]:checked').value].cta;
     }
-  };
+  }
+  $('#submitBtn').onclick = () => saveGame(true);
+  $('#saveListingBtn').onclick = () => saveGame(false);
 
   // ---------- Quick ship ----------
   async function openShip(slug) {
@@ -1725,18 +2275,21 @@
       btn.textContent = DESTS[dest].short;
     }
   };
-  $('#editFromShip').onclick = () => { const slug = state.shipping && state.shipping.slug; $('#shipSheet').close(); openWizard(slug); };
+  $('#editFromShip').onclick = () => { const slug = state.shipping && state.shipping.slug; $('#shipSheet').close(); openWizard(slug, 4); };
 
   // ---------- Wiring ----------
   $$('[data-close]').forEach((b) => { b.onclick = () => b.closest('dialog').close(); });
   $$('dialog.sheet').forEach((dialog) => {
+    // The long editor closes explicitly, so playing the scaled preview or dragging
+    // a field cannot dismiss it by landing over the backdrop.
+    if (dialog.id === 'wizardSheet') return;
     // A drag that starts in a field and ends over the backdrop is still a click on the
     // backdrop, which used to close the sheet and throw away whatever was typed.
     let pressedBackdrop = false;
     dialog.addEventListener('mousedown', (e) => { pressedBackdrop = e.target === dialog; });
     dialog.addEventListener('click', (e) => { if (e.target === dialog && pressedBackdrop) dialog.close(); pressedBackdrop = false; });
   });
-  $('#wizardSheet').addEventListener('close', clearPreview);
+  $('#wizardSheet').addEventListener('close', () => { saveDraft(); setRecording(false); clearPreview(); });
   $('#settingsBtn').onclick = openConnect;
   $('#refreshBtn').onclick = loadBoard;
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadBoard(); });
