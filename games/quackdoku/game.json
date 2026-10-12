@@ -1,0 +1,276 @@
+{
+  "name": "QuackDoku",
+  "bundleId": "elevatr.llc.quackdoku",
+  "version": "1.0.0",
+  "orientation": "portrait",
+  "backgroundColor": "#F1F5E8",
+  "appleSubcategory": "GAMES_BOARD",
+  "pricing": {
+    "model": "free",
+    "price": "0"
+  },
+  "privacy": {
+    "childrenAudience": "no",
+    "thirdParties": "",
+    "accounts": false,
+    "analytics": false,
+    "ads": false,
+    "crashReports": false,
+    "location": false,
+    "cameraMic": false,
+    "contacts": false,
+    "userContent": false,
+    "purchases": false,
+    "network": false
+  },
+  "screenshots": [
+    {
+      "tap": [
+        0.515,
+        0.744
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "wait": 900,
+      "shot": true
+    },
+    {
+      "tap": [
+        0.423,
+        0.504
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.354,
+        0.509
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.862,
+        0.412
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.862,
+        0.412
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.379,
+        0.299
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.379,
+        0.299
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "wait": 900,
+      "shot": true
+    },
+    {
+      "tap": [
+        0.636,
+        0.609
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.636,
+        0.609
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "wait": 900,
+      "shot": true
+    },
+    {
+      "tap": [
+        0.413,
+        0.517
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.505,
+        0.63
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.641,
+        0.95
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.756,
+        0.949
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.61,
+        0.616
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.61,
+        0.616
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.831,
+        0.43
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.831,
+        0.43
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.554,
+        0.634
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.503,
+        0.456
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.503,
+        0.456
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.692,
+        0.295
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.692,
+        0.295
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.841,
+        0.539
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.841,
+        0.539
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.692,
+        0.659
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.538,
+        0.259
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.238,
+        0.199
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "tap": [
+        0.751,
+        0.276
+      ],
+      "wait": 1200,
+      "shot": false
+    },
+    {
+      "wait": 900,
+      "shot": true
+    },
+    {
+      "tap": [
+        0.205,
+        0.04
+      ],
+      "wait": 1200,
+      "shot": false
+    }
+  ]
+}
