@@ -3,7 +3,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import '../site/naming.js';
 
+export const naming = globalThis.ShipyardNaming;
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // Store field limits (App Store Connect + Google Play Console).
@@ -54,6 +56,19 @@ export function slugArg() {
   return slug;
 }
 
+/** What App Store Connect knows about a game, written by scripts/appstore.mjs. */
+export function releasePath(slug) {
+  return path.join(ROOT, 'games', slug, 'release.json');
+}
+
+export function loadRelease(slug) {
+  try {
+    return JSON.parse(fs.readFileSync(releasePath(slug), 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
 export function buildNumber() {
   return process.env.BUILD_NUMBER || '1';
 }
@@ -74,12 +89,15 @@ export function loadGame(slug) {
   const site = (config.siteUrl || '').replace(/\/+$/, '');
   const store = (name) => readText(path.join(dir, 'store', name));
 
+  const name = (raw.name || '').trim();
   return {
     slug,
     dir,
     config,
     raw,
-    name: (raw.name || '').trim(),
+    name,
+    displayName: (raw.displayName || '').trim() || naming.defaultDisplayName(name),
+    release: loadRelease(slug),
     bundleId: (raw.bundleId || '').trim(),
     version: (raw.version || '1.0.0').trim(),
     orientation: raw.orientation || 'portrait',

@@ -46,7 +46,7 @@ fs.writeFileSync(
   JSON.stringify(
     {
       appId: game.bundleId,
-      appName: game.name,
+      appName: game.displayName,
       webDir: 'www',
       backgroundColor: game.backgroundColor,
       loggingBehavior: 'none',
@@ -186,7 +186,7 @@ if (platform === 'ios') {
   // No custom encryption: skips the export-compliance question that otherwise blocks submission.
   plutil('-replace', 'ITSAppUsesNonExemptEncryption', '-bool', 'NO');
   plutil('-replace', 'UIRequiredDeviceCapabilities', '-json', '["arm64"]');
-  plutil('-replace', 'CFBundleDisplayName', '-string', game.name);
+  plutil('-replace', 'CFBundleDisplayName', '-string', game.displayName);
 }
 
 // ---------- 6. Sync web files + plugins into the native project ----------

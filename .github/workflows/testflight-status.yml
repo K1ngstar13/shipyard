@@ -1,0 +1,42 @@
+name: TestFlight status
+run-name: TestFlight status ${{ inputs.game || 'for waiting games' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      game:
+        description: Game folder name inside games/ (leave empty for every game still waiting on Apple)
+        required: false
+        type: string
+  schedule:
+    - cron: "17 * * * *"
+
+concurrency:
+  group: testflight-status
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  status:
+    name: Check App Store Connect
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Refresh TestFlight status and finish distribution
+        env:
+          GAME: ${{ inputs.game }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: node scripts/appstore.mjs status "${GAME:---pending}" --commit

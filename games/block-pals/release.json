@@ -1,0 +1,27 @@
+{
+  "bundleId": "elevatr.llc.blockpals",
+  "bundleIdLocked": true,
+  "lock": {
+    "since": "2026-10-12T04:20:36Z",
+    "build": "101",
+    "reason": "Build 101 was uploaded to App Store Connect with elevatr.llc.blockpals on 2026-10-12. Apple ties the app record, its TestFlight builds, and every future update to this ID, and it can never be changed or reused. Players never see it; they see the App Store name and the home-screen name, which you can still change."
+  },
+  "appStoreConnect": {
+    "appId": "6821781861",
+    "name": "",
+    "sku": "",
+    "url": "https://appstoreconnect.apple.com/apps/6821781861"
+  },
+  "testflight": {
+    "state": "uploaded",
+    "label": "Build 101 uploaded to App Store Connect",
+    "detail": "Shipyard hasn't checked Apple since this build. Tap Check TestFlight now.",
+    "build": "101",
+    "version": "1.0.0",
+    "group": "Elevatr Internal Testing",
+    "testers": [],
+    "next": null,
+    "checkedAt": "2026-10-12T04:20:36Z"
+  },
+  "updatedAt": "2026-10-13T01:42:05.087Z"
+}

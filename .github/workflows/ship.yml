@@ -175,9 +175,34 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
+  apple:
+    name: App Store Connect setup
+    needs: preflight
+    if: inputs.platforms != 'android' && inputs.destination != 'previews'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Bundle ID, app record, and App Store name
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: node scripts/appstore.mjs prepare "$GAME" "$DESTINATION" --commit
+
   ios:
     name: App Store
-    needs: preflight
+    needs: [preflight, apple]
     if: inputs.platforms != 'android' && inputs.destination != 'previews'
     runs-on: macos-26
     timeout-minutes: 60
@@ -250,3 +275,31 @@ jobs:
           path: build/${{ inputs.game }}/out/*.ipa
           if-no-files-found: ignore
           retention-days: 30
+
+  testflight:
+    name: TestFlight setup
+    needs: ios
+    if: inputs.destination == 'testers' || inputs.destination == 'closed-test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Build number
+        run: echo "BUILD_NUMBER=$(( ${{ github.run_number }} * 10 + ${{ github.run_attempt }} ))" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Wait for Apple, then add the build and testers to the internal group
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: node scripts/appstore.mjs testflight "$GAME" "$BUILD_NUMBER" --commit
