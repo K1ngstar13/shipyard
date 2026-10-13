@@ -1,19 +1,15 @@
 {
   "bundleId": "elevatr.llc.quackdoku",
-  "appStoreConnect": null,
-  "next": {
-    "title": "Create the App Store Connect record (one time)",
-    "detail": "Apple only lets the account holder create the record, and only on the website. If Apple says the name is taken, rename the game in Shipyard; the App ID follows the name until the first upload.",
-    "url": "https://appstoreconnect.apple.com/apps",
-    "fields": {
-      "Platform": "iOS",
-      "Name": "QuackDoku",
-      "Primary language": "English (U.S.)",
-      "Bundle ID": "elevatr.llc.quackdoku",
-      "SKU": "quackdoku",
-      "User access": "Full access"
-    },
-    "blocking": true
+  "appStoreConnect": {
+    "appId": "6822144526",
+    "name": "QuackDoku",
+    "sku": "quackdoku",
+    "url": "https://appstoreconnect.apple.com/apps/6822144526"
   },
-  "updatedAt": "2026-10-13T03:51:34.133Z"
+  "next": null,
+  "updatedAt": "2026-10-13T04:00:45.292Z",
+  "name": {
+    "appStore": "QuackDoku",
+    "synced": true
+  }
 }
