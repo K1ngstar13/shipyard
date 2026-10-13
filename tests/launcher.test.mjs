@@ -35,7 +35,7 @@ test('occupied port opens a new versioned server and rejects path traversal', as
     assert.notEqual(port, other.address().port);
     const health = await fetch(`http://127.0.0.1:${port}/__shipyard`);
     assert.equal(health.headers.get('cache-control'), 'no-store');
-    assert.equal((await health.json()).version, '2.4.0');
+    assert.equal((await health.json()).version, '2.4.1');
     const traversal = await fetch(`http://127.0.0.1:${port}/..%2fpackage.json`); assert.equal(traversal.status,403);
   } finally { await Promise.all([new Promise(r => other.close(r)), new Promise(r => shipyard.close(r))]); }
 });

@@ -43,7 +43,7 @@ def ensure_bundle_id(identifier, name)
 
   UI.message("Registering bundle ID #{identifier} with Apple")
   Spaceship::ConnectAPI::BundleId.create(
-    name: "Shipyard #{name}".gsub(/[^A-Za-z0-9 ]/, "").strip,
+    name: name.gsub(/[^A-Za-z0-9 ]/, "").squeeze(" ").strip[0, 60],
     platform: "IOS",
     identifier: identifier
   )

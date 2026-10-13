@@ -1,3 +1,10 @@
+# 2.4.1 — testers set up automatically, clearer bundle ID labels
+
+- Every app gets the Elevatr Internal Testing group with your Apple Account as a tester as soon as its App Store Connect record exists, before the first build finishes processing. No per-app tester setup.
+- `testflight.testers` in shipyard.config.json now names your Apple Account (`kingr13@hotmail.com`), because the publisher contact email isn't an App Store Connect user.
+- New bundle IDs are described with just the game name ("QuackDoku – elevatr.llc.quackdoku" in Apple's New App form), and older "Shipyard …" descriptions are renamed. The ID itself never had the prefix.
+- A dropped connection to GitHub shows a plain explanation instead of "Failed to fetch".
+
 # 2.4.0 — automatic App Store Connect and TestFlight setup
 
 - **Name check before anything is created.** The App Store name is searched against the live App Store as you type. A name another developer already uses is blocked, with free alternatives you can tap. Preflight checks again before every build.

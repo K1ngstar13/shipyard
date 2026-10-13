@@ -4,7 +4,7 @@ From 2.4.0, Shipyard runs this for every game:
 
 1. **Import the game.** Shipyard reads it and drafts the listing. The App ID is generated from the name, for example *Block Pets* → `elevatr.llc.blockpets`.
 2. **Prepare the app.** On Listing (step 4), Shipyard searches the App Store for the name as you type. If another developer already uses it, Continue is blocked and Shipyard offers names that are free. The home-screen name follows the App Store name unless you type your own. The App ID follows the name until the first upload.
-3. **Build and upload.** Choose **Send to my phone**. The run has these jobs:
+3. **Build and upload.** Choose **Send to my phone**. The run has these jobs (the setup job also creates the TestFlight group with you in it):
    - *Preflight* checks the listing and searches for the name again.
    - *App Store Connect setup* registers the bundle ID, finds the app record, and renames the record if you renamed the game.
    - *App Store* builds, signs, and uploads on a Mac.
@@ -39,12 +39,13 @@ In `shipyard.config.json`:
 ```json
 "testflight": {
   "group": "Elevatr Internal Testing",
-  "testers": []
+  "testers": ["kingr13@hotmail.com"]
 }
 ```
 
-- **group**: the internal group every build is added to. It's created if missing; an existing internal group is reused.
-- **testers**: Apple IDs to add. Leave it empty to add everyone on your App Store Connect team. That needs an Admin API key; with an App Manager key, list your Apple ID here. Internal testers must be users on your App Store Connect team.
+- **group**: the internal group for every app. As soon as an app's record exists, Shipyard creates the group (or reuses an existing internal group) and adds the testers. You never set it up per app.
+- **testers**: Apple Accounts to add. They must be users under App Store Connect → Users and Access (yours is). Leave the list empty to add every team member; that needs an Admin API key.
+- **Invitation**: Apple emails each new tester once per app. Accept it on your iPhone, and new builds then show up in the TestFlight app.
 
 ## Status
 

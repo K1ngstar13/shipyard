@@ -76,10 +76,29 @@ export async function findBundleId(api, identifier) {
   return data.find((b) => b.attributes?.identifier === identifier) || null;
 }
 
+/**
+ * The description Apple shows beside the ID ("QuackDoku - elevatr.llc.quackdoku" in the
+ * New App form). Apple allows only letters, numbers, and spaces here.
+ */
+export function bundleDescription(appName) {
+  return String(appName || '').replace(/[^A-Za-z0-9 ]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Game';
+}
+
 export async function registerBundleId(api, identifier, appName) {
-  const name = `Shipyard ${appName}`.replace(/[^A-Za-z0-9 ]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Shipyard app';
-  const { data } = await api.post('/v1/bundleIds', { data: { type: 'bundleIds', attributes: { identifier, name, platform: 'IOS' } } });
+  const { data } = await api.post('/v1/bundleIds', { data: { type: 'bundleIds', attributes: { identifier, name: bundleDescription(appName), platform: 'IOS' } } });
   return data;
+}
+
+/** Earlier versions described IDs as "Shipyard <name>". Tidy that to the plain game name. */
+async function tidyBundleDescription(api, bundle, appName) {
+  const wanted = bundleDescription(appName);
+  if (!/^Shipyard /.test(bundle.attributes?.name || '') || bundle.attributes.name === wanted) return false;
+  try {
+    await api.patch(`/v1/bundleIds/${q(bundle.id)}`, { data: { type: 'bundleIds', id: bundle.id, attributes: { name: wanted } } });
+    return true;
+  } catch {
+    return false; // cosmetic only; the identifier is what matters
+  }
 }
 
 export async function findApp(api, bundleId) {
@@ -154,6 +173,7 @@ export async function testerEmails(api, config) {
   const listed = config.testflight?.testers;
   if (Array.isArray(listed) && listed.length) return [...new Set(listed.map((e) => String(e).trim().toLowerCase()).filter(Boolean))];
   const team = await teamEmails(api);
+  // Last resort: the publisher contacts, which only work if they are App Store Connect users.
   const fallback = [config.review?.email, config.contactEmail];
   return [...new Set((team.length ? team : fallback).map((e) => String(e || '').trim().toLowerCase()).filter(Boolean))];
 }
@@ -177,7 +197,10 @@ async function addTesters(api, groupId, emails, present) {
         });
       }
     } catch (err) {
-      problems.push(`${email}: ${err.message}`);
+      const hint = /cannot be assigned/i.test(err.message)
+        ? ' Apple won’t create a brand-new internal tester through the API. Add yourself once in TestFlight → Elevatr Internal Testing → Testers (+); Shipyard then reuses that tester for every app.'
+        : '';
+      problems.push(`${email}: ${err.message}.${hint}`);
     }
   }
   return problems;
@@ -189,6 +212,31 @@ async function addBuildToGroup(api, groupId, buildId) {
   } catch (err) {
     if (err.status !== 409) throw err; // already in the group
   }
+}
+
+export function testerGroupName(config) {
+  return config.testflight?.group || `${(config.companyName || 'Shipyard').split(' ')[0]} Internal Testing`;
+}
+
+/**
+ * Makes sure the app has the internal group with your testers in it. Runs as soon as the
+ * app record exists, so the group is ready before the first build finishes processing.
+ */
+export async function ensureTesterGroup(api, appId, config) {
+  const name = testerGroupName(config);
+  const problems = [];
+  let group = null, testers = [];
+  try {
+    group = await ensureInternalGroup(api, appId, name);
+  } catch (err) {
+    problems.push(`Couldn't create ${name}: ${err.message}`);
+    return { group, testers, problems };
+  }
+  testers = await groupTesters(api, group.id).catch(() => []);
+  const failed = await addTesters(api, group.id, await testerEmails(api, config), testers);
+  if (failed.length) problems.push(`Couldn't add tester ${failed.join('; ')}`);
+  testers = await groupTesters(api, group.id).catch(() => testers);
+  return { group, testers, problems };
 }
 
 /** Turns what Apple reports into one status line and, when needed, the next thing to do. */
@@ -254,20 +302,17 @@ export async function reconcileTestflight(api, { appId, appUrl, buildNumber, con
   }
   const usable = build && build.attributes?.processingState === 'VALID' && !build.attributes?.expired
     && !['MISSING_EXPORT_COMPLIANCE', 'PROCESSING', 'PROCESSING_EXCEPTION', 'EXPIRED', 'IN_EXPORT_COMPLIANCE_REVIEW'].includes(betaState);
-  const groupName = config.testflight?.group || `${(config.companyName || 'Shipyard').split(' ')[0]} Internal Testing`;
+  const groupName = testerGroupName(config);
   let group = null, inGroup = false, testers = [];
   if (usable) {
-    try {
-      group = await ensureInternalGroup(api, appId, groupName);
-      if (!group.attributes?.hasAccessToAllBuilds) await addBuildToGroup(api, group.id, build.id);
-      inGroup = true;
-    } catch (err) { problems.push(`Couldn't add the build to ${groupName}: ${err.message}`); }
+    const setup = await ensureTesterGroup(api, appId, config);
+    ({ group, testers } = setup);
+    problems.push(...setup.problems);
     if (group) {
-      testers = await groupTesters(api, group.id).catch(() => []);
-      const wanted = await testerEmails(api, config);
-      const failed = await addTesters(api, group.id, wanted, testers);
-      if (failed.length) problems.push(`Couldn't add tester ${failed.join('; ')}`);
-      testers = await groupTesters(api, group.id).catch(() => testers);
+      try {
+        if (!group.attributes?.hasAccessToAllBuilds) await addBuildToGroup(api, group.id, build.id);
+        inGroup = true;
+      } catch (err) { problems.push(`Couldn't add the build to ${groupName}: ${err.message}`); }
     }
   }
   const status = describeTestflight({ build, buildNumber, betaState, inGroup, testers, group: group?.attributes?.name || groupName, appUrl, problems });
@@ -313,8 +358,11 @@ export async function prepare(api, game, destination = 'testers') {
   }
 
   release.bundleId = game.bundleId;
-  if (await findBundleId(api, game.bundleId)) steps.push(`Bundle ID ${game.bundleId} is registered.`);
-  else { await registerBundleId(api, game.bundleId, game.name); steps.push(`Registered bundle ID ${game.bundleId} with Apple.`); }
+  const bundle = await findBundleId(api, game.bundleId);
+  if (bundle) {
+    steps.push(`Bundle ID ${game.bundleId} is registered.`);
+    if (await tidyBundleDescription(api, bundle, game.name)) steps.push(`Renamed its description to “${bundleDescription(game.name)}”.`);
+  } else { await registerBundleId(api, game.bundleId, game.name); steps.push(`Registered bundle ID ${game.bundleId} with Apple.`); }
 
   const app = await findApp(api, game.bundleId);
   if (!app) {
@@ -329,7 +377,7 @@ export async function prepare(api, game, destination = 'testers') {
       }
       : {
         title: 'Create the App Store Connect record (one time)',
-        detail: 'Apple only lets the account holder create the record, and only on the website. If Apple says the name is taken, rename the game in Shipyard; the App ID follows the name until the first upload.',
+        detail: `Apple only lets the account holder create the record, and only on the website. In the Bundle ID list Apple shows a description, a dash, then the ID: choose the entry ending in ${game.bundleId}. If Apple says the name is taken, rename the game in Shipyard; the App ID follows the name until the first upload.`,
         url: 'https://appstoreconnect.apple.com/apps',
         fields: { Platform: 'iOS', Name: game.name, 'Primary language': languageLabel(config.language), 'Bundle ID': game.bundleId, SKU: game.slug, 'User access': 'Full access' },
         blocking: true,
@@ -365,6 +413,12 @@ export async function prepare(api, game, destination = 'testers') {
   } else {
     release.name = { appStore: current || game.name, synced: true };
   }
+
+  const testerSetup = await ensureTesterGroup(api, app.id, config);
+  if (testerSetup.group) {
+    steps.push(`TestFlight group ${testerSetup.group.attributes?.name}: ${testerSetup.testers.length ? testerSetup.testers.join(', ') : 'no testers yet'}.`);
+  }
+  steps.push(...testerSetup.problems);
 
   const first = await firstBuild(api, app.id);
   if (first) {

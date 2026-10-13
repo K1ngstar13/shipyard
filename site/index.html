@@ -190,7 +190,7 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">Shipyard <span class="ver">2.4.0</span></div>
+    <div class="brand">Shipyard <span class="ver">2.4.1</span></div>
     <button class="icon-btn" id="profileBtn" aria-label="Publisher details">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     </button>
@@ -603,6 +603,7 @@
     if (err.status === 401) return 'GitHub rejected the token. Check it under the gear icon.';
     if (err.status === 403) return `GitHub refused that: ${err.message}. The token is probably missing a permission.`;
     if (err.status === 404) return 'GitHub couldn’t find that repo or workflow. Check the username, repo, and token access.';
+    if (err instanceof TypeError) return 'Couldn’t reach GitHub just now (connection dropped). Shipyard tries again on its own; tap refresh to retry sooner.';
     return err.message || 'Something went wrong talking to GitHub.';
   }
 

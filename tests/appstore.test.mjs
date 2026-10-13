@@ -20,6 +20,7 @@ function fakeAppStore({ apps = [], builds = [], groups = [], users = ['king@elev
     db.calls.push(`${m} ${p}`);
     assert.match(init.headers.Authorization, /^Bearer [\w-]+\.[\w-]+\.[\w-]+$/);
     if (m === 'GET' && p === '/v1/bundleIds') return json(200, { data: db.bundleIds.filter((b) => b.attributes.identifier.includes(f('identifier'))) });
+    if (m === 'PATCH' && p.startsWith('/v1/bundleIds/')) { const b = db.bundleIds.find((x) => x.id === p.split('/').pop()); b.attributes.name = body.data.attributes.name; return json(200, { data: b }); }
     if (m === 'POST' && p === '/v1/bundleIds') { const b = { id: `b${db.bundleIds.length}`, attributes: body.data.attributes }; db.bundleIds.push(b); return json(201, { data: b }); }
     if (m === 'GET' && p === '/v1/apps') return json(200, { data: db.apps.filter((a) => (!f('bundleId') || a.attributes.bundleId === f('bundleId')) && (!f('name') || a.attributes.name === f('name'))) });
     let r;
@@ -184,4 +185,27 @@ test('API token is an ES256 JWT that verifies against the key, as App Store Conn
   assert.equal(payload.iss, 'iss-uuid'); assert.equal(payload.aud, 'appstoreconnect-v1');
   assert(payload.exp - payload.iat <= 1200, 'Apple refuses tokens that live longer than 20 minutes');
   assert(crypto.verify('sha256', Buffer.from(`${h}.${p}`), { key: pair.publicKey, dsaEncoding: 'ieee-p1363' }, Buffer.from(sig, 'base64url')));
+});
+
+test('bundle ID description is just the game name, and old "Shipyard …" descriptions are tidied', async () => {
+  const { db, api } = fakeAppStore();
+  await prepare(api, game(), 'testers');
+  assert.equal(db.bundleIds[0].attributes.name, 'QuackDoku');
+  db.bundleIds[0].attributes.name = 'Shipyard QuackDoku';
+  const again = await prepare(api, game(), 'testers');
+  assert.equal(db.bundleIds[0].attributes.name, 'QuackDoku');
+  assert(again.steps.includes('Renamed its description to “QuackDoku”.'));
+  assert.match(again.release.next.detail, /choose the entry ending in elevatr\.llc\.quackdoku/);
+});
+
+test('as soon as the app record exists, Elevatr Internal Testing is ready with you in it, before any build', async () => {
+  const { db, api } = fakeAppStore({ apps: [app('A7', 'QuackDoku', 'elevatr.llc.quackdoku')], users: ['kingr13@hotmail.com'] });
+  const me = { ...config, testflight: { group: 'Elevatr Internal Testing', testers: ['kingr13@hotmail.com'] } };
+  const result = await prepare(api, game({ config: me }), 'testers');
+  assert.equal(result.ok, true);
+  assert.deepEqual(db.groups.map((g) => [g.app, g.attributes.name, g.attributes.isInternalGroup]), [['A7', 'Elevatr Internal Testing', true]]);
+  assert(result.steps.includes('TestFlight group Elevatr Internal Testing: kingr13@hotmail.com.'));
+  await prepare(api, game({ config: me }), 'testers');
+  assert.equal(db.groups.length, 1, 'running again reuses the group');
+  assert.equal(db.groupTesters.length, 1, 'and never adds you twice');
 });

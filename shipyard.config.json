@@ -14,6 +14,8 @@
   },
   "testflight": {
     "group": "Elevatr Internal Testing",
-    "testers": []
+    "testers": [
+      "kingr13@hotmail.com"
+    ]
   }
 }
