@@ -6,8 +6,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
 import {
-  ROOT, LIMITS, APPLE_GAME_SUBCATEGORIES, DESTINATIONS, loadGame, slugArg, walk, readText,
+  ROOT, LIMITS, APPLE_GAME_SUBCATEGORIES, DESTINATIONS, loadGame, slugArg, walk, readText, naming,
 } from './lib.mjs';
+import { checkAppStoreName, describeConflict } from './name-check.mjs';
 
 const slug = slugArg();
 const destination = process.argv[3] || 'testers';
@@ -47,6 +48,31 @@ if (siteConfig.includes('you@example.com')) {
 // ---------- game.json ----------
 if (!game.name) err('game.json needs a "name".');
 else if (game.name.length > LIMITS.name) err(`Name is ${game.name.length} characters. Both stores allow ${LIMITS.name}.`);
+
+// ---------- Names and the App ID ----------
+const { release } = game;
+if (!game.displayName) err('The home-screen name is empty.');
+else if ([...game.displayName].length > LIMITS.name) err(`Home-screen name is ${[...game.displayName].length} characters. Keep it to ${naming.HOME_SCREEN_FIT}, and never over ${LIMITS.name}.`);
+else {
+  if ([...game.displayName].length > naming.HOME_SCREEN_FIT) warn(`Home-screen name "${game.displayName}" is ${[...game.displayName].length} characters. iPhone shows about ${naming.HOME_SCREEN_FIT} under the icon and cuts the rest off with "…". Set a shorter home-screen name on Listing (step 4).`);
+  if (game.name && !naming.displayNameMatches(game.displayName, game.name)) reviewBlocker(`Home-screen name "${game.displayName}" doesn't come from the App Store name "${game.name}". Apple rejects apps whose home-screen name differs from their store name.`);
+}
+
+if (release.bundleIdLocked && release.bundleId && release.bundleId !== game.bundleId) {
+  err(`The App ID is locked to ${release.bundleId}, but game.json says ${game.bundleId}. ${release.lock?.reason || ''} Put it back on Price (step 6).`.trim());
+}
+const ownRecord = release.appStoreConnect?.appId && release.name?.appStore === game.name;
+if (game.name && destination !== 'build-only' && !ownRecord) {
+  const check = await checkAppStoreName(game.name, { config, ownBundleIds: [game.bundleId] });
+  if (!check.checked) warn(`Couldn't search the App Store for other apps named "${game.name}" (${check.error}). App Store Connect still checks when the record is created.`);
+  else if (check.exact.length) {
+    // With a record already in App Store Connect, tester builds still work under its current name.
+    const report = destination === 'previews' ? warn : release.appStoreConnect?.appId ? reviewBlocker : err;
+    report(describeConflict(game.name, check.exact));
+  }
+  else if (check.similar.length) warn(`Similar App Store names exist: ${check.similar.map((s) => `"${s.name}" (${s.seller})`).join(', ')}. Fine to keep, but a more distinctive name is easier to find.`);
+}
+if (release.name && release.name.synced === false && release.name.problem) reviewBlocker(release.name.problem);
 
 if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test(game.bundleId)) {
   err(`bundleId "${game.bundleId}" is invalid. Use lowercase letters, numbers, and dots, like ${config.bundlePrefix || 'com.yourname'}.${slug.replace(/-/g, '')}. No dashes (Android rejects them).`);

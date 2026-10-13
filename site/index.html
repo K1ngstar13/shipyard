@@ -157,6 +157,22 @@
   .slider { display: grid; gap: 4px; font-size: 13px; color: var(--ink-soft); font-weight: 600; margin-bottom: 14px; }
   .slider input { width: 100%; }
   .icon-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+  .name-check { margin: 6px 0 0; font-size: 13.5px; }
+  .name-check.free { color: #11503A; } .name-check.taken { color: #7A1D10; } .name-check.unknown { color: var(--ink-soft); }
+  .name-ideas { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+  .name-ideas button { border: 1px solid #C9D3E4; background: #fff; color: var(--ink); border-radius: 999px; padding: 5px 11px; font-size: 13.5px; }
+  .lock-note { display: block; margin-top: 6px; font-size: 13px; color: var(--ink-soft); }
+  .status-card { background: #fff; color: var(--ink); border: 1px solid #D5DDEA; border-radius: 14px; padding: 12px 14px; margin: 4px 0 16px; font-size: 14px; }
+  .status-card h3 { margin: 0 0 4px; font-size: 15px; }
+  .status-card p { margin: 4px 0; }
+  .status-card .next { border-radius: 10px; padding: 10px 12px; margin: 10px 0 4px; background: #E8F5EE; color: #11503A; }
+  .status-card .next.blocking { background: #FFF5E2; color: #6B4700; }
+  .status-card table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 13.5px; }
+  .status-card td { padding: 4px 0; border-top: 1px solid #E7ECF4; vertical-align: top; }
+  .status-card td:first-child { color: var(--ink-soft); width: 38%; }
+  .status-card td button { margin-left: 6px; font-size: 12px; padding: 0; }
+  .status-card details { margin-top: 8px; color: var(--ink-soft); font-size: 13px; }
+  .status-card .row-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; }
   .summary { border: 1px solid #D5DDEA; border-radius: 14px; overflow: hidden; margin-bottom: 16px; background: #fff; }
   .summary > div { display: flex; gap: 12px; padding: 11px 14px; border-top: 1px solid #E7ECF4; font-size: 14.5px; }
   .summary > div:first-child { border-top: 0; }
@@ -174,7 +190,7 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">Shipyard <span class="ver">2.3.2</span></div>
+    <div class="brand">Shipyard <span class="ver">2.4.0</span></div>
     <button class="icon-btn" id="profileBtn" aria-label="Publisher details">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     </button>
@@ -351,7 +367,8 @@
     </section>
 
     <section data-step="4" hidden>
-      <div class="field"><label for="fName">Name <span class="count" data-for="fName" data-max="30"></span></label><input id="fName" type="text" maxlength="60"></div>
+      <div class="field"><label for="fName">App Store name <span class="count" data-for="fName" data-max="30"></span></label><input id="fName" type="text" maxlength="60"><p class="name-check" id="nameCheck" role="status"></p><div class="name-ideas" id="nameIdeas" hidden></div></div>
+      <div class="field"><label for="fDisplay">Home-screen name <span class="count" data-for="fDisplay" data-max="30"></span></label><input id="fDisplay" type="text" maxlength="30"><p class="hint" id="displayHint">Shown under the icon on the phone. It follows the App Store name; iPhone fits about 12 characters.</p></div>
       <div class="field"><label for="fSubtitle">Subtitle <span class="count" data-for="fSubtitle" data-max="30"></span></label><input id="fSubtitle" type="text"><p class="hint">Shown under the name on the App Store, and searched.</p></div>
       <div class="field"><label for="fShort">One-line description <span class="count" data-for="fShort" data-max="80"></span></label><input id="fShort" type="text"><p class="hint">The line Google Play shows at the top.</p></div>
       <div class="field"><label for="fDescription">Full description <span class="count" data-for="fDescription" data-max="4000"></span></label><textarea id="fDescription" rows="9"></textarea></div>
@@ -403,7 +420,7 @@
         <div class="field"><label for="fSlug">Folder</label><input id="fSlug" type="text" autocapitalize="off" spellcheck="false"></div>
         <div class="field"><label for="fVersion">Version</label><input id="fVersion" type="text" inputmode="decimal" value="1.0.0"></div>
       </div>
-      <div class="field"><label for="fBundle">App ID</label><input id="fBundle" type="text" autocapitalize="off" spellcheck="false"><p class="hint">Permanent once the game is live. Set the prefix under Publisher.</p></div>
+      <div class="field"><label for="fBundle">App ID</label><input id="fBundle" type="text" autocapitalize="off" spellcheck="false"><p class="hint" id="bundleNote">Made from the App Store name. It follows the name until the first upload to App Store Connect, then it is permanent.</p></div>
       <div class="legend">Price</div>
       <div class="segmented two">
         <label><input type="radio" name="price" value="free" checked><span>Free</span></label>
@@ -450,6 +467,7 @@
       <button class="close" data-close aria-label="Close">×</button>
     </div>
     <div id="shipPreviews" hidden><div class="thumbs" id="shipThumbs"></div></div>
+    <div id="shipStatus"></div>
     <div class="legend">Where it goes</div>
     <div class="choices" id="shipDestChoices"></div>
     <div class="legend">Stores</div>
@@ -468,6 +486,7 @@
 
 <div id="toast" class="toast" role="status"></div>
 
+<script src="naming.js"></script>
 <script>
 (() => {
   'use strict';
@@ -502,8 +521,12 @@
   const usable = () => connected() || state.demo;
   const repoPath = () => `/repos/${enc(S.owner)}/${enc(S.repo)}`;
   const byteLength = (s) => new TextEncoder().encode(s).length;
-  const slugify = (s) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
-  const bundleFor = (slug) => `${state.config?.bundlePrefix || 'com.yourname'}.${slug.replace(/-/g, '')}`.replace(/\.(\d)/g, '.g$1');
+  const N = window.ShipyardNaming;
+  const slugify = N.slugify;
+  const bundleFor = (name) => N.bundleIdFor(state.config?.bundlePrefix, name);
+  const releaseOf = (game) => (game && game.release) || {};
+  const TF_DESTS = new Set(['testers', 'closed-test']);
+  const buildFor = (run) => String(run.run_number * 10 + (run.run_attempt || 1));
 
   function bytesToB64(bytes) {
     let out = '';
@@ -584,11 +607,31 @@
   }
 
   // ---------- Board ----------
+  const TF_WORDS = {
+    available: ['TESTING', 'go'], processing: ['PROCESSING', 'busy'], uploaded: ['PROCESSING', 'busy'],
+    ready: ['TO DO', 'stop'], 'needs-compliance': ['TO DO', 'stop'], failed: ['FAILED', 'stop'], expired: ['EXPIRED', 'idle'],
+  };
+  function testflightStatus(release) {
+    const tf = release.testflight;
+    if (!tf || !TF_WORDS[tf.state]) return null;
+    const [word, tone] = TF_WORDS[tf.state];
+    return { word, tone, caption: tf.next && tf.next.blocking ? `${tf.label}. ${tf.next.title}` : tf.label };
+  }
   function statusOf(game) {
     const run = state.runs.get(game.slug);
-    if (!run) return { word: 'READY', tone: 'idle', caption: 'Not shipped yet' };
+    const release = releaseOf(game);
+    const fresh = (iso) => run && iso && new Date(iso) >= new Date(run.created_at);
+    if (!run) return testflightStatus(release) || { word: 'READY', tone: 'idle', caption: 'Not shipped yet' };
     const dest = DESTS[run.destination] || DESTS.testers;
-    if (run.status !== 'completed') return { word: run.status === 'in_progress' ? 'BUILDING' : 'QUEUED', tone: 'busy', caption: `Working ${dest.done}, started ${timeAgo(run.created_at)}` };
+    if (run.status !== 'completed') {
+      if (release.testflight && release.testflight.build === buildFor(run) && TF_WORDS[release.testflight.state]?.[1] === 'busy') return { word: 'PROCESSING', tone: 'busy', caption: release.testflight.label };
+      return { word: run.status === 'in_progress' ? 'BUILDING' : 'QUEUED', tone: 'busy', caption: `Working ${dest.done}, started ${timeAgo(run.created_at)}` };
+    }
+    if (run.conclusion === 'failure' && release.next && release.next.blocking && fresh(release.updatedAt)) return { word: 'TO DO', tone: 'stop', caption: release.next.title };
+    if (run.conclusion === 'success' && TF_DESTS.has(run.destination) && run.platforms !== 'android') {
+      const tf = testflightStatus(release);
+      if (tf) return tf;
+    }
     if (run.conclusion === 'success') return { word: 'SENT', tone: 'go', caption: `Sent ${dest.done} ${timeAgo(run.updated_at)}` };
     if (run.conclusion === 'cancelled') return { word: 'STOPPED', tone: 'idle', caption: `Stopped ${timeAgo(run.updated_at)}` };
     return { word: 'FAILED', tone: 'stop', caption: `Failed ${timeAgo(run.updated_at)}. Tap to see why` };
@@ -644,9 +687,11 @@
       if (configText) state.config = JSON.parse(configText);
       const folders = dir.filter((d) => d.type === 'dir' && !d.name.startsWith('_'));
       const games = await pool(folders, 6, async (f) => {
-        const text = await readRepoText(`games/${f.name}/game.json`);
+        const [text, releaseText] = await Promise.all([readRepoText(`games/${f.name}/game.json`), readRepoText(`games/${f.name}/release.json`)]);
         if (!text) return null;
-        try { return { ...JSON.parse(text), slug: f.name }; } catch { return { slug: f.name, name: `${f.name} (game.json is broken)` }; }
+        let release = {};
+        try { release = releaseText ? JSON.parse(releaseText) : {}; } catch { /* rewritten by the next check */ }
+        try { return { ...JSON.parse(text), slug: f.name, release }; } catch { return { slug: f.name, name: `${f.name} (game.json is broken)`, release }; }
       });
       state.games = games.filter(Boolean).sort((a, b) => String(a.name).localeCompare(String(b.name)));
       state.runs = new Map();
@@ -663,7 +708,7 @@
       state.loading = false;
       $('#refreshBtn').classList.remove('spin');
       setChecked();
-      const busy = [...state.runs.values()].some((r) => r.status !== 'completed');
+      const busy = [...state.runs.values()].some((r) => r.status !== 'completed') || state.games.some((g) => TF_WORDS[releaseOf(g).testflight?.state]?.[1] === 'busy');
       state.poll = setTimeout(() => { if (document.visibilityState === 'visible') loadBoard(); }, busy ? 15000 : 60000);
     }
   }
@@ -1568,7 +1613,7 @@
 
   // ---------- Editable drafts (device only; never contain credentials) ----------
   const touchedFields = new Set();
-  const DRAFT_FIELDS = ['fName', 'fSubtitle', 'fShort', 'fDescription', 'fKeywords', 'fPromo', 'fNotes', 'fCategory', 'fOrientation', 'fColor', 'fSlug', 'fBundle', 'fVersion', 'fPrice'];
+  const DRAFT_FIELDS = ['fName', 'fDisplay', 'fSubtitle', 'fShort', 'fDescription', 'fKeywords', 'fPromo', 'fNotes', 'fCategory', 'fOrientation', 'fColor', 'fSlug', 'fBundle', 'fVersion', 'fPrice'];
   let draftTimer;
   let draftDatabase;
   let lastListingName = '';
@@ -1652,7 +1697,9 @@
     $('#priceTierField').hidden = $('input[name=price]:checked').value !== 'paid';
     $('#submitBtn').textContent = DESTS[$('input[name=dest]:checked').value].cta;
     if (state.upload) $('#fFilesHint').textContent = 'Your uploaded game files were restored with this draft. Choose another file to replace them.';
-    lastListingName = $('#fName').value.trim(); updateCounts();
+    lastListingName = $('#fName').value.trim();
+    restoreNameLinks();
+    updateCounts();
     // Review is always explicit. Reopening a finished draft lands on its listing.
     goStep(saved.step === 7 ? 4 : Math.max(1, Math.min(6, saved.step || 1)));
     $('#draftStatus').textContent = 'Restored your saved draft and artwork.';
@@ -1666,7 +1713,7 @@
 
   function renameListing(oldName, newName) {
     if (!oldName || !newName || oldName === newName) return;
-    for (const id of ['fShort', 'fDescription', 'fPromo', 'fNotes']) {
+    for (const id of ['fSubtitle', 'fShort', 'fDescription', 'fPromo', 'fNotes']) {
       const field = $('#' + id);
       field.value = field.value.split(oldName).join(newName);
     }
@@ -1782,14 +1829,183 @@
       set('#fCategory', draft.category || 'GAMES_CASUAL');
       set('#fOrientation', draft.orientation || 'portrait');
       set('#fColor', /^#[0-9a-f]{6}$/i.test(draft.color || '') ? draft.color : '#8FD3F4');
-      if (!state.editing && draft.name) {
-        const slug = slugify(draft.name);
-        $('#fSlug').value = slug;
-        $('#fBundle').value = bundleFor(slug);
-      }
     }
+    syncFromName();
     lastListingName = $('#fName').value.trim();
     updateCounts();
+  }
+
+  // ---------- Names: App Store name, home-screen name, App ID ----------
+  // The home-screen name and the App ID follow the App Store name until you change them
+  // yourself. The App ID stops following once App Store Connect has a record for it, and
+  // locks for good after the first upload.
+  const naming = { displayFollows: true, bundleFollows: true, check: null, timer: null, cache: new Map(), overrides: new Set() };
+
+  function bundleLock() {
+    const release = releaseOf(state.editing);
+    if (release.bundleIdLocked) return { locked: true, id: release.bundleId, reason: release.lock?.reason || 'A build has been uploaded to App Store Connect with this App ID, so Apple will never let it change.' };
+    if (release.appStoreConnect?.appId) return { locked: false, record: true, id: release.bundleId || state.editing.bundleId };
+    return { locked: false };
+  }
+
+  function renderBundleNote() {
+    const lock = state.editing ? bundleLock() : { locked: false };
+    const field = $('#fBundle');
+    field.readOnly = lock.locked;
+    let text;
+    if (lock.locked) text = `🔒 Locked. ${lock.reason}`;
+    else if (lock.record && field.value.trim() === lock.id) text = 'App Store Connect already has a record for this App ID, so it no longer follows the name. Changing it means a new record. Until the first upload, you can delete the old one in App Store Connect.';
+    else if (naming.bundleFollows) text = 'Made from the App Store name, and follows it until the first upload to App Store Connect. After that it is permanent.';
+    else text = 'Set by hand. Permanent after the first upload to App Store Connect. Clear it to go back to following the name.';
+    $('#bundleNote').textContent = text;
+  }
+
+  function syncFromName() {
+    const name = $('#fName').value.trim();
+    if (naming.displayFollows) $('#fDisplay').value = N.defaultDisplayName(name);
+    if (!state.editing) $('#fSlug').value = slugify(name);
+    if (naming.bundleFollows && !(state.editing && bundleLock().locked)) $('#fBundle').value = name ? bundleFor(name) : '';
+    renderDisplayHint();
+    renderBundleNote();
+    scheduleNameCheck();
+  }
+
+  function renderDisplayHint() {
+    const display = $('#fDisplay').value.trim(), name = $('#fName').value.trim();
+    const hint = $('#displayHint');
+    if (display && name && !N.displayNameMatches(display, name)) { hint.textContent = `Apple expects the home-screen name to come from the App Store name. Use part of “${name}”.`; hint.style.color = '#7A1D10'; return; }
+    hint.style.color = '';
+    hint.textContent = [...display].length > N.HOME_SCREEN_FIT
+      ? `iPhone shows about ${N.HOME_SCREEN_FIT} characters under the icon, so this will be cut short. Try a shorter form of the name.`
+      : 'Shown under the icon on the phone. It follows the App Store name unless you change it.';
+  }
+
+  function itunesSearch(term) {
+    return new Promise((resolve, reject) => {
+      const cb = `shipyardNames${Date.now()}${Math.floor(Math.random() * 1e6)}`;
+      const tag = document.createElement('script');
+      const done = () => { clearTimeout(timer); delete window[cb]; tag.remove(); };
+      const timer = setTimeout(() => { done(); reject(new Error('App Store search timed out')); }, 8000);
+      window[cb] = (data) => { done(); resolve((data && data.results) || []); };
+      tag.onerror = () => { done(); reject(new Error('App Store search is unavailable')); };
+      tag.src = `${N.itunesSearchUrl(term)}&callback=${cb}`;
+      document.head.appendChild(tag);
+    });
+  }
+
+  async function nameConflicts(name) {
+    const key = N.normalizeName(name);
+    if (!naming.cache.has(key)) {
+      const pending = itunesSearch(name).then((results) => N.findConflicts(name, results, {
+        companyName: state.config?.companyName, bundlePrefix: state.config?.bundlePrefix, ownBundleIds: [$('#fBundle').value.trim()],
+      }));
+      naming.cache.set(key, pending);
+      pending.catch(() => naming.cache.delete(key));
+    }
+    return naming.cache.get(key);
+  }
+
+  /** The name App Store Connect already holds for this game, which needs no availability check. */
+  function recordName() {
+    const release = releaseOf(state.editing);
+    return release.appStoreConnect?.appId ? (release.name?.appStore || release.appStoreConnect.name || '') : '';
+  }
+
+  function scheduleNameCheck() {
+    clearTimeout(naming.timer);
+    const name = $('#fName').value.trim();
+    if (!name) { naming.check = null; renderNameCheck(); return; }
+    if (naming.check?.name !== name) naming.check = { name, status: 'checking' };
+    renderNameCheck();
+    naming.timer = setTimeout(() => runNameCheck(name), 500);
+  }
+
+  async function runNameCheck(name) {
+    if (state.demo && !connected()) { /* demo still checks: the search is public */ }
+    if (recordName() && N.normalizeName(recordName()) === N.normalizeName(name)) {
+      naming.check = { name, status: 'ours' }; renderNameCheck(); return;
+    }
+    try {
+      const found = await nameConflicts(name);
+      if ($('#fName').value.trim() !== name) return;
+      naming.check = { name, status: found.exact.length ? 'taken' : 'free', ...found };
+      renderNameCheck();
+      if (found.exact.length) suggestNames(name);
+    } catch (err) {
+      if ($('#fName').value.trim() !== name) return;
+      naming.check = { name, status: 'unknown', error: err.message };
+      renderNameCheck();
+    }
+  }
+
+  async function suggestNames(name) {
+    const ideas = N.nameSuggestions(name, { category: CATEGORIES[$('#fCategory').value] || '', companyName: state.config?.companyName });
+    const free = [];
+    for (const idea of ideas) {
+      try { if (!(await nameConflicts(idea)).exact.length) free.push(idea); } catch { /* skip ideas that can't be checked */ }
+      if (free.length === 3 || $('#fName').value.trim() !== name) break;
+    }
+    if ($('#fName').value.trim() !== name || naming.check?.status !== 'taken') return;
+    naming.check.ideas = free;
+    renderNameCheck();
+  }
+
+  function renderNameCheck() {
+    const box = $('#nameCheck'), ideas = $('#nameIdeas');
+    const c = naming.check;
+    ideas.hidden = true; ideas.innerHTML = '';
+    box.className = 'name-check';
+    if (!c) { box.textContent = ''; return; }
+    const lock = state.editing ? bundleLock() : {};
+    const lockLine = lock.locked ? ` Renaming is fine: the App ID stays ${lock.id}.` : '';
+    if (c.status === 'checking') { box.textContent = 'Checking the App Store for this name…'; box.classList.add('unknown'); return; }
+    if (c.status === 'ours') { box.textContent = `✓ App Store Connect already holds “${c.name}” for this game.`; box.classList.add('free'); return; }
+    if (c.status === 'unknown') { box.textContent = `Couldn’t reach App Store search (${c.error}). The build checks again before anything is uploaded.`; box.classList.add('unknown'); return; }
+    if (c.status === 'free') {
+      const similar = c.similar?.length ? ` Similar: ${c.similar.slice(0, 3).map((x) => `“${x.name}”`).join(', ')}.` : '';
+      box.textContent = `✓ No App Store app is named “${c.name}”.${similar}${lockLine}`;
+      box.classList.add('free');
+      return;
+    }
+    const first = c.exact[0];
+    if (naming.overrides.has(N.normalizeName(c.name))) { box.textContent = `“${c.name}” is listed under ${first.seller}. You said this is yours, so Shipyard will try it.`; box.classList.add('unknown'); return; }
+    box.innerHTML = `✗ “${esc(c.name)}” is already ${esc(first.seller)}’s app${first.url ? ` (<a href="${esc(first.url)}" target="_blank" rel="noopener">see it</a>)` : ''}. Apple gives each name to one app, so pick another before the first upload.${esc(lockLine)}`;
+    box.classList.add('taken');
+    ideas.hidden = false;
+    ideas.innerHTML = (c.ideas || []).map((idea) => `<button type="button" data-name-idea="${esc(idea)}">${esc(idea)}</button>`).join('')
+      + (c.ideas ? '' : '<span class="hint">Finding names that are free…</span>')
+      + '<button type="button" class="text-btn" data-name-mine>This app is ours</button>';
+    $$('[data-name-idea]', ideas).forEach((button) => { button.onclick = () => {
+      const field = $('#fName');
+      field.value = button.dataset.nameIdea;
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      field.dispatchEvent(new Event('change', { bubbles: true }));
+    }; });
+    $('[data-name-mine]', ideas).onclick = () => { naming.overrides.add(N.normalizeName(c.name)); renderNameCheck(); };
+  }
+
+  function restoreNameLinks() {
+    const name = $('#fName').value.trim();
+    naming.displayFollows = $('#fDisplay').value.trim() === N.defaultDisplayName(name) || !$('#fDisplay').value.trim();
+    if (state.editing && bundleLock().locked) $('#fBundle').value = bundleLock().id;
+    naming.bundleFollows = $('#fBundle').value.trim() === bundleFor(name) && !(state.editing && (bundleLock().locked || bundleLock().record));
+    syncFromName();
+  }
+
+  /** Finishes a name check that is still waiting or running, so Continue never trips over it. */
+  async function settleNameCheck() {
+    const name = $('#fName').value.trim();
+    if (!name || naming.check?.name !== name || naming.check.status !== 'checking') return;
+    clearTimeout(naming.timer);
+    await runNameCheck(name);
+  }
+
+  function nameProblem() {
+    const name = $('#fName').value.trim(), c = naming.check;
+    if (!name || !c || c.name !== name) return null;
+    if (c.status === 'checking') return 'Wait a moment while Shipyard checks the App Store for this name.';
+    if (c.status === 'taken' && !naming.overrides.has(N.normalizeName(name))) return `“${name}” is already used by another App Store app. Pick a different App Store name on Listing (step 4).`;
+    return null;
   }
 
   $('#fFiles').addEventListener('change', async () => {
@@ -1844,10 +2060,18 @@
   $('#fName').addEventListener('input', () => {
     const name = $('#fName').value.trim();
     $('#wizardTitle').textContent = `${state.editing ? 'Edit' : 'Upload'} ${name || 'a game'}`;
-    if (state.editing) return;
-    const slug = slugify($('#fName').value);
-    $('#fSlug').value = slug;
-    $('#fBundle').value = slug ? bundleFor(slug) : '';
+    syncFromName();
+    updateCounts();
+  });
+  $('#fDisplay').addEventListener('input', () => {
+    naming.displayFollows = !$('#fDisplay').value.trim();
+    if (naming.displayFollows) $('#fDisplay').value = N.defaultDisplayName($('#fName').value.trim());
+    renderDisplayHint();
+  });
+  $('#fBundle').addEventListener('input', () => {
+    naming.bundleFollows = !$('#fBundle').value.trim();
+    if (naming.bundleFollows) $('#fBundle').value = bundleFor($('#fName').value.trim());
+    renderBundleNote();
   });
   $('#fName').addEventListener('change', () => {
     const name = $('#fName').value.trim();
@@ -1860,7 +2084,7 @@
   }));
 
   $$('#wizardSheet [data-next]').forEach((btn) => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const target = Number(btn.dataset.next);
       if (btn.closest('section').hidden || target !== state.step + 1) return;
       const problems = [];
@@ -1873,15 +2097,21 @@
       } else if (target === 3 || target === 4 || target === 6) {
         goStep(target);
       } else if (target === 5) {
+        await settleNameCheck();
+        if (state.step !== 4) return;
         if (!$('#fName').value.trim()) problems.push('Add a name.');
         if (!$('#fShort').value.trim()) problems.push('Add the one-line description. Google Play requires it.');
         if (!$('#fDescription').value.trim()) problems.push('Add a description.');
+        if (!$('#fDisplay').value.trim()) problems.push('Add a home-screen name.');
         if ($$('.count.over').length) problems.push('Some fields are over the store limit.');
+        const nameIssue = nameProblem();
+        if (nameIssue) problems.push(nameIssue);
         if (!wizardError(problems)) goStep(5);
       } else if (target === 7) {
         if (!/^[a-z0-9][a-z0-9-]{0,48}$/.test($('#fSlug').value.trim())) problems.push('Folder can only use lowercase letters, numbers, and dashes.');
         if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test($('#fBundle').value.trim())) problems.push('App ID must look like llc.elevatr.quackiepond. Set your prefix under Publisher.');
         if (!/^\d+\.\d+\.\d+$/.test($('#fVersion').value.trim())) problems.push('Version must look like 1.0.0.');
+        if (state.editing && bundleLock().locked && $('#fBundle').value.trim() !== bundleLock().id) problems.push(`The App ID is locked to ${bundleLock().id}.`);
         if (!state.editing && state.games.some((g) => g.slug === $('#fSlug').value.trim())) problems.push('A game already uses that folder. Pick another name.');
         if (!wizardError(problems)) goStep(7);
       }
@@ -1898,7 +2128,8 @@
     return {
       name: $('#fName').value.trim(),
       slug: state.editing ? state.editing.slug : $('#fSlug').value.trim(),
-      bundleId: state.editing ? state.editing.bundleId : $('#fBundle').value.trim(),
+      bundleId: $('#fBundle').value.trim(),
+      displayName: $('#fDisplay').value.trim(),
       version: $('#fVersion').value.trim(),
       orientation: $('#fOrientation').value,
       appleSubcategory: $('#fCategory').value,
@@ -1954,8 +2185,9 @@
     const c = state.config || {};
     const rows = [
       ['Game', `${v.name}, version ${v.version}`],
+      ['Home screen', v.displayName],
       ['Publisher', c.companyName || 'Not set — open Publisher'],
-      ['App ID', v.bundleId],
+      ['App ID', state.editing && bundleLock().locked ? `${v.bundleId} (locked)` : `${v.bundleId}${naming.bundleFollows ? ' (from the name)' : ''}`],
       ['Price', v.pricing.model === 'free' ? 'Free' : `$${v.pricing.price}, set once in each console`],
       ['Stores', { both: 'App Store and Google Play', ios: 'App Store only', android: 'Google Play only' }[v.platforms]],
       ['Icon', $('#fIcon').files[0] ? 'Your uploaded PNG' : icon.blob ? 'Designed from the game' : state.upload && state.upload.iconCandidate ? 'Found inside your upload' : 'Made during the build'],
@@ -1968,7 +2200,7 @@
       ['Support', c.siteUrl ? `${c.siteUrl}/support.html` : 'Not set — open Publisher'],
       ['Policy URL', c.siteUrl ? `${c.siteUrl}/privacy.html` : 'Not set — open Publisher'],
     ];
-    const editSteps = { Game: 4, 'App ID': 6, Price: 6, Stores: 6, Icon: 2, Screens: 3, Privacy: 5 };
+    const editSteps = { Game: 4, 'Home screen': 4, 'App ID': 6, Price: 6, Stores: 6, Icon: 2, Screens: 3, Privacy: 5 };
     $('#reviewSummary').innerHTML = rows.map(([k, val]) => `<div><dt>${esc(k)}</dt><dd>${esc(val)}</dd><button class="text-btn" type="button" ${editSteps[k] ? `data-review-edit="${editSteps[k]}"` : 'data-review-profile'} aria-label="Edit ${esc(k)}">Edit</button></div>`).join('');
     $$('#reviewSummary [data-review-edit]').forEach(button => { button.onclick = () => goStep(Number(button.dataset.reviewEdit)); });
     $$('#reviewSummary [data-review-profile]').forEach(button => { button.onclick = openProfile; });
@@ -1976,8 +2208,14 @@
     const checks = [];
     if (!c.companyName || !c.siteUrl || !c.review || !c.review.phone) checks.push('Publisher details are incomplete. Both stores reject listings without a working support link and a review contact.');
     if (!state.editing && !$('#fIcon').files[0] && !icon.blob && !(state.upload && state.upload.iconCandidate)) checks.push("No icon chosen, so the build will crop one from your game's title screen. Go back a step to make one you can see first.");
+    const nameIssue = nameProblem();
+    if (nameIssue) checks.push(nameIssue);
+    else if (naming.check?.status === 'unknown') checks.push('Shipyard couldn’t reach App Store search to confirm the name is free. The build checks again before uploading.');
+    if (!N.displayNameMatches(v.displayName, v.name)) checks.push(`The home-screen name “${v.displayName}” doesn’t come from the App Store name “${v.name}”. Apple rejects that.`);
+    const tf = releaseOf(state.editing).testflight;
+    if (state.editing && $('input[name=dest]:checked').value === 'review' && !(tf && tf.state === 'available' && tf.version === v.version)) checks.push(`Version ${v.version} hasn’t been on TestFlight yet. Send it to your phone and play it before submitting for approval.`);
     if (v.pricing.model === 'paid') checks.push('Paid apps need tax and banking forms finished in both consoles before a price can be set. Do that before submitting for approval.');
-    $('#reviewChecks').innerHTML = checks.length ? `<div class="warn"><strong>Before approval</strong><ul>${checks.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
+    $('#reviewChecks').innerHTML = checks.length ? `<div class="warn"><strong>Before you send</strong><ul>${checks.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
 
     const block = $('#previewBlock');
     block.hidden = true;
@@ -2028,11 +2266,17 @@
     $('#fFilesHint').textContent = game ? 'Leave empty to keep the current game files.' : 'A zip of the folder containing index.html, or one self-contained .html file.';
     $('#fIconHint').textContent = game ? 'Leave empty to keep the current icon.' : "Optional. Shipyard makes one from your game's title screen if you don't supply one.";
     $('#fSlug').disabled = false; $('#fSlug').readOnly = Boolean(game);
-    $('#fBundle').disabled = false; $('#fBundle').readOnly = Boolean(game);
+    $('#fBundle').disabled = false;
+    naming.check = null; naming.overrides.clear();
+    naming.displayFollows = !game || !game.displayName || game.displayName === N.defaultDisplayName(game.name);
+    naming.bundleFollows = !game || (!releaseOf(game).appStoreConnect?.appId && !releaseOf(game).bundleIdLocked && [bundleFor(game.name || ''), bundleFor(game.slug)].includes(game.bundleId));
+    $('#fDisplay').value = game ? (game.displayName || N.defaultDisplayName(game.name)) : '';
+    $('#fBundle').value = game ? (releaseOf(game).bundleIdLocked ? releaseOf(game).bundleId : game.bundleId || '') : '';
 
     applyDraft({ name: game?.name || '', subtitle: '', short: '', description: '', keywords: '', promo: '', notes: '', category: game?.appleSubcategory || 'GAMES_CASUAL', orientation: game?.orientation || 'portrait', color: game?.backgroundColor || '#8FD3F4' }, true);
     $('#fSlug').value = game ? game.slug : '';
-    $('#fBundle').value = game ? (game.bundleId || '') : '';
+    $('#fBundle').value = game ? (releaseOf(game).bundleIdLocked ? releaseOf(game).bundleId : game.bundleId || '') : '';
+    renderBundleNote(); renderDisplayHint(); scheduleNameCheck();
     $('#fVersion').value = game ? (game.version || '1.0.0') : '1.0.0';
     $('input[name=price][value=free]').checked = true;
     $('#priceTierField').hidden = true;
@@ -2136,9 +2380,15 @@
     if ($$('.count.over').length) problems.push('Some listing fields are over the store limit.');
     if (!/^[a-z0-9][a-z0-9-]{0,48}$/.test($('#fSlug').value.trim())) problems.push('Choose a valid folder on Price (step 6).');
     if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test($('#fBundle').value.trim())) problems.push('Choose a valid App ID on Price (step 6).');
+    if (state.editing && bundleLock().locked && $('#fBundle').value.trim() !== bundleLock().id) problems.push(`The App ID is locked to ${bundleLock().id}. ${bundleLock().reason}`);
+    if (!$('#fDisplay').value.trim()) problems.push('Add a home-screen name on Listing (step 4).');
     if (!/^\d+\.\d+\.\d+$/.test($('#fVersion').value.trim())) problems.push('Version must look like 1.0.0.');
     if (!state.editing && !state.upload) problems.push('Choose a game file on step 1.');
     if (state.upload?.blockers.length) problems.push('Fix the game-file problems on step 1.');
+    if (!problems.length && build && dest !== 'previews') {
+      await settleNameCheck();
+      if (nameProblem()) problems.push(nameProblem());
+    }
     if (wizardError(problems)) return;
     if (build && dest === 'review' && !reviewArmed) {
       reviewArmed = true;
@@ -2158,10 +2408,11 @@
     try {
       const base = `games/${v.slug}`;
       const previous = Object.assign({}, state.editing);
-      delete previous.slug;
+      const release = previous.release || {};
+      delete previous.slug; delete previous.release;
       const gameJson = {
         ...previous,
-        name: v.name, bundleId: v.bundleId, version: v.version, orientation: v.orientation,
+        name: v.name, displayName: v.displayName, bundleId: v.bundleId, version: v.version, orientation: v.orientation,
         backgroundColor: v.backgroundColor, appleSubcategory: v.appleSubcategory, pricing: v.pricing,
         privacy: privacyAnswers(),
         screenshots: shots.thumbs.length && shots.steps.some((step) => step.shot) ? shots.steps : (state.upload || shots.changed ? DEFAULT_SHOTS : previous.screenshots || DEFAULT_SHOTS),
@@ -2203,7 +2454,7 @@
       clearTimeout(draftTimer);
       await draftOperation('delete', draftKey()).catch(() => {});
       state.draftReady = false;
-      const saved = { ...gameJson, slug: v.slug };
+      const saved = { ...gameJson, slug: v.slug, release };
       state.games = [...state.games.filter(game => game.slug !== v.slug), saved]; render();
       $('#wizardSheet').close();
       toast(build ? `${v.name} saved; workflow queued. Check its result for upload or submission status.` : `${v.name} saved to GitHub. No build or store upload started.`);
@@ -2217,6 +2468,72 @@
   }
   $('#submitBtn').onclick = () => saveGame(true);
   $('#saveListingBtn').onclick = () => saveGame(false);
+
+  // ---------- App Store Connect and TestFlight status ----------
+  function nextBlock(next) {
+    if (!next) return '';
+    const fields = next.fields ? `<table>${Object.entries(next.fields).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}<button class="text-btn" type="button" data-copy="${esc(v)}">Copy</button></td></tr>`).join('')}</table>` : '';
+    const link = next.url ? `<p><a href="${esc(next.url)}" target="_blank" rel="noopener">Open App Store Connect</a></p>` : '';
+    return `<div class="next${next.blocking ? ' blocking' : ''}"><strong>${next.blocking ? 'Next step: ' : ''}${esc(next.title)}</strong><p>${esc(next.detail || '')}</p>${fields}${link}</div>`;
+  }
+
+  function renderShipStatus(game) {
+    const box = $('#shipStatus');
+    const release = releaseOf(game);
+    const tf = release.testflight;
+    const parts = [];
+    if (!release.bundleId && !tf) {
+      parts.push('<h3>App Store Connect</h3><p>Not set up yet. The first Send to my phone registers the App ID with Apple and tells you if the app record still needs creating.</p>');
+    } else {
+      parts.push(`<h3>${tf ? esc(tf.label) : 'App Store Connect'}</h3>`);
+      if (tf?.detail) parts.push(`<p>${esc(tf.detail)}</p>`);
+      if (tf?.group) parts.push(`<p>Group: ${esc(tf.group)}${tf.testers?.length ? ` · Testers: ${esc(tf.testers.join(', '))}` : ''}</p>`);
+      if (tf?.checkedAt) parts.push(`<p class="hint">Checked with Apple ${esc(timeAgo(tf.checkedAt))}</p>`);
+    }
+    if (release.name && release.name.synced === false && release.name.problem) parts.push(nextBlock({ title: 'App Store name not updated', detail: release.name.problem, blocking: true }));
+    parts.push(nextBlock(release.next) || nextBlock(tf?.next));
+    if (release.bundleId) {
+      parts.push(release.bundleIdLocked
+        ? `<details><summary>🔒 App ID ${esc(release.bundleId)} is locked</summary><p>${esc(release.lock?.reason || '')}</p></details>`
+        : `<details><summary>App ID ${esc(release.bundleId)}</summary><p>Not locked yet. It locks after the first build is uploaded to App Store Connect.</p></details>`);
+    }
+    const actions = [];
+    if (connected()) actions.push('<button class="text-btn" type="button" id="checkTestflight">Check TestFlight now</button>');
+    if (release.appStoreConnect?.url) actions.push(`<a class="text-btn" href="${esc(release.appStoreConnect.url)}/testflight/ios" target="_blank" rel="noopener">Open TestFlight in App Store Connect</a>`);
+    if (actions.length) parts.push(`<div class="row-actions">${actions.join('')}</div>`);
+    box.innerHTML = `<div class="status-card">${parts.join('')}</div>`;
+    $$('[data-copy]', box).forEach((button) => { button.onclick = async () => {
+      try { await navigator.clipboard.writeText(button.dataset.copy); toast(`Copied ${button.dataset.copy}`); } catch { toast(button.dataset.copy); }
+    }; });
+    const check = $('#checkTestflight');
+    if (check) check.onclick = () => checkTestflight(game.slug, check);
+  }
+
+  async function checkTestflight(slug, button) {
+    button.disabled = true;
+    button.textContent = 'Asking Apple…';
+    const before = JSON.stringify(releaseOf(state.games.find((g) => g.slug === slug)));
+    try {
+      await gh(`${repoPath()}/actions/workflows/testflight-status.yml/dispatches`, { method: 'POST', body: JSON.stringify({ ref: S.branch, inputs: { game: slug } }) });
+      for (let i = 0; i < 18; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+        const text = await readRepoText(`games/${slug}/release.json`);
+        if (text && text !== before && JSON.stringify(JSON.parse(text)) !== before) {
+          const game = state.games.find((g) => g.slug === slug);
+          if (game) game.release = JSON.parse(text);
+          render();
+          if (state.shipping?.slug === slug && $('#shipSheet').open) renderShipStatus(game);
+          toast('TestFlight status updated');
+          return;
+        }
+      }
+      toast('Apple hasn’t answered yet. The status updates on its own within the hour.');
+    } catch (err) {
+      toast(explain(err));
+    } finally {
+      if (button.isConnected) { button.disabled = false; button.textContent = 'Check TestFlight now'; }
+    }
+  }
 
   // ---------- Quick ship ----------
   async function openShip(slug) {
@@ -2234,6 +2551,7 @@
     link.hidden = !run;
     if (run) { link.href = run.html_url; link.textContent = run.conclusion === 'failure' ? 'See why the last build failed' : 'Open build log'; }
     $('#shipPreviews').hidden = true;
+    renderShipStatus(game);
     $('#shipSheet').showModal();
     try {
       const { images } = await loadPreviewThumbs(slug);

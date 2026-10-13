@@ -29,6 +29,7 @@ const copy = (name, as = name) => {
 // Privacy and support go on both: the stores link to them, and they must always answer.
 copy('site-config.js');
 copy('vendor');
+copy('naming.js');
 copy('privacy.html');
 copy('support.html');
 

@@ -1,3 +1,14 @@
+# 2.4.0 — automatic App Store Connect and TestFlight setup
+
+- **Name check before anything is created.** The App Store name is searched against the live App Store as you type. A name another developer already uses is blocked, with free alternatives you can tap. Preflight checks again before every build.
+- **App ID generated from the name** on import, following every rename until the first upload, so the bundle ID always matches the game.
+- **Home-screen name** is its own field. It follows the App Store name (shortened at a colon when it's long), and warns when iPhone would cut it off or when it no longer resembles the store name.
+- **App ID lock.** After the first build reaches App Store Connect the App ID locks, with the reason shown in the editor and the game sheet. Preflight and the workflow refuse a changed ID.
+- **App Store Connect setup job.** Before the Mac build, a quick Ubuntu job registers the bundle ID, finds the app record, and renames it in App Store Connect when you renamed the game. If the record is missing, it stops in seconds with the exact values to type.
+- **TestFlight setup job.** After the upload, Shipyard waits for Apple's processing, answers export compliance, adds the build to your internal group ("Elevatr Internal Testing"), and adds your team as testers. Apple then emails the TestFlight invitation.
+- **TestFlight status in the panel.** The board shows PROCESSING, TESTING, or TO DO. The game sheet shows the build, group, testers, and the one next step, with **Check TestFlight now**. Waiting games are also re-checked every hour.
+- Submit for approval warns when this version hasn't been on TestFlight yet.
+
 # 2.3.2 — editable drafts, current artwork, and reliable restarting
 
 - Clickable editing steps and Edit buttons in review; Edit listing opens at Listing.

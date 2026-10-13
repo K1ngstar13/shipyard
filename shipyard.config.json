@@ -11,5 +11,9 @@
     "lastName": "King",
     "phone": "+15417401990",
     "email": "king@elevatr.llc"
+  },
+  "testflight": {
+    "group": "Elevatr Internal Testing",
+    "testers": []
   }
 }

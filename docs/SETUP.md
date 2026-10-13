@@ -65,7 +65,7 @@ It creates and stores two things you never have to see:
 ### App Store Connect API key
 
 1. [App Store Connect → Users and Access → Integrations → App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api).
-2. **Team Keys → +**. Name: `Shipyard`. Access: **App Manager**.
+2. **Team Keys → +**. Name: `Shipyard`. Access: **Admin** (lets Shipyard add your whole team as TestFlight testers) or **App Manager** (then list your Apple ID under `testflight.testers`).
 3. Download the `.p8` file. It downloads exactly once.
 4. Add three repository secrets in GitHub:
    - `ASC_KEY_ID` — the Key ID column (10 characters).
@@ -130,9 +130,9 @@ Free games skip this entirely. For a paid one, finish **Agreements, Tax, and Ban
 
 ### iOS, first time only
 
-1. [App Store Connect → Apps → + → New App](https://appstoreconnect.apple.com/apps).
-2. Platform: iOS. Name: your game's name. Primary language: English (U.S.). Bundle ID: pick the one matching your game's app ID — if it isn't listed, run a **Build only** ship first, which registers it. SKU: the game's folder name.
-3. That's the whole manual part. Ship to **Testers** and the build appears in TestFlight.
+1. Choose **Send to my phone**. Shipyard registers the bundle ID with Apple, then stops in seconds and shows **Create the App Store Connect record** in the game sheet, with each value and a Copy button.
+2. [App Store Connect → Apps → + → New App](https://appstoreconnect.apple.com/apps). Paste those values in. If Apple says the name is taken, rename the game in Shipyard (the App ID follows) and send again.
+3. Send to my phone again. Shipyard builds, uploads, waits for Apple, adds the build to your internal TestFlight group, and adds you as a tester. Details: [STORE-CONNECTION.md](STORE-CONNECTION.md).
 
 ### The 12-tester rule, if it applies to you
 
@@ -163,7 +163,11 @@ After 14 days, apply for production access on the Play Console dashboard. Google
 
 **"Missing repository secrets"** — the workflow names exactly which ones. Add them and run again.
 
-**iOS: "isn't in App Store Connect yet"** — create the app record (step 8). One-time, per game.
+**iOS: "Create the App Store Connect record"** — create the app record with the values shown in the game sheet (step 8). One-time, per game.
+
+**TestFlight says "Add yourself to …"** — internal testers must be users on your App Store Connect team. Put your Apple ID in `shipyard.config.json` → `testflight.testers`, or use an Admin API key so Shipyard can add the whole team.
+
+**"The App ID is locked"** — a build was already uploaded with the old ID, and Apple never lets it change. Put the ID back; renaming the game is still fine.
 
 **Android: "draft app" or "Only releases with status draft may be created"** — the app is still a draft in Play Console. Finish the setup tasks and roll out the first release by hand. Shipyard saves the release as a draft in the meantime.
 

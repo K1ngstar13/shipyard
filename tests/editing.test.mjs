@@ -20,6 +20,7 @@ test('editable listing survives slow loads and draft reopening; replacement artw
   const config = JSON.parse(fs.readFileSync(path.join(root,'shipyard.config.json')));
   const blobs=[],trees=[];let dispatched=0,oldFeatureReads=0;
   await page.addInitScript(()=>{if(window===top)localStorage.setItem('shipyard.settings',JSON.stringify({owner:'test',repo:'shipyard',branch:'main',token:'test-private-token'}));});
+  await page.route('https://itunes.apple.com/**',route=>route.fulfill({contentType:'text/javascript',body:`${new URL(route.request().url()).searchParams.get('callback')}({"resultCount":0,"results":[]});`}));
   await page.route('https://api.github.com/**',async route=>{
     const req=route.request(),u=new URL(req.url()),p=u.pathname;let out={},status=200;
     if(req.method()==='POST'&&p.endsWith('/git/blobs')){blobs.push(req.postDataJSON());out={sha:`blob${blobs.length}`};}
@@ -80,6 +81,7 @@ test('editable listing survives slow loads and draft reopening; replacement artw
     await page.locator('[data-go-step="3"]').click();assert.equal(await page.locator('#shotList img').getAttribute('src'),selectedShot);
     await page.locator('[data-go-step="7"]').click();await page.getByRole('button',{name:'Edit Game',exact:true}).click();assert.match(await page.locator('#stepLabel').textContent(),/^Step 4/);
     await page.locator('#fSubtitle').fill('Happy puzzle pets');await page.locator('[data-go-step="7"]').click();
+    oldFeatureReads=0; // opening the game sheet shows the current banner; saving must not depend on it
     await page.locator('#saveListingBtn').click();await page.waitForFunction(()=>!document.querySelector('#wizardSheet').open);
     assert.equal(dispatched,0);assert.equal(oldFeatureReads,0);
     const tree=trees.at(-1).tree;const gameEntry=tree.find(e=>e.path==='games/block-pals/game.json');
