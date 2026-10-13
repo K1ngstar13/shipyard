@@ -7,9 +7,28 @@
     "url": "https://appstoreconnect.apple.com/apps/6822144526"
   },
   "next": null,
-  "updatedAt": "2026-10-13T04:03:53.453Z",
+  "updatedAt": "2026-10-13T04:08:21.585Z",
   "name": {
     "appStore": "QuackDoku",
     "synced": true
+  },
+  "bundleIdLocked": true,
+  "lock": {
+    "since": "2026-10-13T04:08:21.506Z",
+    "build": "141",
+    "reason": "Build 141 was uploaded to App Store Connect with elevatr.llc.quackdoku on 2026-10-13. Apple ties the app record, its TestFlight builds, and every future update to this ID, and it can never be changed or reused. Players never see it; they see the App Store name and the home-screen name, which you can still change."
+  },
+  "testflight": {
+    "state": "uploaded",
+    "label": "Build 141 uploaded, waiting for Apple to list it",
+    "detail": "A new build usually appears in App Store Connect within a few minutes.",
+    "next": null,
+    "build": "141",
+    "processingState": null,
+    "betaState": null,
+    "group": "Elevatr Internal Testing",
+    "testers": [],
+    "version": "1.0.0",
+    "checkedAt": "2026-10-13T04:08:21.585Z"
   }
 }
