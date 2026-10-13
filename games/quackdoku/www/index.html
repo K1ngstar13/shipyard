@@ -336,10 +336,49 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
 }
+
+/* ---------- welcome / title screen ---------- */
+body.at-title #app>.topbar,body.at-title #app>.tabs{display:none}
+body.at-title #app{padding:0;max-width:none}
+body.at-title #screen-pond,body.at-title #screen-home{display:none!important}
+#screen-title{display:none;min-height:100dvh;min-height:100svh;align-items:center;justify-content:center;padding:calc(25px + env(safe-area-inset-top)) 18px calc(25px + env(safe-area-inset-bottom));overflow:auto}
+body.at-title #screen-title{display:flex}
+.title-card{position:relative;isolation:isolate;width:min(100%,480px);padding:35px 22px 28px;text-align:center;background:var(--panel);border:var(--line) solid var(--ink);border-radius:30px;box-shadow:7px 7px 0 var(--ink)}
+.title-label{display:inline-block;border:2px solid var(--ink);border-radius:100px;background:var(--paper-2);padding:6px 15px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.title-name{font-family:Fredoka,ui-rounded,system-ui,sans-serif;font-size:clamp(44px,11vw,68px);letter-spacing:-.065em;line-height:1.08;margin:18px 0 5px;color:var(--ink);text-shadow:3px 3px 0 var(--water)}
+.title-subtitle{font-size:15px;font-weight:700;color:var(--ink-soft);margin:0 0 16px}
+.title-ducks{display:flex;align-items:end;justify-content:center;min-height:134px;gap:0;margin:3px 0 19px}
+.title-duck{width:32%;max-width:120px;filter:drop-shadow(0 5px 0 rgba(37,48,41,.1));animation:titleFloat 3s ease-in-out infinite}
+.title-duck svg{display:block;width:100%;height:auto}
+.title-duck:nth-child(1){transform:rotate(-9deg);animation-delay:-.45s}
+.title-duck:nth-child(2){width:38%;max-width:145px;z-index:1;animation-delay:-1.1s}
+.title-duck:nth-child(3){transform:rotate(9deg);animation-delay:-1.8s}
+@keyframes titleFloat{0%,100%{translate:0 0}50%{translate:0 -7px}}
+.title-wave{height:16px;margin:0 auto 20px;width:80%;background:repeating-radial-gradient(ellipse at 50% -12px, transparent 0 13px,var(--water) 14px 17px,transparent 18px 32px);opacity:.9}
+.title-actions{max-width:290px;margin:auto;display:flex;flex-direction:column;gap:13px}
+.title-actions .btn{width:100%;min-height:54px;justify-content:center;font-family:Fredoka,ui-rounded,system-ui,sans-serif;font-size:20px}
+.title-actions .btn:not(.gold){background:var(--paper-2)}
+.title-foot{font-size:12px;color:var(--ink-soft);margin-top:22px;font-weight:700}
+@media(max-height:660px){.title-card{padding:17px 20px}.title-ducks{min-height:85px;margin:0 0 6px}.title-duck{max-width:85px}.title-duck:nth-child(2){max-width:105px}.title-name{margin:7px 0 2px}.title-foot{margin-top:11px}.title-wave{margin-bottom:12px}}
 </style>
 </head>
 <body>
 <div id="app">
+  <!-- Original game screens are left untouched; this welcome screen appears first. -->
+  <section class="screen" id="screen-title" aria-label="QuackDoku title screen">
+    <div class="title-card">
+      <div class="title-label">Welcome to the pond</div>
+      <h1 class="title-name">QuackDoku</h1>
+      <p class="title-subtitle">A cozy little duck puzzle</p>
+      <div class="title-ducks" id="titleDucks" aria-hidden="true"></div>
+      <div class="title-wave" aria-hidden="true"></div>
+      <div class="title-actions">
+        <button class="btn gold" id="titlePlay">Play <span aria-hidden="true">&#9656;</span></button>
+        <button class="btn" id="titleSettings">&#9881; Settings</button>
+      </div>
+      <div class="title-foot">Find the ducks · Make a home · Stay a while</div>
+    </div>
+  </section>
   <header class="topbar">
     <div class="brand">
       <svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#253029" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"><path d="M22 74c0-16 12-27 28-27s28 11 28 27z" fill="#F7CE5B"/><circle cx="50" cy="34" r="17" fill="#F7CE5B"/><path d="M67 33l14 4-14 6z" fill="#F2B33D"/><path d="M28 74h44" fill="none"/></g><circle cx="44" cy="31" r="3.4" fill="#253029"/></svg>
@@ -1747,7 +1786,13 @@ function showHowTo() {
     '</div>' +
     '<div class="row"><button class="btn wide gold" id="hOk">Got it</button></div>'
   );
-  $("#hOk").onclick = closeModal;
+  $("#hOk").onclick = () => {
+    closeModal();
+    if (document.body.classList.contains("at-title")) {
+      document.body.classList.remove("at-title");
+      $("#screen-title").classList.remove("on");
+    }
+  };
 }
 
 /* ============================================================
@@ -2453,7 +2498,13 @@ async function boot() {
   renderTabs();
   renderHome();
 
-  if (!S.seenIntro) { S.seenIntro = true; save(); showHowTo(); }
+  // The title is shown on each launch, while puzzle progress remains saved.
+  $("#titleDucks").innerHTML = [1, 0, 3].map(i => '<span class="title-duck">' + DUCK_SVG[i] + '</span>').join("");
+  document.body.classList.add("at-title");
+  $("#screen-title").classList.add("on");
+  $("#titlePlay").onclick = () => { Audio_.init(); showHowTo(); };
+  $("#titleSettings").onclick = () => $("#btnSettings").click();
+  if (!S.seenIntro) { S.seenIntro = true; save(); }
 }
 
 /* the first touch anywhere wakes the audio up */
