@@ -1,0 +1,19 @@
+{
+  "bundleId": "elevatr.llc.tapin",
+  "appStoreConnect": null,
+  "next": {
+    "title": "Create the App Store Connect record (one time)",
+    "detail": "Apple only lets the account holder create the record, and only on the website. If Apple says the name is taken, rename the game in Shipyard; the App ID follows the name until the first upload.",
+    "url": "https://appstoreconnect.apple.com/apps",
+    "fields": {
+      "Platform": "iOS",
+      "Name": "Tap-In: AI Green Reading",
+      "Primary language": "English (U.S.)",
+      "Bundle ID": "elevatr.llc.tapin",
+      "SKU": "tapin",
+      "User access": "Full access"
+    },
+    "blocking": true
+  },
+  "updatedAt": "2026-10-15T04:43:57.834Z"
+}
