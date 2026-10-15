@@ -1,0 +1,66 @@
+[
+ {
+  "slug": "corvallis-club",
+  "name": "Corvallis Club",
+  "city": "Corvallis, OR",
+  "center": {
+   "lat": 44.54382,
+   "lon": -123.296565
+  },
+  "osmId": "osm:way:331422337",
+  "holes": 18,
+  "greens": 22,
+  "par": 71,
+  "featured": true,
+  "lidar": "DOGAMI Willamette Valley lidar 2009",
+  "miFromAnchor": 0.1
+ },
+ {
+  "slug": "trysting-tree",
+  "name": "Trysting Tree Golf Club",
+  "city": "Corvallis, OR",
+  "center": {
+   "lat": 44.571253,
+   "lon": -123.247567
+  },
+  "osmId": "osm:way:98522582",
+  "holes": 18,
+  "greens": 25,
+  "par": 71,
+  "featured": false,
+  "lidar": "DOGAMI Willamette Valley lidar 2009",
+  "miFromAnchor": 3.0
+ },
+ {
+  "slug": "golf-club-of-oregon",
+  "name": "The Golf Club of Oregon",
+  "city": "Albany, OR",
+  "center": {
+   "lat": 44.643091,
+   "lon": -123.102131
+  },
+  "osmId": "osm:way:129296323",
+  "holes": 18,
+  "greens": 18,
+  "par": 70,
+  "featured": false,
+  "lidar": "DOGAMI Willamette Valley lidar 2009",
+  "miFromAnchor": 11.7
+ },
+ {
+  "slug": "spring-hill",
+  "name": "Spring Hill Golf Club (Albany Golf & Event Center)",
+  "city": "Albany, OR",
+  "center": {
+   "lat": 44.665414,
+   "lon": -123.10492
+  },
+  "osmId": "osm:way:741537980",
+  "holes": 18,
+  "greens": 18,
+  "par": 72,
+  "featured": false,
+  "lidar": "DOGAMI Willamette Valley lidar 2009",
+  "miFromAnchor": 12.6
+ }
+]

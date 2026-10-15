@@ -185,8 +185,43 @@ if (platform === 'ios') {
   plutil('-replace', 'UISupportedInterfaceOrientations~ipad', '-json', JSON.stringify(orientations));
   // No custom encryption: skips the export-compliance question that otherwise blocks submission.
   plutil('-replace', 'ITSAppUsesNonExemptEncryption', '-bool', 'NO');
-  plutil('-replace', 'UIRequiredDeviceCapabilities', '-json', '["arm64"]');
+  plutil('-replace', 'UIRequiredDeviceCapabilities', '-json', JSON.stringify(game.raw.native?.ios?.requiredCapabilities || ['arm64']));
   plutil('-replace', 'CFBundleDisplayName', '-string', game.displayName);
+}
+
+// ---------- 5b. App-specific native code (optional) ----------
+// game.json may add Swift files, a custom bridge view controller (to register
+// in-app Capacitor plugins) and Info.plist keys (permission strings etc.):
+//   "native": { "ios": { "swift": ["native/ios/Foo.swift"], "bridgeViewController": "FooBridgeViewController",
+//                         "plist": { "NSCameraUsageDescription": "…", "UIFileSharingEnabled": true } } }
+const nativeIos = game.raw.native?.ios;
+if (platform === 'ios' && nativeIos) {
+  const appSrc = path.join(appDir, 'ios', 'App', 'App');
+  const swift = nativeIos.swift || [];
+  for (const rel of swift) {
+    const src = path.join(game.dir, rel);
+    if (!fs.existsSync(src)) fail(`games/${slug}/${rel} (listed in game.json native.ios.swift) was not found.`);
+    fs.copyFileSync(src, path.join(appSrc, path.basename(rel)));
+  }
+  if (swift.length) {
+    run('bundle', ['exec', 'ruby', path.join(ROOT, 'scripts', 'add-native-ios.rb'),
+      path.join(appDir, 'ios', 'App', 'App.xcodeproj'), ...swift.map((f) => path.basename(f))], ROOT);
+  }
+  if (nativeIos.bridgeViewController) {
+    const sb = path.join(appSrc, 'Base.lproj', 'Main.storyboard');
+    let xml = fs.readFileSync(sb, 'utf8');
+    const swapped = xml.replace(/customClass="CAPBridgeViewController" customModule="Capacitor"/,
+      `customClass="${nativeIos.bridgeViewController}" customModule="App" customModuleProvider="target"`);
+    if (swapped === xml) fail('Could not find CAPBridgeViewController in Main.storyboard to replace.');
+    fs.writeFileSync(sb, swapped);
+  }
+  const plist = path.join(appSrc, 'Info.plist');
+  for (const [key, value] of Object.entries(nativeIos.plist || {})) {
+    const type = typeof value === 'boolean' ? '-bool' : typeof value === 'object' ? '-json' : '-string';
+    const v = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    execFileSync('plutil', ['-replace', key, type, v, plist], { stdio: 'inherit' });
+  }
+  console.log(`\n✔ native iOS extras: ${swift.length} Swift file(s), ${Object.keys(nativeIos.plist || {}).length} Info.plist key(s)`);
 }
 
 // ---------- 6. Sync web files + plugins into the native project ----------

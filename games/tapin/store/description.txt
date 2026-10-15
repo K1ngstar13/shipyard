@@ -1,0 +1,26 @@
+Stop guessing reads. Tap-In turns survey-grade elevation data into a caddie in your pocket.
+
+Drop the pin and your ball and Tap-In shows:
+• The exact line your putt will roll, and where to aim — "2.5 cups left"
+• How much it breaks and how long it plays: uphill, downhill, fringe and all
+• A 3D golfer's-eye view with a slope grid and flowing slope dots, just like your favorite golf game
+• Slope colours, 2-inch contours and slope arrows, green-book style
+
+Green speed that keeps up with the day
+Set the stimp (quick pick, the pro shop's number, or measure it with our step-by-step guide). Tap-In then adjusts it live for morning dew, overnight rain, afternoon heat, humidity and wind. A cold morning round and a hot afternoon round won't read the same, and Tap-In knows it.
+
+Know your putting
+Log each putt as pull, push or on line, and short, perfect or long (perfect = finishing 0–3 ft past). After 18 you get putts per hole, 1-putts, 3-putts, feet made, speed and miss tendencies, and a scorecard.
+
+Practice green mode
+Get the feel for today's speed before you tee off. Random putts, target roll distance and a speed scorecard.
+
+Real greens, even with no signal
+Home courses come with every green built in: a 0.5 m height map made from the raw survey lidar points, not a coarse elevation tile. Corvallis Club, Trysting Tree, The Golf Club of Oregon and Spring Hill are ready offline.
+
+Scan your own green with LiDAR
+Have an iPhone Pro? A 6-step guide walks you through scanning a green in about 4 minutes. Tap-In lines the scan up with the survey and rolls the same putts on both, so you see exactly how accurate the read is, in inches of break. If a green has been rebuilt, your scan replaces the survey.
+
+Find your course instantly with GPS, the Tap-In QR code at the pro shop, or search.
+
+Check your local rules: distance and green-reading devices may not be permitted in competition.

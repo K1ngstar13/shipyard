@@ -1,0 +1,45 @@
+{
+  "name": "Tap-In: AI Green Reading",
+  "displayName": "Tap-In",
+  "bundleId": "elevatr.llc.tapin",
+  "version": "0.8.0",
+  "orientation": "portrait",
+  "backgroundColor": "#07140e",
+  "hideStatusBar": false,
+  "appleSubcategory": "GAMES_SPORTS",
+  "pricing": {
+    "model": "free",
+    "price": "0"
+  },
+  "privacy": {
+    "childrenAudience": "adults",
+    "thirdParties": "Open-Meteo (weather for green speed), OpenStreetMap and Esri (maps). Only the course location is sent.",
+    "accounts": false,
+    "analytics": false,
+    "ads": false,
+    "crashReports": false,
+    "location": true,
+    "cameraMic": true,
+    "contacts": false,
+    "userContent": false,
+    "purchases": false,
+    "network": true
+  },
+  "native": {
+    "ios": {
+      "swift": [
+        "native/ios/GreenScanPlugin.swift",
+        "native/ios/GreenScanViewController.swift",
+        "native/ios/TapInBridgeViewController.swift"
+      ],
+      "bridgeViewController": "TapInBridgeViewController",
+      "plist": {
+        "NSCameraUsageDescription": "Tap-In uses the camera and LiDAR scanner to scan putting greens, film putts (Putt Cam) and read course QR codes.",
+        "NSLocationWhenInUseUsageDescription": "Tap-In uses your location to find the golf course and green you're on.",
+        "NSMotionUsageDescription": "Tap-In uses motion sensors for the level check, Stroke Meter and Putt Cam horizon.",
+        "UIFileSharingEnabled": true,
+        "LSSupportsOpeningDocumentsInPlace": true
+      }
+    }
+  }
+}

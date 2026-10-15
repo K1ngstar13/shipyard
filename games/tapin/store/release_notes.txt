@@ -1,0 +1,1 @@
+Real lidar greens for Corvallis-area courses. New: scan a green with iPhone Pro LiDAR and see how accurate the read is.
