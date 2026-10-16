@@ -62,5 +62,741 @@
   "featured": false,
   "lidar": "DOGAMI Willamette Valley lidar 2009",
   "miFromAnchor": 12.6
+ },
+ {
+  "slug": "aspen-lakes",
+  "name": "Aspen Lakes Golf Course",
+  "city": "Sisters, OR",
+  "center": {
+   "lat": 44.300325,
+   "lon": -121.483508
+  },
+  "osmId": "osm:way:842299502",
+  "holes": 18,
+  "greens": 19,
+  "par": 72,
+  "featured": false,
+  "lidar": "or2009_olc_deschutes 2009",
+  "region": "Oregon"
+ },
+ {
+  "slug": "astoria-gcc",
+  "name": "Astoria Golf & Country Club",
+  "city": "Warrenton, OR",
+  "center": {
+   "lat": 46.104998,
+   "lon": -123.925246
+  },
+  "osmId": "osm:way:285375235",
+  "holes": 18,
+  "greens": 23,
+  "par": 72,
+  "featured": false,
+  "lidar": "2009_OR_DOGAMI_North_Coast 2009",
+  "region": "Oregon"
+ },
+ {
+  "slug": "bandon-dunes",
+  "name": "Bandon Dunes",
+  "city": "Bandon, OR",
+  "center": {
+   "lat": 43.199033,
+   "lon": -124.391066
+  },
+  "osmId": "osm:way:362513477",
+  "holes": 18,
+  "greens": 18,
+  "par": 72,
+  "featured": false,
+  "lidar": "west_coast2016_usgs_el_nino 2016",
+  "region": "Bandon"
+ },
+ {
+  "slug": "bandon-practice",
+  "name": "Bandon Dunes practice greens & Punchbowl",
+  "city": "Bandon, OR",
+  "center": {
+   "lat": 43.199033,
+   "lon": -124.391066
+  },
+  "osmId": "osm:way:362513477",
+  "holes": 0,
+  "greens": 8,
+  "par": 0,
+  "featured": false,
+  "lidar": "2008_OR_DOGAMI 2008",
+  "region": "Bandon"
+ },
+ {
+  "slug": "bandon-preserve",
+  "name": "Bandon Preserve (13 holes)",
+  "city": "Bandon, OR",
+  "center": {
+   "lat": 43.183553,
+   "lon": -124.395193
+  },
+  "osmId": "osm:way:674855473",
+  "holes": 13,
+  "greens": 13,
+  "par": 39,
+  "featured": false,
+  "lidar": "2008_OR_DOGAMI 2008",
+  "region": "Bandon"
+ },
+ {
+  "slug": "bandon-trails",
+  "name": "Bandon Trails",
+  "city": "Bandon, OR",
+  "center": {
+   "lat": 43.17945,
+   "lon": -124.38699
+  },
+  "osmId": "osm:way:362513476",
+  "holes": 18,
+  "greens": 18,
+  "par": 71,
+  "featured": false,
+  "lidar": "2008_OR_DOGAMI 2008",
+  "region": "Bandon"
+ },
+ {
+  "slug": "bend-golf-club",
+  "name": "Bend Golf & Country Club",
+  "city": "Bend, OR",
+  "center": {
+   "lat": 44.012848,
+   "lon": -121.310833
+  },
+  "osmId": "osm:way:356701386",
+  "holes": 18,
+  "greens": 26,
+  "par": 72,
+  "featured": false,
+  "lidar": "2010_OR_DOGAMI_Newberry 2010",
+  "region": "Oregon"
+ },
+ {
+  "slug": "black-butte-big-meadow",
+  "name": "Big Meadow (Black Butte Ranch)",
+  "city": "Black Butte Ranch, OR",
+  "center": {
+   "lat": 44.373363,
+   "lon": -121.668369
+  },
+  "osmId": "osm:relation:8004002",
+  "holes": 18,
+  "greens": 19,
+  "par": 72,
+  "featured": false,
+  "lidar": "or2009_olc_deschutes 2009",
+  "region": "Oregon"
+ },
+ {
+  "slug": "sunriver-caldera-links",
+  "name": "Caldera Links (Sunriver)",
+  "city": "Sunriver, OR",
+  "center": {
+   "lat": 43.855617,
+   "lon": -121.437776
+  },
+  "osmId": "osm:way:206867343",
+  "holes": 9,
+  "greens": 10,
+  "par": 27,
+  "featured": false,
+  "lidar": "2010_OR_DOGAMI_Newberry 2010",
+  "region": "Oregon"
+ },
+ {
+  "slug": "columbia-edgewater",
+  "name": "Columbia Edgewater Country Club",
+  "city": "Portland, OR",
+  "center": {
+   "lat": 45.596335,
+   "lon": -122.645784
+  },
+  "osmId": "osm:way:96855100",
+  "holes": 18,
+  "greens": 30,
+  "par": 72,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "sunriver-crosswater",
+  "name": "Crosswater (Sunriver)",
+  "city": "Sunriver, OR",
+  "center": {
+   "lat": 43.85232,
+   "lon": -121.447683
+  },
+  "osmId": "osm:relation:14236725",
+  "holes": 18,
+  "greens": 20,
+  "par": 72,
+  "featured": false,
+  "lidar": "2010_OR_DOGAMI_Newberry 2010",
+  "region": "Oregon"
+ },
+ {
+  "slug": "eagle-crest-resort",
+  "name": "Eagle Crest Resort Course",
+  "city": "Redmond, OR",
+  "center": {
+   "lat": 44.260946,
+   "lon": -121.255614
+  },
+  "osmId": "osm:way:516918775",
+  "holes": 18,
+  "greens": 18,
+  "par": 73,
+  "featured": false,
+  "lidar": "or2009_olc_deschutes 2009",
+  "region": "Oregon"
+ },
+ {
+  "slug": "eagle-crest-ridge",
+  "name": "Eagle Crest Ridge Course",
+  "city": "Redmond, OR",
+  "center": {
+   "lat": 44.264795,
+   "lon": -121.276222
+  },
+  "osmId": "osm:way:1518797803",
+  "holes": 18,
+  "greens": 10,
+  "par": 72,
+  "featured": false,
+  "lidar": "or2009_olc_deschutes 2009",
+  "region": "Oregon"
+ },
+ {
+  "slug": "eagle-point-gc",
+  "name": "Eagle Point Golf Club",
+  "city": "Eagle Point, OR",
+  "center": {
+   "lat": 42.459621,
+   "lon": -122.803493
+  },
+  "osmId": "osm:relation:4455118",
+  "holes": 18,
+  "greens": 20,
+  "par": 72,
+  "featured": false,
+  "lidar": "or2022_jackson 2022",
+  "region": "Oregon"
+ },
+ {
+  "slug": "eastmoreland",
+  "name": "Eastmoreland Golf Course",
+  "city": "Portland, OR",
+  "center": {
+   "lat": 45.473511,
+   "lon": -122.636915
+  },
+  "osmId": "osm:relation:11095178",
+  "holes": 18,
+  "greens": 20,
+  "par": 72,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "emerald-valley",
+  "name": "Emerald Valley Golf Course",
+  "city": "Creswell, OR",
+  "center": {
+   "lat": 43.923181,
+   "lon": -122.994301
+  },
+  "osmId": "osm:way:202067972",
+  "holes": 18,
+  "greens": 20,
+  "par": 72,
+  "featured": false,
+  "lidar": "or2015_lane_cnty 2015",
+  "region": "Oregon"
+ },
+ {
+  "slug": "eugene-country-club",
+  "name": "Eugene Country Club",
+  "city": "Eugene, OR",
+  "center": {
+   "lat": 44.067305,
+   "lon": -123.086839
+  },
+  "osmId": "osm:way:124953002",
+  "holes": 18,
+  "greens": 21,
+  "par": 72,
+  "featured": false,
+  "lidar": "or2015_lane_cnty 2015",
+  "region": "Oregon"
+ },
+ {
+  "slug": "gearhart-golf-links",
+  "name": "Gearhart Golf Links",
+  "city": "Gearhart, OR",
+  "center": {
+   "lat": 46.033621,
+   "lon": -123.921471
+  },
+  "osmId": "osm:way:158904851",
+  "holes": 18,
+  "greens": 20,
+  "par": 73,
+  "featured": false,
+  "lidar": "usace2020_or 2020",
+  "region": "Oregon"
+ },
+ {
+  "slug": "black-butte-glaze-meadow",
+  "name": "Glaze Meadow (Black Butte Ranch)",
+  "city": "Black Butte Ranch, OR",
+  "center": {
+   "lat": 44.346707,
+   "lon": -121.657151
+  },
+  "osmId": "osm:relation:8004001",
+  "holes": 18,
+  "greens": 10,
+  "par": 72,
+  "featured": false,
+  "lidar": "or2009_olc_deschutes 2009",
+  "region": "Oregon"
+ },
+ {
+  "slug": "heron-lakes-great-blue",
+  "name": "Heron Lakes Great Blue",
+  "city": "Portland, OR",
+  "center": {
+   "lat": 45.601237,
+   "lon": -122.702734
+  },
+  "osmId": "osm:relation:21058472",
+  "holes": 18,
+  "greens": 30,
+  "par": 74,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "heron-lakes-greenback",
+  "name": "Heron Lakes Greenback",
+  "city": "Portland, OR",
+  "center": {
+   "lat": 45.604729,
+   "lon": -122.705896
+  },
+  "osmId": "osm:relation:21058473",
+  "holes": 18,
+  "greens": 28,
+  "par": 72,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "juniper-golf",
+  "name": "Juniper Golf Course",
+  "city": "Redmond, OR",
+  "center": {
+   "lat": 44.229195,
+   "lon": -121.194725
+  },
+  "osmId": "osm:way:533468821",
+  "holes": 18,
+  "greens": 5,
+  "par": 72,
+  "featured": false,
+  "lidar": "or2009_olc_deschutes 2009",
+  "region": "Oregon"
+ },
+ {
+  "slug": "mcnary",
+  "name": "McNary Golf Club",
+  "city": "Keizer, OR",
+  "center": {
+   "lat": 45.012061,
+   "lon": -123.032513
+  },
+  "osmId": "osm:relation:13030479",
+  "holes": 18,
+  "greens": 22,
+  "par": 72,
+  "featured": false,
+  "lidar": "2018_OLC_Santiam 2018",
+  "region": "Oregon"
+ },
+ {
+  "slug": "sunriver-meadows",
+  "name": "Meadows (Sunriver)",
+  "city": "Sunriver, OR",
+  "center": {
+   "lat": 43.873232,
+   "lon": -121.445859
+  },
+  "osmId": "osm:relation:5299743",
+  "holes": 18,
+  "greens": 30,
+  "par": 71,
+  "featured": false,
+  "lidar": "2010_OR_DOGAMI_Newberry 2010",
+  "region": "Oregon"
+ },
+ {
+  "slug": "old-macdonald",
+  "name": "Old Macdonald",
+  "city": "Bandon, OR",
+  "center": {
+   "lat": 43.199033,
+   "lon": -124.391066
+  },
+  "osmId": "osm:way:362513477",
+  "holes": 18,
+  "greens": 17,
+  "par": 71,
+  "featured": false,
+  "lidar": "or2014_usace_ncmp_or 2014",
+  "region": "Bandon"
+ },
+ {
+  "slug": "oregon-golf-club",
+  "name": "Oregon Golf Club",
+  "city": "West Linn, OR",
+  "center": {
+   "lat": 45.329266,
+   "lon": -122.670753
+  },
+  "osmId": "osm:relation:11815308",
+  "holes": 18,
+  "greens": 29,
+  "par": 72,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "oswego-lake-cc",
+  "name": "Oswego Lake Country Club",
+  "city": "Lake Oswego, OR",
+  "center": {
+   "lat": 45.420534,
+   "lon": -122.687001
+  },
+  "osmId": "osm:way:55682263",
+  "holes": 18,
+  "greens": 20,
+  "par": 71,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "pacific-dunes",
+  "name": "Pacific Dunes",
+  "city": "Bandon, OR",
+  "center": {
+   "lat": 43.199033,
+   "lon": -124.391066
+  },
+  "osmId": "osm:way:362513477",
+  "holes": 18,
+  "greens": 18,
+  "par": 71,
+  "featured": false,
+  "lidar": "west_coast2016_usgs_el_nino 2016",
+  "region": "Bandon"
+ },
+ {
+  "slug": "portland-golf-club",
+  "name": "Portland Golf Club",
+  "city": "Portland, OR",
+  "center": {
+   "lat": 45.474262,
+   "lon": -122.761102
+  },
+  "osmId": "osm:way:155831835",
+  "holes": 18,
+  "greens": 25,
+  "par": 72,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "pumpkin-ridge-ghost-creek",
+  "name": "Pumpkin Ridge \u00b7 Ghost Creek",
+  "city": "North Plains, OR",
+  "center": {
+   "lat": 45.616449,
+   "lon": -123.000621
+  },
+  "osmId": "osm:way:901988733",
+  "holes": 18,
+  "greens": 18,
+  "par": 71,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "pumpkin-ridge-witch-hollow",
+  "name": "Pumpkin Ridge \u00b7 Witch Hollow",
+  "city": "North Plains, OR",
+  "center": {
+   "lat": 45.616449,
+   "lon": -123.000621
+  },
+  "osmId": "osm:way:901988733",
+  "holes": 18,
+  "greens": 18,
+  "par": 72,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "rogue-valley-cc",
+  "name": "Rogue Valley Country Club",
+  "city": "Medford, OR",
+  "center": {
+   "lat": 42.326424,
+   "lon": -122.827623
+  },
+  "osmId": "osm:relation:3944986",
+  "holes": 18,
+  "greens": 31,
+  "par": 72,
+  "featured": false,
+  "lidar": "or2022_jackson 2022",
+  "region": "Oregon"
+ },
+ {
+  "slug": "salem-golf-club",
+  "name": "Salem Golf Club",
+  "city": "Salem, OR",
+  "center": {
+   "lat": 44.915984,
+   "lon": -123.072276
+  },
+  "osmId": "osm:way:260668748",
+  "holes": 18,
+  "greens": 19,
+  "par": 72,
+  "featured": false,
+  "lidar": "2018_OLC_Santiam 2018",
+  "region": "Oregon"
+ },
+ {
+  "slug": "salishan",
+  "name": "Salishan Golf Links",
+  "city": "Gleneden Beach, OR",
+  "center": {
+   "lat": 44.887321,
+   "lon": -124.027866
+  },
+  "osmId": "osm:way:1049137675",
+  "holes": 18,
+  "greens": 19,
+  "par": 63,
+  "featured": false,
+  "lidar": "2009_OR_DOGAMI_North_Coast 2009",
+  "region": "Oregon"
+ },
+ {
+  "slug": "sandpines",
+  "name": "Sandpines Golf Links",
+  "city": "Florence, OR",
+  "center": {
+   "lat": 44.002912,
+   "lon": -124.110563
+  },
+  "osmId": "osm:way:304892693",
+  "holes": 18,
+  "greens": 21,
+  "par": 72,
+  "featured": false,
+  "lidar": "2009_OR_DOGAMI_North_Coast 2009",
+  "region": "Oregon"
+ },
+ {
+  "slug": "shadow-hills-cc",
+  "name": "Shadow Hills Country Club",
+  "city": "Junction City, OR",
+  "center": {
+   "lat": 44.173249,
+   "lon": -123.180215
+  },
+  "osmId": "osm:way:216857843",
+  "holes": 18,
+  "greens": 22,
+  "par": 76,
+  "featured": false,
+  "lidar": "2009_OR_Willamette 2009",
+  "region": "Oregon"
+ },
+ {
+  "slug": "sheep-ranch",
+  "name": "Sheep Ranch",
+  "city": "Bandon, OR",
+  "center": {
+   "lat": 43.219055,
+   "lon": -124.391421
+  },
+  "osmId": "osm:way:823626858",
+  "holes": 18,
+  "greens": 16,
+  "par": 72,
+  "featured": false,
+  "lidar": "west_coast2016_usgs_el_nino 2016",
+  "region": "Bandon"
+ },
+ {
+  "slug": "shortys",
+  "name": "Shorty's (19-hole par 3)",
+  "city": "Bandon, OR",
+  "center": {
+   "lat": 43.178631,
+   "lon": -124.394331
+  },
+  "osmId": "osm:way:1540940976",
+  "holes": 19,
+  "greens": 16,
+  "par": 58,
+  "featured": false,
+  "lidar": "2008_OR_DOGAMI 2008",
+  "region": "Bandon"
+ },
+ {
+  "slug": "silvies-valley-ranch",
+  "name": "Silvies Valley Ranch",
+  "city": "Seneca, OR",
+  "center": {
+   "lat": 44.057376,
+   "lon": -118.987196
+  },
+  "osmId": "osm:way:904342362",
+  "holes": 18,
+  "greens": 43,
+  "par": 71,
+  "featured": false,
+  "lidar": "OR_UpperJohnDay_1_2020 2020",
+  "region": "Oregon"
+ },
+ {
+  "slug": "stone-creek",
+  "name": "Stone Creek Golf Club",
+  "city": "Oregon City, OR",
+  "center": {
+   "lat": 45.2997,
+   "lon": -122.56884
+  },
+  "osmId": "osm:way:188382554",
+  "holes": 18,
+  "greens": 21,
+  "par": 72,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "tetherow",
+  "name": "Tetherow Golf Club",
+  "city": "Bend, OR",
+  "center": {
+   "lat": 44.032468,
+   "lon": -121.361105
+  },
+  "osmId": "osm:way:780645556",
+  "holes": 18,
+  "greens": 30,
+  "par": 72,
+  "featured": false,
+  "lidar": "2010_OR_DOGAMI_Newberry 2010",
+  "region": "Oregon"
+ },
+ {
+  "slug": "the-reserve",
+  "name": "The Reserve Vineyards (North & South)",
+  "city": "Aloha, OR",
+  "center": {
+   "lat": 45.484686,
+   "lon": -122.922319
+  },
+  "osmId": "osm:way:136348508",
+  "holes": 18,
+  "greens": 40,
+  "par": 73,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "tokatee",
+  "name": "Tokatee Golf Club",
+  "city": "Blue River, OR",
+  "center": {
+   "lat": 44.180277,
+   "lon": -122.210487
+  },
+  "osmId": "osm:way:331173622",
+  "holes": 18,
+  "greens": 21,
+  "par": 72,
+  "featured": false,
+  "lidar": "OR_McKenzieRiver_1_2021 2021",
+  "region": "Oregon"
+ },
+ {
+  "slug": "tualatin-cc",
+  "name": "Tualatin Country Club",
+  "city": "Tualatin, OR",
+  "center": {
+   "lat": 45.391326,
+   "lon": -122.771261
+  },
+  "osmId": "osm:way:146982317",
+  "holes": 18,
+  "greens": 18,
+  "par": 72,
+  "featured": false,
+  "lidar": "OR_OLCMetro_2019 2019",
+  "region": "Oregon"
+ },
+ {
+  "slug": "widgi-creek",
+  "name": "Widgi Creek Golf Club",
+  "city": "Bend, OR",
+  "center": {
+   "lat": 44.003084,
+   "lon": -121.386081
+  },
+  "osmId": "osm:relation:7948882",
+  "holes": 18,
+  "greens": 19,
+  "par": 70,
+  "featured": false,
+  "lidar": "or2009_olc_deschutes 2009",
+  "region": "Oregon"
+ },
+ {
+  "slug": "sunriver-woodlands",
+  "name": "Woodlands (Sunriver)",
+  "city": "Sunriver, OR",
+  "center": {
+   "lat": 43.901538,
+   "lon": -121.433251
+  },
+  "osmId": "osm:relation:5301309",
+  "holes": 18,
+  "greens": 21,
+  "par": 72,
+  "featured": false,
+  "lidar": "2010_OR_DOGAMI_Newberry 2010",
+  "region": "Oregon"
  }
 ]

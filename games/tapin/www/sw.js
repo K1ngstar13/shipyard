@@ -5,17 +5,14 @@
  * - Pages: network-first, falling back to the cached app.
  * Cross-origin requests (weather, map tiles, live OSM/USGS) are left alone.
  */
-const VERSION = "tapin-v0.8.0";
+const VERSION = "tapin-v0.8.1";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png", "./courses/index.json"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {
     const c = await caches.open(VERSION);
     await c.addAll(SHELL).catch(() => {});
-    try {
-      const idx = await (await fetch("./courses/index.json", { cache: "no-cache" })).json();
-      await c.addAll(idx.map((p) => `./courses/${p.slug}.json`));
-    } catch { /* offline install: packs are cached when first opened */ }
+    // course packs are cached the first time each course is opened (there are dozens)
     self.skipWaiting();
   })());
 });
