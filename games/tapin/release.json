@@ -7,7 +7,7 @@
     "url": "https://appstoreconnect.apple.com/apps/6823026046"
   },
   "next": null,
-  "updatedAt": "2026-10-17T00:45:46.391Z",
+  "updatedAt": "2026-10-17T00:49:40.696Z",
   "name": {
     "appStore": "Tap-In: AI Green Reading",
     "synced": true
@@ -19,22 +19,16 @@
     "reason": "Build 181 was uploaded to App Store Connect with elevatr.llc.tapin on 2026-10-15. Apple ties the app record, its TestFlight builds, and every future update to this ID, and it can never be changed or reused. Players never see it; they see the App Store name and the home-screen name, which you can still change."
   },
   "testflight": {
-    "state": "available",
-    "label": "On TestFlight: build 191 for 1 tester",
-    "detail": "",
-    "next": {
-      "title": "Install it on your iPhone",
-      "detail": "Open the TestFlight app signed in as kingr13@hotmail.com and tap Install. The first time, accept the TestFlight email invite.",
-      "blocking": false
-    },
-    "build": "191",
-    "processingState": "VALID",
-    "betaState": "READY_FOR_BETA_TESTING",
+    "state": "uploaded",
+    "label": "Build 201 uploaded, waiting for Apple to list it",
+    "detail": "A new build usually appears in App Store Connect within a few minutes.",
+    "next": null,
+    "build": "201",
+    "processingState": null,
+    "betaState": null,
     "group": "Elevatr Internal Testing",
-    "testers": [
-      "kingr13@hotmail.com"
-    ],
-    "version": "0.8.1",
-    "checkedAt": "2026-10-16T13:07:05.123Z"
+    "testers": [],
+    "version": "0.8.2",
+    "checkedAt": "2026-10-17T00:49:40.696Z"
   }
 }
