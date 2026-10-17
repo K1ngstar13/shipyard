@@ -7,7 +7,7 @@
     "url": "https://appstoreconnect.apple.com/apps/6823026046"
   },
   "next": null,
-  "updatedAt": "2026-10-17T04:20:49.734Z",
+  "updatedAt": "2026-10-17T04:24:33.086Z",
   "name": {
     "appStore": "Tap-In: AI Green Reading",
     "synced": true
@@ -20,15 +20,15 @@
   },
   "testflight": {
     "state": "uploaded",
-    "label": "Build 211 uploaded, waiting for Apple to list it",
+    "label": "Build 221 uploaded, waiting for Apple to list it",
     "detail": "A new build usually appears in App Store Connect within a few minutes.",
     "next": null,
-    "build": "211",
+    "build": "221",
     "processingState": null,
     "betaState": null,
     "group": "Elevatr Internal Testing",
     "testers": [],
-    "version": "0.8.3",
-    "checkedAt": "2026-10-17T02:40:51.358Z"
+    "version": "0.8.4",
+    "checkedAt": "2026-10-17T04:24:33.085Z"
   }
 }
