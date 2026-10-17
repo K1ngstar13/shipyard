@@ -193,6 +193,7 @@ if (platform === 'ios') {
 // game.json may add Swift files, a custom bridge view controller (to register
 // in-app Capacitor plugins) and Info.plist keys (permission strings etc.):
 //   "native": { "ios": { "swift": ["native/ios/Foo.swift"], "bridgeViewController": "FooBridgeViewController",
+//                         "plugins": ["FooPlugin"],   // @objc class names, added to packageClassList
 //                         "plist": { "NSCameraUsageDescription": "…", "UIFileSharingEnabled": true } } }
 const nativeIos = game.raw.native?.ios;
 if (platform === 'ios' && nativeIos) {
@@ -226,5 +227,15 @@ if (platform === 'ios' && nativeIos) {
 
 // ---------- 6. Sync web files + plugins into the native project ----------
 run('npx', ['cap', 'sync', platform]);
+
+// In-app plugins (Swift classes in the app target) are also listed in the generated
+// capacitor.config.json, so Capacitor registers them at startup alongside npm plugins.
+if (platform === 'ios' && nativeIos?.plugins?.length) {
+  const cfgPath = path.join(appDir, 'ios', 'App', 'App', 'capacitor.config.json');
+  const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+  cfg.packageClassList = [...new Set([...(cfg.packageClassList || []), ...nativeIos.plugins])];
+  fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, '\t'));
+  console.log(`✔ registered in-app plugins: ${nativeIos.plugins.join(', ')}`);
+}
 
 console.log(`\n✔ ${platform} project ready at ${path.relative(ROOT, path.join(appDir, platform))}`);

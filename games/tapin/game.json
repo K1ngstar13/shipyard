@@ -39,7 +39,10 @@
         "NSMotionUsageDescription": "Tap-In uses motion sensors for the level check, Stroke Meter and Putt Cam horizon.",
         "UIFileSharingEnabled": true,
         "LSSupportsOpeningDocumentsInPlace": true
-      }
+      },
+      "plugins": [
+        "GreenScanPlugin"
+      ]
     }
   }
 }
