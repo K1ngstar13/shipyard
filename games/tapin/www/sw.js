@@ -5,7 +5,7 @@
  * - Pages: network-first, falling back to the cached app.
  * Cross-origin requests (weather, map tiles, live OSM/USGS) are left alone.
  */
-const VERSION = "tapin-v0.8.4";
+const VERSION = "tapin-v0.8.5";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png", "./courses/index.json"];
 
 self.addEventListener("install", (e) => {
