@@ -2,7 +2,7 @@
   "name": "Tap-In: AI Green Reading",
   "displayName": "Tap-In",
   "bundleId": "elevatr.llc.tapin",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "orientation": "portrait",
   "backgroundColor": "#07140e",
   "hideStatusBar": false,
