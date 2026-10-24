@@ -1,1 +1,4 @@
-First release.
+Cleaner board with even region borders and square corners.
+Every duck row stays reachable while you play.
+Eleven new keyboard ASMR sounds.
+Your levels, score, and furniture carry over.

@@ -56,7 +56,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 
 /* ---------- shell ---------- */
 #app{position:relative;z-index:1;min-height:100dvh;display:flex;flex-direction:column;max-width:1180px;margin:0 auto;
-  padding:calc(10px + env(safe-area-inset-top)) 12px calc(92px + env(safe-area-inset-bottom))}
+  padding:calc(10px + env(safe-area-inset-top)) 12px calc(20px + env(safe-area-inset-bottom))}
 .topbar{display:flex;align-items:center;gap:12px;padding:6px 2px 12px}
 .brand{display:flex;align-items:center;gap:9px}
 .brand svg{width:38px;height:38px;flex:none}
@@ -96,7 +96,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 
 #boardwrap{position:relative}
 #board{
-  display:grid;background:var(--ink);border:5px solid var(--ink);border-radius:18px;
+  position:relative;display:grid;background:var(--ink);border:6px solid var(--ink);border-radius:0;
   overflow:hidden;box-shadow:6px 6px 0 rgba(37,48,41,.22);
   width:min(92vw,min(520px,64vh));aspect-ratio:1/1;touch-action:none;
 }
@@ -106,10 +106,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
   min-width:0;min-height:0;overflow:hidden;     /* never let contents resize the square */
 }
 .cell::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(37,48,41,.13)}
-.cell.eT{border-top:3px solid var(--ink)}
-.cell.eB{border-bottom:3px solid var(--ink)}
-.cell.eL{border-left:3px solid var(--ink)}
-.cell.eR{border-right:3px solid var(--ink)}
+.region-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;overflow:visible}
 .cell:hover{filter:brightness(1.06)}
 .cell .mark{position:relative;z-index:2;width:64%;height:64%;pointer-events:none}
 .cell .mark svg{width:100%;height:100%;display:block}
@@ -142,7 +139,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .soundstrip{
   display:flex;gap:7px;flex-wrap:wrap;justify-content:center;max-width:560px;
   background:var(--panel);border:var(--line) solid var(--ink);border-radius:var(--r);
-  box-shadow:var(--shadow);padding:11px 13px;
+  box-shadow:var(--shadow);padding:11px 13px 20px;width:100%;row-gap:18px;
 }
 .soundstrip .lbl{width:100%;text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:2px}
 .swatch{
@@ -247,7 +244,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 
 /* ---------- tabs ---------- */
 .tabs{
-  position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;
+  position:relative;align-self:center;flex-shrink:0;margin:22px auto 0;z-index:60;
   display:flex;gap:6px;background:var(--panel);border:var(--line) solid var(--ink);
   border-radius:999px;padding:6px;box-shadow:var(--shadow);
 }
@@ -331,54 +328,15 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
   .levelcard .rule{max-width:100%;order:3;width:100%}
   .brand .sub{display:none}
   .slot{width:66px;height:66px}
-  #app{padding:8px 9px 84px}
+  #app{padding:calc(8px + env(safe-area-inset-top)) 9px calc(20px + env(safe-area-inset-bottom))}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
 }
-
-/* ---------- welcome / title screen ---------- */
-body.at-title #app>.topbar,body.at-title #app>.tabs{display:none}
-body.at-title #app{padding:0;max-width:none}
-body.at-title #screen-pond,body.at-title #screen-home{display:none!important}
-#screen-title{display:none;min-height:100dvh;min-height:100svh;align-items:center;justify-content:center;padding:calc(25px + env(safe-area-inset-top)) 18px calc(25px + env(safe-area-inset-bottom));overflow:auto}
-body.at-title #screen-title{display:flex}
-.title-card{position:relative;isolation:isolate;width:min(100%,480px);padding:35px 22px 28px;text-align:center;background:var(--panel);border:var(--line) solid var(--ink);border-radius:30px;box-shadow:7px 7px 0 var(--ink)}
-.title-label{display:inline-block;border:2px solid var(--ink);border-radius:100px;background:var(--paper-2);padding:6px 15px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
-.title-name{font-family:Fredoka,ui-rounded,system-ui,sans-serif;font-size:clamp(44px,11vw,68px);letter-spacing:-.065em;line-height:1.08;margin:18px 0 5px;color:var(--ink);text-shadow:3px 3px 0 var(--water)}
-.title-subtitle{font-size:15px;font-weight:700;color:var(--ink-soft);margin:0 0 16px}
-.title-ducks{display:flex;align-items:end;justify-content:center;min-height:134px;gap:0;margin:3px 0 19px}
-.title-duck{width:32%;max-width:120px;filter:drop-shadow(0 5px 0 rgba(37,48,41,.1));animation:titleFloat 3s ease-in-out infinite}
-.title-duck svg{display:block;width:100%;height:auto}
-.title-duck:nth-child(1){transform:rotate(-9deg);animation-delay:-.45s}
-.title-duck:nth-child(2){width:38%;max-width:145px;z-index:1;animation-delay:-1.1s}
-.title-duck:nth-child(3){transform:rotate(9deg);animation-delay:-1.8s}
-@keyframes titleFloat{0%,100%{translate:0 0}50%{translate:0 -7px}}
-.title-wave{height:16px;margin:0 auto 20px;width:80%;background:repeating-radial-gradient(ellipse at 50% -12px, transparent 0 13px,var(--water) 14px 17px,transparent 18px 32px);opacity:.9}
-.title-actions{max-width:290px;margin:auto;display:flex;flex-direction:column;gap:13px}
-.title-actions .btn{width:100%;min-height:54px;justify-content:center;font-family:Fredoka,ui-rounded,system-ui,sans-serif;font-size:20px}
-.title-actions .btn:not(.gold){background:var(--paper-2)}
-.title-foot{font-size:12px;color:var(--ink-soft);margin-top:22px;font-weight:700}
-@media(max-height:660px){.title-card{padding:17px 20px}.title-ducks{min-height:85px;margin:0 0 6px}.title-duck{max-width:85px}.title-duck:nth-child(2){max-width:105px}.title-name{margin:7px 0 2px}.title-foot{margin-top:11px}.title-wave{margin-bottom:12px}}
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- Original game screens are left untouched; this welcome screen appears first. -->
-  <section class="screen" id="screen-title" aria-label="QuackDoku title screen">
-    <div class="title-card">
-      <div class="title-label">Welcome to the pond</div>
-      <h1 class="title-name">QuackDoku</h1>
-      <p class="title-subtitle">A cozy little duck puzzle</p>
-      <div class="title-ducks" id="titleDucks" aria-hidden="true"></div>
-      <div class="title-wave" aria-hidden="true"></div>
-      <div class="title-actions">
-        <button class="btn gold" id="titlePlay">Play <span aria-hidden="true">&#9656;</span></button>
-        <button class="btn" id="titleSettings">&#9881; Settings</button>
-      </div>
-      <div class="title-foot">Find the ducks · Make a home · Stay a while</div>
-    </div>
-  </section>
   <header class="topbar">
     <div class="brand">
       <svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#253029" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"><path d="M22 74c0-16 12-27 28-27s28 11 28 27z" fill="#F7CE5B"/><circle cx="50" cy="34" r="17" fill="#F7CE5B"/><path d="M67 33l14 4-14 6z" fill="#F2B33D"/><path d="M28 74h44" fill="none"/></g><circle cx="44" cy="31" r="3.4" fill="#253029"/></svg>
@@ -529,17 +487,17 @@ const xMark = sticker("0 0 100 100",
 
 /* ---------- nine ducks, nine keyboards ---------- */
 const DUCKS = [
-  { id: 0,  name: "Butterbill", hex: "#F7CE5B", sound: "thock",   label: "marble thock" },
-  { id: 1,  name: "Mintwing",   hex: "#9EDCC0", sound: "clicky",  label: "crisp clicky" },
-  { id: 2,  name: "Skyfeather", hex: "#9CC8F2", sound: "tactile", label: "snappy tactile" },
-  { id: 3,  name: "Peachpuff",  hex: "#F5A98A", sound: "creamy",  label: "creamy linear" },
-  { id: 4,  name: "Lilacquack", hex: "#C3B0EC", sound: "space",   label: "foam spacebar" },
-  { id: 5,  name: "Rosecheek",  hex: "#F2A0BE", sound: "type",    label: "typewriter clack" },
-  { id: 6,  name: "Sagebeak",   hex: "#C3D69B", sound: "laptop",  label: "low-profile tap" },
-  { id: 7,  name: "Sandy",      hex: "#E7CFA6", sound: "silent",  label: "silent tactile" },
-  { id: 8,  name: "Slatewing",  hex: "#A9BFC9", sound: "ping",    label: "brass ping" },
-  { id: 9,  name: "Tealtail",   hex: "#7CC7CE", sound: "poly",    label: "polycarb thock" },
-  { id: 10, name: "Cocoabill",  hex: "#CFA98A", sound: "gasket",  label: "gasket bump" }
+  { id: 0,  name: "Butterbill", hex: "#F7CE5B", sound: "thock",   label: "deep keyboard thock" },
+  { id: 1,  name: "Mintwing",   hex: "#9EDCC0", sound: "clicky",  label: "crisp double click" },
+  { id: 2,  name: "Skyfeather", hex: "#9CC8F2", sound: "tactile", label: "wooden tapping" },
+  { id: 3,  name: "Peachpuff",  hex: "#F5A98A", sound: "creamy",  label: "soft brush sweep" },
+  { id: 4,  name: "Lilacquack", hex: "#C3B0EC", sound: "space",   label: "bubble pop" },
+  { id: 5,  name: "Rosecheek",  hex: "#F2A0BE", sound: "type",    label: "paper crinkle" },
+  { id: 6,  name: "Sagebeak",   hex: "#C3D69B", sound: "laptop",  label: "pencil scratch" },
+  { id: 7,  name: "Sandy",      hex: "#E7CFA6", sound: "silent",  label: "soft fabric rub" },
+  { id: 8,  name: "Slatewing",  hex: "#A9BFC9", sound: "ping",    label: "glass chime" },
+  { id: 9,  name: "Tealtail",   hex: "#7CC7CE", sound: "poly",    label: "water droplet" },
+  { id: 10, name: "Cocoabill",  hex: "#CFA98A", sound: "gasket",  label: "hollow cork pop" }
 ];
 DUCKS.forEach(d => { d.pale = tint(d.hex, 0.55); });
 const DUCK_SVG = DUCKS.map(d => duckArt(d.hex, { blush: true }));
@@ -866,6 +824,32 @@ const Audio_ = (() => {
     };
   });
 
+  // Original synthesized ASMR textures: no recordings or network needed.
+  function texture(when, v, kind, hz, dur, gain, attack = 0.008, q = 0.8) {
+    const src = noise(kind, dur + 0.05), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    f.type = "bandpass"; f.frequency.value = hz; f.Q.value = q;
+    src.connect(f); f.connect(g);
+    env(g, attack, gain * v, dur * 0.12, dur * 0.8, when);
+    out(g, 0.035); src.start(when); src.stop(when + dur + attack + 0.08);
+  }
+  function tone(when, v, hz, end, dur, gain, type = "sine") {
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type;
+    o.frequency.setValueAtTime(hz, when);
+    o.frequency.exponentialRampToValueAtTime(end, when + dur);
+    o.connect(g); env(g, 0.003, gain * v, 0, dur, when); out(g, 0.07);
+    o.start(when); o.stop(when + dur + 0.03);
+  }
+  voices.clicky = (v,w) => { texture(w,v,"white",3300,.035,.65); texture(w+.075,v,"white",4600,.025,.38); };
+  voices.tactile = (v,w) => { [0,.11,.23].forEach((d,i)=>{tone(w+d,v,650,410,.055,.28/(1+i*.2),"triangle");texture(w+d,v,"pink",1800,.035,.24);}); };
+  voices.creamy = (v,w) => texture(w,v,"pink",2600,.45,.5,.07,.55);
+  voices.space = (v,w) => { tone(w,v,380,95,.12,.48); tone(w+.12,v,650,170,.085,.26); };
+  voices.type = (v,w) => { [0,.045,.12,.18,.27,.32].forEach((d,i)=>texture(w+d,v,"white",1800+i*430,.045,.32,.003,1.4)); };
+  voices.laptop = (v,w) => { [0,.09,.19].forEach(d=>texture(w+d,v,"white",4200,.075,.32,.012,2.5)); };
+  voices.silent = (v,w) => { texture(w,v,"pink",650,.55,.64,.1,.6); texture(w+.18,v,"pink",1000,.26,.25,.06); };
+  voices.ping = (v,w) => { tone(w,v,1450,1450,.45,.22);tone(w,v,2310,2310,.23,.07); };
+  voices.poly = (v,w) => { tone(w,v,680,1500,.095,.33);tone(w+.18,v,900,1900,.08,.18); };
+  voices.gasket = (v,w) => { tone(w,v,260,105,.065,.48,"triangle");texture(w,v,"pink",850,.065,.32,.002,2); };
+
   /* --- ducks do not quack here, they type. This is the big soft Enter key
          that lands underneath a duck as it sits down. --- */
   const ENTER = { body: 88, bodyGain: 0.56, bodyDecay: 0.150, click: 560, q: 0.9, clickGain: 0.22, clickDecay: 0.048, top: 3200, up: 0.10, wet: 0.22 };
@@ -1080,7 +1064,7 @@ const Audio_ = (() => {
       resume();
       const d = DUCKS[i % DUCKS.length];
       voices[d.sound](soft ? 0.5 : 1.05, t() + 0.001);
-      if (!soft) enterKey(0.62, t() + 0.045);
+      // No shared Enter layer: preserve each duck's distinct texture.
     },
     key(i, v) { if (ready && st.sfx) { resume(); voices[DUCKS[i % DUCKS.length].sound](v == null ? 1 : v, t() + 0.001); } },
     chatter(v) { if (ready && st.sfx) { resume(); chatter(v == null ? 1 : v); } },
@@ -1432,6 +1416,20 @@ function drawBoard() {
       boardEl.appendChild(b);
     }
   }
+  // Draw each shared region edge once; square caps fill every corner cleanly.
+  const edges = [];
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    if (c < n - 1 && P.reg[r][c] !== P.reg[r][c+1])
+      edges.push(`M${c+1} ${r}V${r+1}`);
+    if (r < n - 1 && P.reg[r][c] !== P.reg[r+1][c])
+      edges.push(`M${c} ${r+1}H${c+1}`);
+  }
+  const overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  overlay.setAttribute("viewBox", `0 0 ${n} ${n}`);
+  overlay.setAttribute("class", "region-lines");
+  overlay.setAttribute("aria-hidden", "true");
+  overlay.innerHTML = `<path d="${edges.join(' ')}" fill="none" stroke="var(--ink)" stroke-width="6" vector-effect="non-scaling-stroke" stroke-linecap="square" stroke-linejoin="miter"/>`;
+  boardEl.appendChild(overlay);
   paintCells();
   renderSoundStrip();
 }
@@ -1741,7 +1739,7 @@ $("#btnSettings").onclick = () => {
   Audio_.init();
   showModal(
     '<h2>Settings</h2><p>Change anything, any time.</p>' +
-    settingsRow("sfx", "Keyboard sounds", "Every colour is a different switch") +
+    settingsRow("sfx", "Duck ASMR sounds", "Every colour has a different texture") +
     settingsRow("ambience", "Distant typing", "Someone else at a keyboard, a room away") +
     settingsRow("music", "Lo-fi loop", "Soft keys, brushed drums and vinyl crackle") +
     '<div class="row" style="margin-top:16px">' +
@@ -1786,13 +1784,7 @@ function showHowTo() {
     '</div>' +
     '<div class="row"><button class="btn wide gold" id="hOk">Got it</button></div>'
   );
-  $("#hOk").onclick = () => {
-    closeModal();
-    if (document.body.classList.contains("at-title")) {
-      document.body.classList.remove("at-title");
-      $("#screen-title").classList.remove("on");
-    }
-  };
+  $("#hOk").onclick = closeModal;
 }
 
 /* ============================================================
@@ -2465,11 +2457,13 @@ function renderSoundStrip() {
   const host = $("#soundstrip");
   const used = new Set();
   for (let r = 0; r < P.n; r++) for (let c = 0; c < P.n; c++) used.add(P.reg[r][c]);
-  host.innerHTML = '<div class="lbl">Tap a duck to hear its keyboard</div>';
+  host.innerHTML = '<div class="lbl">Tap a duck to hear its ASMR sound</div>';
   Array.from(used).sort((a, b) => a - b).forEach(i => {
     const d = DUCKS[i];
     const b = document.createElement("button");
     b.className = "swatch";
+    b.setAttribute("aria-label", d.name + ": " + d.label);
+    b.title = d.name + " · " + d.label;
     b.style.background = d.pale;
     b.innerHTML = DUCK_SVG[i] + '<span class="tip">' + d.name + " · " + d.label + '</span>';
     b.onclick = () => {
@@ -2498,13 +2492,7 @@ async function boot() {
   renderTabs();
   renderHome();
 
-  // The title is shown on each launch, while puzzle progress remains saved.
-  $("#titleDucks").innerHTML = [1, 0, 3].map(i => '<span class="title-duck">' + DUCK_SVG[i] + '</span>').join("");
-  document.body.classList.add("at-title");
-  $("#screen-title").classList.add("on");
-  $("#titlePlay").onclick = () => { Audio_.init(); showHowTo(); };
-  $("#titleSettings").onclick = () => $("#btnSettings").click();
-  if (!S.seenIntro) { S.seenIntro = true; save(); }
+  if (!S.seenIntro) { S.seenIntro = true; save(); showHowTo(); }
 }
 
 /* the first touch anywhere wakes the audio up */

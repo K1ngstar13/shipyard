@@ -1,7 +1,7 @@
 {
   "name": "QuackDoku",
   "bundleId": "elevatr.llc.quackdoku",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "orientation": "portrait",
   "backgroundColor": "#F1F5E8",
   "appleSubcategory": "GAMES_BOARD",

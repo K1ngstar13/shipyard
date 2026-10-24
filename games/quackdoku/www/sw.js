@@ -1,5 +1,5 @@
 /* QuackDoku offline cache. Bump CACHE when you ship a new build. */
-const CACHE = "quackdoku-v2-title";
+const CACHE = "quackdoku-v1.0.1-asmr";
 const ASSETS = [
   "./", "./index.html", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png"
