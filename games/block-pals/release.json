@@ -8,20 +8,33 @@
   },
   "appStoreConnect": {
     "appId": "6821781861",
-    "name": "",
-    "sku": "",
+    "name": "Block Pets",
+    "sku": "block-pets",
     "url": "https://appstoreconnect.apple.com/apps/6821781861"
   },
   "testflight": {
-    "state": "uploaded",
-    "label": "Build 101 uploaded to App Store Connect",
-    "detail": "Shipyard hasn't checked Apple since this build. Tap Check TestFlight now.",
+    "state": "available",
+    "label": "On TestFlight: build 101 for 1 tester",
+    "detail": "",
+    "next": {
+      "title": "Install it on your iPhone",
+      "detail": "Open the TestFlight app signed in as kingr13@hotmail.com and tap Install. The first time, accept the TestFlight email invite.",
+      "blocking": false
+    },
     "build": "101",
-    "version": "1.0.0",
+    "processingState": "VALID",
+    "betaState": "IN_BETA_TESTING",
     "group": "Elevatr Internal Testing",
-    "testers": [],
-    "next": null,
-    "checkedAt": "2026-10-12T04:20:36Z"
+    "testers": [
+      "kingr13@hotmail.com"
+    ],
+    "version": "1.0.0",
+    "checkedAt": "2026-10-13T10:31:30.225Z"
   },
-  "updatedAt": "2026-10-13T01:42:05.087Z"
+  "updatedAt": "2026-10-13T10:31:30.225Z",
+  "next": null,
+  "name": {
+    "appStore": "Block Pets",
+    "synced": true
+  }
 }

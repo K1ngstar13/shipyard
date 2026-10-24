@@ -1,19 +1,40 @@
 {
   "bundleId": "elevatr.llc.quackdoku",
-  "appStoreConnect": null,
-  "next": {
-    "title": "Create the App Store Connect record (one time)",
-    "detail": "Apple only lets the account holder create the record, and only on the website. If Apple says the name is taken, rename the game in Shipyard; the App ID follows the name until the first upload.",
-    "url": "https://appstoreconnect.apple.com/apps",
-    "fields": {
-      "Platform": "iOS",
-      "Name": "QuackDoku",
-      "Primary language": "English (U.S.)",
-      "Bundle ID": "elevatr.llc.quackdoku",
-      "SKU": "quackdoku",
-      "User access": "Full access"
-    },
-    "blocking": true
+  "appStoreConnect": {
+    "appId": "6822144526",
+    "name": "QuackDoku",
+    "sku": "quackdoku",
+    "url": "https://appstoreconnect.apple.com/apps/6822144526"
   },
-  "updatedAt": "2026-10-13T03:51:34.133Z"
+  "next": null,
+  "updatedAt": "2026-10-13T04:21:21.673Z",
+  "name": {
+    "appStore": "QuackDoku",
+    "synced": true
+  },
+  "bundleIdLocked": true,
+  "lock": {
+    "since": "2026-10-13T04:08:21.506Z",
+    "build": "141",
+    "reason": "Build 141 was uploaded to App Store Connect with elevatr.llc.quackdoku on 2026-10-13. Apple ties the app record, its TestFlight builds, and every future update to this ID, and it can never be changed or reused. Players never see it; they see the App Store name and the home-screen name, which you can still change."
+  },
+  "testflight": {
+    "state": "available",
+    "label": "On TestFlight: build 151 for 1 tester",
+    "detail": "",
+    "next": {
+      "title": "Install it on your iPhone",
+      "detail": "Open the TestFlight app signed in as kingr13@hotmail.com and tap Install. The first time, accept the TestFlight email invite.",
+      "blocking": false
+    },
+    "build": "151",
+    "processingState": "VALID",
+    "betaState": "IN_BETA_TESTING",
+    "group": "Elevatr Internal Testing",
+    "testers": [
+      "kingr13@hotmail.com"
+    ],
+    "version": "1.0.0",
+    "checkedAt": "2026-10-13T04:21:21.673Z"
+  }
 }
