@@ -7,7 +7,7 @@
     "url": "https://appstoreconnect.apple.com/apps/6822144526"
   },
   "next": null,
-  "updatedAt": "2026-10-24T05:28:49.323Z",
+  "updatedAt": "2026-10-24T05:33:04.440Z",
   "name": {
     "appStore": "QuackDoku",
     "synced": true
@@ -19,22 +19,16 @@
     "reason": "Build 141 was uploaded to App Store Connect with elevatr.llc.quackdoku on 2026-10-13. Apple ties the app record, its TestFlight builds, and every future update to this ID, and it can never be changed or reused. Players never see it; they see the App Store name and the home-screen name, which you can still change."
   },
   "testflight": {
-    "state": "available",
-    "label": "On TestFlight: build 151 for 1 tester",
-    "detail": "",
-    "next": {
-      "title": "Install it on your iPhone",
-      "detail": "Open the TestFlight app signed in as kingr13@hotmail.com and tap Install. The first time, accept the TestFlight email invite.",
-      "blocking": false
-    },
-    "build": "151",
-    "processingState": "VALID",
-    "betaState": "IN_BETA_TESTING",
+    "state": "uploaded",
+    "label": "Build 251 uploaded, waiting for Apple to list it",
+    "detail": "A new build usually appears in App Store Connect within a few minutes.",
+    "next": null,
+    "build": "251",
+    "processingState": null,
+    "betaState": null,
     "group": "Elevatr Internal Testing",
-    "testers": [
-      "kingr13@hotmail.com"
-    ],
-    "version": "1.0.0",
-    "checkedAt": "2026-10-13T04:21:21.673Z"
+    "testers": [],
+    "version": "1.0.1",
+    "checkedAt": "2026-10-24T05:33:04.440Z"
   }
 }
