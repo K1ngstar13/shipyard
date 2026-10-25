@@ -10,11 +10,11 @@
     "price": "0.99"
   },
   "privacy": {
-    "childrenAudience": "mixed",
+    "childrenAudience": "no",
     "thirdParties": "",
     "accounts": false,
     "analytics": false,
-    "ads": true,
+    "ads": false,
     "crashReports": false,
     "location": false,
     "cameraMic": false,

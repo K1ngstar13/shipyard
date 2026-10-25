@@ -33,7 +33,7 @@
   --c5:#F2A0BE; --c6:#C3D69B; --c7:#E7CFA6; --c8:#A9BFC9;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+html,body{height:100%;overflow:hidden}
 body{
   margin:0;
   font-family:"Nunito",ui-rounded,"Segoe UI",system-ui,sans-serif;
@@ -55,9 +55,11 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 :focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:6px}
 
 /* ---------- shell ---------- */
-#app{position:relative;z-index:1;min-height:100dvh;display:flex;flex-direction:column;max-width:1180px;margin:0 auto;
-  padding:calc(10px + env(safe-area-inset-top)) 12px calc(92px + env(safe-area-inset-bottom))}
-.topbar{display:flex;align-items:center;gap:12px;padding:6px 2px 12px}
+/* One fixed screen: header on top, nav pinned at the bottom, and only the middle scrolls.
+   The native wrapper turns page scrolling off, so nothing may rely on the page itself scrolling. */
+#app{position:relative;z-index:1;height:100vh;height:100dvh;display:flex;flex-direction:column;max-width:1180px;margin:0 auto;
+  padding:calc(4px + max(env(safe-area-inset-top), 6px)) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+.topbar{display:flex;align-items:center;gap:12px;padding:2px 14px 8px;flex:none}
 .brand{display:flex;align-items:center;gap:9px}
 .brand svg{width:38px;height:38px;flex:none}
 .brand .name{font-family:"Fredoka";font-size:23px;font-weight:600;line-height:1}
@@ -78,12 +80,14 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .iconbtn.off{background:var(--paper-2);color:var(--ink-soft)}
 .iconbtn svg{width:21px;height:21px}
 
-.screen{display:none;flex-direction:column;flex:1;animation:pop .28s ease}
+.screen{display:none;flex-direction:column;flex:1 1 auto;min-height:0;animation:pop .28s ease;
+  overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding:4px 12px 12px}
 .screen.on{display:flex}
 @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 /* ---------- pond / puzzle ---------- */
-.pondwrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.pondwrap{display:flex;flex-direction:column;align-items:center;gap:var(--gap,12px);margin-block:auto}
 .levelcard{
   width:100%;max-width:560px;background:var(--panel);border:var(--line) solid var(--ink);
   border-radius:var(--r);box-shadow:var(--shadow);padding:12px 16px;
@@ -96,9 +100,9 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 
 #boardwrap{position:relative}
 #board{
-  display:grid;background:var(--ink);border:5px solid var(--ink);border-radius:18px;
+  position:relative;display:grid;background:var(--ink);border:6px solid var(--ink);border-radius:0;
   overflow:hidden;box-shadow:6px 6px 0 rgba(37,48,41,.22);
-  width:min(92vw,min(520px,64vh));aspect-ratio:1/1;touch-action:none;
+  width:var(--board,min(92vw,min(520px,58vh)));aspect-ratio:1/1;touch-action:none;flex:none;
 }
 .cell{
   position:relative;border:0;padding:0;display:grid;place-items:center;
@@ -106,10 +110,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
   min-width:0;min-height:0;overflow:hidden;     /* never let contents resize the square */
 }
 .cell::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(37,48,41,.13)}
-.cell.eT{border-top:3px solid var(--ink)}
-.cell.eB{border-bottom:3px solid var(--ink)}
-.cell.eL{border-left:3px solid var(--ink)}
-.cell.eR{border-right:3px solid var(--ink)}
+.region-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;overflow:visible}
 .cell:hover{filter:brightness(1.06)}
 .cell .mark{position:relative;z-index:2;width:64%;height:64%;pointer-events:none}
 .cell .mark svg{width:100%;height:100%;display:block}
@@ -142,12 +143,12 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .soundstrip{
   display:flex;gap:7px;flex-wrap:wrap;justify-content:center;max-width:560px;
   background:var(--panel);border:var(--line) solid var(--ink);border-radius:var(--r);
-  box-shadow:var(--shadow);padding:11px 13px;
+  box-shadow:var(--shadow);padding:8px 10px 14px;width:100%;row-gap:16px;
 }
-.soundstrip .lbl{width:100%;text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:2px}
+.soundstrip .lbl{width:100%;text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:0}
 .swatch{
-  width:46px;height:46px;border:var(--line) solid var(--ink);border-radius:13px;
-  display:grid;place-items:center;transition:transform .12s ease;position:relative;
+  width:var(--sw,46px);height:var(--sw,46px);border:var(--line) solid var(--ink);border-radius:13px;
+  display:grid;place-items:center;transition:transform .12s ease;position:relative;flex:none;
 }
 .swatch:active{transform:scale(.9)}
 .swatch svg{width:70%;height:70%}
@@ -247,17 +248,17 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 
 /* ---------- tabs ---------- */
 .tabs{
-  position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;
+  position:relative;align-self:center;flex:none;margin:6px auto max(8px, env(safe-area-inset-bottom));z-index:60;
   display:flex;gap:6px;background:var(--panel);border:var(--line) solid var(--ink);
   border-radius:999px;padding:6px;box-shadow:var(--shadow);
 }
-.tabs button{padding:9px 20px;border-radius:999px;font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:7px}
+.tabs button{padding:8px 22px;border-radius:999px;font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:7px}
 .tabs button.on{background:var(--gold)}
 .tabs button.lock{opacity:.5}
 .tabs svg{width:18px;height:18px}
 
 /* ---------- modal ---------- */
-.veil{position:fixed;inset:0;background:rgba(37,48,41,.42);display:none;place-items:center;z-index:200;padding:18px;backdrop-filter:blur(2px)}
+.veil{position:fixed;inset:0;background:rgba(37,48,41,.42);display:none;place-items:center;z-index:200;padding:max(18px, env(safe-area-inset-top)) 24px max(18px, env(safe-area-inset-bottom)) 18px;backdrop-filter:blur(2px)}
 .veil.on{display:grid}
 .modal{
   background:var(--panel);border:var(--line) solid var(--ink);border-radius:22px;box-shadow:6px 6px 0 var(--ink);
@@ -291,7 +292,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 @keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.2}}
 
 .toast{
-  position:fixed;left:50%;bottom:78px;transform:translateX(-50%);z-index:180;
+  position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:180;
   background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:99px;
   font-size:13.5px;font-weight:700;opacity:0;transition:opacity .25s ease, transform .25s ease;pointer-events:none;
 }
@@ -331,17 +332,29 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
   .levelcard .rule{max-width:100%;order:3;width:100%}
   .brand .sub{display:none}
   .slot{width:66px;height:66px}
-  #app{padding:8px 9px 84px}
+  .screen{padding:4px 10px 10px}
+  .topbar{padding:2px 12px 6px}
+  .levelcard{padding:10px 13px;gap:7px}
+  .levelcard .rule{font-size:12px;line-height:1.3}
+  /* four tools on one row: icon over label */
+  .tools{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;width:100%;max-width:560px}
+  .tools .btn{flex-direction:column;justify-content:center;gap:3px;padding:6px 4px;font-size:12.5px;min-width:0;white-space:nowrap}
+  .tools .btn svg{width:18px;height:18px}
 }
+/* once the player knows the rules (past level 3), phones drop the helper text to give the board room */
+@media (max-width:720px){ #app.veteran .levelcard .rule{display:none} }
+#app.tight .levelcard .rule{display:none}
+#app.tight .soundstrip .lbl{display:none}
+#app.tight .soundstrip{padding-top:11px}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
 }
-
 /* ---------- welcome / title screen ---------- */
 body.at-title #app>.topbar,body.at-title #app>.tabs{display:none}
 body.at-title #app{padding:0;max-width:none}
+body.at-title #screen-title{padding:calc(16px + env(safe-area-inset-top)) 18px calc(16px + env(safe-area-inset-bottom))}
 body.at-title #screen-pond,body.at-title #screen-home{display:none!important}
-#screen-title{display:none;min-height:100dvh;min-height:100svh;align-items:center;justify-content:center;padding:calc(25px + env(safe-area-inset-top)) 18px calc(25px + env(safe-area-inset-bottom));overflow:auto}
+#screen-title{display:none;flex:1 1 auto;min-height:0;align-items:center;justify-content:center;padding:calc(25px + env(safe-area-inset-top)) 18px calc(25px + env(safe-area-inset-bottom));overflow:auto}
 body.at-title #screen-title{display:flex}
 .title-card{position:relative;isolation:isolate;width:min(100%,480px);padding:35px 22px 28px;text-align:center;background:var(--panel);border:var(--line) solid var(--ink);border-radius:30px;box-shadow:7px 7px 0 var(--ink)}
 .title-label{display:inline-block;border:2px solid var(--ink);border-radius:100px;background:var(--paper-2);padding:6px 15px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
@@ -364,6 +377,21 @@ body.at-title #screen-title{display:flex}
 </head>
 <body>
 <div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#253029" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"><path d="M22 74c0-16 12-27 28-27s28 11 28 27z" fill="#F7CE5B"/><circle cx="50" cy="34" r="17" fill="#F7CE5B"/><path d="M67 33l14 4-14 6z" fill="#F2B33D"/><path d="M28 74h44" fill="none"/></g><circle cx="44" cy="31" r="3.4" fill="#253029"/></svg>
+      <div>
+        <div class="name">QuackDoku</div>
+        <div class="sub">a very slow pond</div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="chip" id="levelchip">Level <b>1</b></div>
+    <button class="iconbtn" id="btnSettings" title="Settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.2M12 18.8V21M21 12h-2.2M5.2 12H3M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6M18.4 18.4l-1.6-1.6M7.2 7.2L5.6 5.6"/></svg>
+    </button>
+  </header>
+
   <!-- Original game screens are left untouched; this welcome screen appears first. -->
   <section class="screen" id="screen-title" aria-label="QuackDoku title screen">
     <div class="title-card">
@@ -379,20 +407,6 @@ body.at-title #screen-title{display:flex}
       <div class="title-foot">Find the ducks · Make a home · Stay a while</div>
     </div>
   </section>
-  <header class="topbar">
-    <div class="brand">
-      <svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#253029" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"><path d="M22 74c0-16 12-27 28-27s28 11 28 27z" fill="#F7CE5B"/><circle cx="50" cy="34" r="17" fill="#F7CE5B"/><path d="M67 33l14 4-14 6z" fill="#F2B33D"/><path d="M28 74h44" fill="none"/></g><circle cx="44" cy="31" r="3.4" fill="#253029"/></svg>
-      <div>
-        <div class="name">QuackDoku</div>
-        <div class="sub">a very slow pond</div>
-      </div>
-    </div>
-    <div class="spacer"></div>
-    <div class="chip" id="levelchip">Level <b>1</b></div>
-    <button class="iconbtn" id="btnSettings" title="Settings" aria-label="Settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.2M12 18.8V21M21 12h-2.2M5.2 12H3M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6M18.4 18.4l-1.6-1.6M7.2 7.2L5.6 5.6"/></svg>
-    </button>
-  </header>
 
   <!-- ============ POND ============ -->
   <section class="screen on" id="screen-pond">
@@ -417,7 +431,7 @@ body.at-title #screen-title{display:flex}
         <button class="btn" id="btnUndo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h11a5 5 0 0 1 0 10h-6"/><path d="M8 5L4 9l4 4"/></svg>Undo</button>
         <button class="btn" id="btnClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 6h14M9 6V4h6v2M7 6l1 13h8l1-13"/></svg>Clear X</button>
         <button class="btn" id="btnHint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5V16H8v-2.5A6 6 0 0 1 12 3z"/></svg>Hint &minus;50</button>
-        <button class="btn" id="btnRestart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>Restart level</button>
+        <button class="btn" id="btnRestart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>Restart</button>
       </div>
 
       <div class="soundstrip" id="soundstrip"></div>
@@ -529,17 +543,17 @@ const xMark = sticker("0 0 100 100",
 
 /* ---------- nine ducks, nine keyboards ---------- */
 const DUCKS = [
-  { id: 0,  name: "Butterbill", hex: "#F7CE5B", sound: "thock",   label: "marble thock" },
-  { id: 1,  name: "Mintwing",   hex: "#9EDCC0", sound: "clicky",  label: "crisp clicky" },
-  { id: 2,  name: "Skyfeather", hex: "#9CC8F2", sound: "tactile", label: "snappy tactile" },
-  { id: 3,  name: "Peachpuff",  hex: "#F5A98A", sound: "creamy",  label: "creamy linear" },
-  { id: 4,  name: "Lilacquack", hex: "#C3B0EC", sound: "space",   label: "foam spacebar" },
-  { id: 5,  name: "Rosecheek",  hex: "#F2A0BE", sound: "type",    label: "typewriter clack" },
-  { id: 6,  name: "Sagebeak",   hex: "#C3D69B", sound: "laptop",  label: "low-profile tap" },
-  { id: 7,  name: "Sandy",      hex: "#E7CFA6", sound: "silent",  label: "silent tactile" },
-  { id: 8,  name: "Slatewing",  hex: "#A9BFC9", sound: "ping",    label: "brass ping" },
-  { id: 9,  name: "Tealtail",   hex: "#7CC7CE", sound: "poly",    label: "polycarb thock" },
-  { id: 10, name: "Cocoabill",  hex: "#CFA98A", sound: "gasket",  label: "gasket bump" }
+  { id: 0,  name: "Butterbill", hex: "#F7CE5B", sound: "thock",   label: "deep keyboard thock" },
+  { id: 1,  name: "Mintwing",   hex: "#9EDCC0", sound: "clicky",  label: "crisp double click" },
+  { id: 2,  name: "Skyfeather", hex: "#9CC8F2", sound: "tactile", label: "wooden tapping" },
+  { id: 3,  name: "Peachpuff",  hex: "#F5A98A", sound: "creamy",  label: "soft brush sweep" },
+  { id: 4,  name: "Lilacquack", hex: "#C3B0EC", sound: "space",   label: "bubble pop" },
+  { id: 5,  name: "Rosecheek",  hex: "#F2A0BE", sound: "type",    label: "paper crinkle" },
+  { id: 6,  name: "Sagebeak",   hex: "#C3D69B", sound: "laptop",  label: "pencil scratch" },
+  { id: 7,  name: "Sandy",      hex: "#E7CFA6", sound: "silent",  label: "soft fabric rub" },
+  { id: 8,  name: "Slatewing",  hex: "#A9BFC9", sound: "ping",    label: "glass chime" },
+  { id: 9,  name: "Tealtail",   hex: "#7CC7CE", sound: "poly",    label: "water droplet" },
+  { id: 10, name: "Cocoabill",  hex: "#CFA98A", sound: "gasket",  label: "hollow cork pop" }
 ];
 DUCKS.forEach(d => { d.pale = tint(d.hex, 0.55); });
 const DUCK_SVG = DUCKS.map(d => duckArt(d.hex, { blush: true }));
@@ -866,6 +880,32 @@ const Audio_ = (() => {
     };
   });
 
+  // Original synthesized ASMR textures: no recordings or network needed.
+  function texture(when, v, kind, hz, dur, gain, attack = 0.008, q = 0.8) {
+    const src = noise(kind, dur + 0.05), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    f.type = "bandpass"; f.frequency.value = hz; f.Q.value = q;
+    src.connect(f); f.connect(g);
+    env(g, attack, gain * v, dur * 0.12, dur * 0.8, when);
+    out(g, 0.035); src.start(when); src.stop(when + dur + attack + 0.08);
+  }
+  function tone(when, v, hz, end, dur, gain, type = "sine") {
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type;
+    o.frequency.setValueAtTime(hz, when);
+    o.frequency.exponentialRampToValueAtTime(end, when + dur);
+    o.connect(g); env(g, 0.003, gain * v, 0, dur, when); out(g, 0.07);
+    o.start(when); o.stop(when + dur + 0.03);
+  }
+  voices.clicky = (v,w) => { texture(w,v,"white",3300,.035,.65); texture(w+.075,v,"white",4600,.025,.38); };
+  voices.tactile = (v,w) => { [0,.11,.23].forEach((d,i)=>{tone(w+d,v,650,410,.055,.28/(1+i*.2),"triangle");texture(w+d,v,"pink",1800,.035,.24);}); };
+  voices.creamy = (v,w) => texture(w,v,"pink",2600,.45,.5,.07,.55);
+  voices.space = (v,w) => { tone(w,v,380,95,.12,.48); tone(w+.12,v,650,170,.085,.26); };
+  voices.type = (v,w) => { [0,.045,.12,.18,.27,.32].forEach((d,i)=>texture(w+d,v,"white",1800+i*430,.045,.32,.003,1.4)); };
+  voices.laptop = (v,w) => { [0,.09,.19].forEach(d=>texture(w+d,v,"white",4200,.075,.32,.012,2.5)); };
+  voices.silent = (v,w) => { texture(w,v,"pink",650,.55,.64,.1,.6); texture(w+.18,v,"pink",1000,.26,.25,.06); };
+  voices.ping = (v,w) => { tone(w,v,1450,1450,.45,.22);tone(w,v,2310,2310,.23,.07); };
+  voices.poly = (v,w) => { tone(w,v,680,1500,.095,.33);tone(w+.18,v,900,1900,.08,.18); };
+  voices.gasket = (v,w) => { tone(w,v,260,105,.065,.48,"triangle");texture(w,v,"pink",850,.065,.32,.002,2); };
+
   /* --- ducks do not quack here, they type. This is the big soft Enter key
          that lands underneath a duck as it sits down. --- */
   const ENTER = { body: 88, bodyGain: 0.56, bodyDecay: 0.150, click: 560, q: 0.9, clickGain: 0.22, clickDecay: 0.048, top: 3200, up: 0.10, wet: 0.22 };
@@ -1080,7 +1120,7 @@ const Audio_ = (() => {
       resume();
       const d = DUCKS[i % DUCKS.length];
       voices[d.sound](soft ? 0.5 : 1.05, t() + 0.001);
-      if (!soft) enterKey(0.62, t() + 0.045);
+      // No shared Enter layer: preserve each duck's distinct texture.
     },
     key(i, v) { if (ready && st.sfx) { resume(); voices[DUCKS[i % DUCKS.length].sound](v == null ? 1 : v, t() + 0.001); } },
     chatter(v) { if (ready && st.sfx) { resume(); chatter(v == null ? 1 : v); } },
@@ -1355,10 +1395,12 @@ const boardEl = $("#board");
 let P = null;                 // { n, reg, sol, cells, given[], undo[] }
 let lives = LIVES, levelScore = 0, streak = 0, failed = false, winning = false;
 let painting = false;
+let levelDone = false;        // true from "level cleared" until the next board is dealt
 
 function zeros(n) { return Array.from({ length: n }, () => Array(n).fill(0)); }
 
 function newPuzzle(level) {
+  levelDone = false;
   const n = sizeForLevel(level);
   const g = takePrefetched(level)
          || generatePuzzle(n, 900)
@@ -1373,6 +1415,7 @@ function newPuzzle(level) {
 }
 
 function loadPuzzle(p) {
+  levelDone = false;
   P = { n: p.n, reg: p.reg, sol: p.sol, cells: p.cells, given: p.given || [], undo: [] };
   lives = typeof p.lives === "number" ? p.lives : LIVES;
   levelScore = p.levelScore || 0;
@@ -1390,6 +1433,7 @@ function restartLevel() {
 }
 
 function persist() {
+  if (levelDone) return;      // a cleared board is never saved, so it cannot come back
   S.puz = { n: P.n, reg: P.reg, sol: P.sol, cells: P.cells, given: P.given, lives, levelScore };
   save();
 }
@@ -1432,8 +1476,23 @@ function drawBoard() {
       boardEl.appendChild(b);
     }
   }
+  // Draw each shared region edge once; square caps fill every corner cleanly.
+  const edges = [];
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    if (c < n - 1 && P.reg[r][c] !== P.reg[r][c+1])
+      edges.push(`M${c+1} ${r}V${r+1}`);
+    if (r < n - 1 && P.reg[r][c] !== P.reg[r+1][c])
+      edges.push(`M${c} ${r+1}H${c+1}`);
+  }
+  const overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  overlay.setAttribute("viewBox", `0 0 ${n} ${n}`);
+  overlay.setAttribute("class", "region-lines");
+  overlay.setAttribute("aria-hidden", "true");
+  overlay.innerHTML = `<path d="${edges.join(' ')}" fill="none" stroke="var(--ink)" stroke-width="6" vector-effect="non-scaling-stroke" stroke-linecap="square" stroke-linejoin="miter"/>`;
+  boardEl.appendChild(overlay);
   paintCells();
   renderSoundStrip();
+  queueFit();
 }
 
 function cellEl(r, c) { return boardEl.children[r * P.n + c]; }
@@ -1497,7 +1556,7 @@ function snapshot() {
                 costs a life.
    ------------------------------------------------------------ */
 function tapCell(r, c, forceX) {
-  if (winning || failed) return;
+  if (winning || failed || levelDone) return;
   Audio_.init(); Audio_.resume();
   const g = P.reg[r][c], v = P.cells[r][c];
 
@@ -1628,7 +1687,12 @@ function featherBurst(count) {
   }
 }
 
-function closeModal() { $("#veil").classList.remove("on"); }
+function closeModal() {
+  $("#veil").classList.remove("on");
+  // However the level-cleared card is closed (Next, Go decorate, tapping outside),
+  // the pond is already on the next level when you see it again.
+  if (levelDone) setTimeout(() => { if (levelDone) newPuzzle(S.level); }, 0);
+}
 function showModal(html) {
   $("#modal").innerHTML = html;
   $("#veil").classList.add("on");
@@ -1699,6 +1763,8 @@ function completeLevel() {
 
   S.level = done + 1;
   S.solvedTotal++;
+  levelDone = true;
+  S.puz = null;               // next launch, or next visit to the pond, deals the new level
   const justUnlockedHome = S.solvedTotal === 3;
   levelScore = 0;
   save();
@@ -1724,7 +1790,7 @@ function completeLevel() {
     '</div>'
   );
 
-  $("#mNext").onclick = () => { closeModal(); newPuzzle(S.level); };
+  $("#mNext").onclick = () => { closeModal(); };
   const mh = $("#mHome");
   if (mh) mh.onclick = () => { closeModal(); goHome(); };
   renderTabs();
@@ -1741,7 +1807,7 @@ $("#btnSettings").onclick = () => {
   Audio_.init();
   showModal(
     '<h2>Settings</h2><p>Change anything, any time.</p>' +
-    settingsRow("sfx", "Keyboard sounds", "Every colour is a different switch") +
+    settingsRow("sfx", "Duck ASMR sounds", "Every colour has a different texture") +
     settingsRow("ambience", "Distant typing", "Someone else at a keyboard, a room away") +
     settingsRow("music", "Lo-fi loop", "Soft keys, brushed drums and vinyl crackle") +
     '<div class="row" style="margin-top:16px">' +
@@ -1791,6 +1857,7 @@ function showHowTo() {
     if (document.body.classList.contains("at-title")) {
       document.body.classList.remove("at-title");
       $("#screen-title").classList.remove("on");
+      queueFit();
     }
   };
 }
@@ -2446,9 +2513,11 @@ function goHome() {
 }
 function goPond() {
   closeChat();
+  if (levelDone) newPuzzle(S.level);
   $("#screen-home").classList.remove("on");
   $("#screen-pond").classList.add("on");
   $("#tabPond").classList.add("on"); $("#tabHome").classList.remove("on");
+  queueFit();
 }
 $("#chatClose").onclick = () => { Audio_.tap(); closeChat(); };
 $("#tabHome").onclick = () => { Audio_.init(); goHome(); };
@@ -2465,11 +2534,13 @@ function renderSoundStrip() {
   const host = $("#soundstrip");
   const used = new Set();
   for (let r = 0; r < P.n; r++) for (let c = 0; c < P.n; c++) used.add(P.reg[r][c]);
-  host.innerHTML = '<div class="lbl">Tap a duck to hear its keyboard</div>';
+  host.innerHTML = '<div class="lbl">Tap a duck to hear its ASMR sound</div>';
   Array.from(used).sort((a, b) => a - b).forEach(i => {
     const d = DUCKS[i];
     const b = document.createElement("button");
     b.className = "swatch";
+    b.setAttribute("aria-label", d.name + ": " + d.label);
+    b.title = d.name + " · " + d.label;
     b.style.background = d.pale;
     b.innerHTML = DUCK_SVG[i] + '<span class="tip">' + d.name + " · " + d.label + '</span>';
     b.onclick = () => {
@@ -2502,7 +2573,7 @@ async function boot() {
   $("#titleDucks").innerHTML = [1, 0, 3].map(i => '<span class="title-duck">' + DUCK_SVG[i] + '</span>').join("");
   document.body.classList.add("at-title");
   $("#screen-title").classList.add("on");
-  $("#titlePlay").onclick = () => { Audio_.init(); showHowTo(); };
+  $("#titlePlay").onclick = () => { Audio_.init(); Audio_.tap(); showHowTo(); };
   $("#titleSettings").onclick = () => $("#btnSettings").click();
   if (!S.seenIntro) { S.seenIntro = true; save(); }
 }
@@ -2513,8 +2584,60 @@ document.addEventListener("pointerdown", function once() {
   document.removeEventListener("pointerdown", once);
 }, { once: true });
 
-window.addEventListener("resize", positionTools);
-boot();
+/* ============================================================
+   Fit the pond to the screen
+   The board takes whatever height is left after the header, level card,
+   tools, sound strip and nav. If even the smallest board cannot fit, the
+   middle area scrolls (page scrolling is off inside the native app).
+   ============================================================ */
+let fitQueued = false;
+function fitLayout() {
+  fitQueued = false;
+  const app = $("#app"), scr = $("#screen-pond");
+  const vet = !!(S && S.level > 3);
+  app.classList.toggle("veteran", vet);
+  app.classList.toggle("tight", window.innerHeight < 780 && vet);
+  if (!scr.classList.contains("on")) return;
+  const wrap = scr.querySelector(".pondwrap");
+  const strip = $("#soundstrip");
+  const cs = getComputedStyle(scr);
+  const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+  const availW = scr.clientWidth - padX - 8;              // room for the board shadow
+
+  // sound strip: one row when the swatches stay finger-sized, otherwise two even rows
+  const n = strip.querySelectorAll(".swatch").length || 1;
+  const sCS = getComputedStyle(strip);
+  const inner = strip.clientWidth - parseFloat(sCS.paddingLeft) - parseFloat(sCS.paddingRight) - 6;
+  const g = 6;
+  let sw = Math.floor((inner - (n - 1) * g) / n);
+  if (sw < 30) { const per = Math.ceil(n / 2); sw = Math.floor((inner - (per - 1) * g) / per); }
+  const cap = app.classList.contains("tight") ? 36 : 46;
+  strip.style.setProperty("--sw", Math.max(28, Math.min(cap, sw)) + "px");
+  strip.style.columnGap = g + "px";
+
+  // board: what is left of the height
+  const gap = parseFloat(getComputedStyle(wrap).rowGap) || 12;
+  let used = 0, kids = 0;
+  for (const el of wrap.children) {
+    if (el.id === "boardwrap") continue;
+    used += el.getBoundingClientRect().height; kids++;
+  }
+  const availH = scr.clientHeight - padY - used - gap * kids - 8;
+  const floor = window.innerHeight < 700 ? 230 : 250;     // below this the cells get too small to tap; scroll instead
+  const size = Math.floor(Math.max(Math.min(availW, floor), Math.min(520, availW, availH)));
+  document.documentElement.style.setProperty("--board", size + "px");
+}
+function queueFit() { if (!fitQueued) { fitQueued = true; requestAnimationFrame(fitLayout); } }
+window.addEventListener("resize", () => { positionTools(); queueFit(); });
+window.addEventListener("orientationchange", () => setTimeout(queueFit, 250));
+if (window.visualViewport) visualViewport.addEventListener("resize", queueFit);
+if (window.ResizeObserver) {
+  const ro = new ResizeObserver(queueFit);
+  ro.observe($("#screen-pond")); ro.observe($(".levelcard")); ro.observe($("#soundstrip"));
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(queueFit);
+boot().then(queueFit);
 
 
 </script>
