@@ -290,6 +290,8 @@ final class GreenScanViewController: UIViewController, ARSessionDelegate {
             "cell": cell, "nx": nx, "ny": ny,
             "x0": -Float(nx - 1) * cell / 2, "y0": -Float(ny - 1) * cell / 2,
             "heights": heights, "counts": counts, "points": east.count, "northAligned": true,
+            // where grid (0,0) is in the AR world (east, north), for drawing lines back onto the grass
+            "cx": e0 + Float(nx - 1) * cell / 2 + cell / 2, "cy": n0 + Float(ny - 1) * cell / 2 + cell / 2,
             "file": plyName ?? "",
         ])
     }

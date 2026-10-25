@@ -2,7 +2,7 @@
   "name": "Tap-In: AI Green Reading",
   "displayName": "Tap-In",
   "bundleId": "elevatr.llc.tapin",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "orientation": "portrait",
   "backgroundColor": "#07140e",
   "hideStatusBar": false,
@@ -30,7 +30,8 @@
       "swift": [
         "native/ios/GreenScanPlugin.swift",
         "native/ios/GreenScanViewController.swift",
-        "native/ios/TapInBridgeViewController.swift"
+        "native/ios/TapInBridgeViewController.swift",
+        "native/ios/ARReadViewController.swift"
       ],
       "bridgeViewController": "TapInBridgeViewController",
       "plist": {
