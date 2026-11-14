@@ -7,5 +7,6 @@ import Capacitor
 class TapInBridgeViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(GreenScanPlugin())
+        bridge?.registerPluginInstance(ArPuttPlugin())
     }
 }
