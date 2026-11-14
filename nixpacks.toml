@@ -1,0 +1,18 @@
+# Hosting build for the Shipyard panel (Railway, Render, and anything else using Nixpacks).
+# Playwright's browsers are only needed by the screenshot and icon jobs, which run on
+# GitHub Actions — downloading them here would add gigabytes and fail the build.
+[variables]
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
+NODE_ENV = "production"
+
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["npm ci --omit=optional || npm install --no-audit --no-fund"]
+
+[phases.build]
+cmds = ["node scripts/build-site.mjs all"]
+
+[start]
+cmd = "node scripts/serve.mjs"

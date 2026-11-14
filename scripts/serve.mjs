@@ -26,17 +26,20 @@ export function createShipyardServer() {
     });
   });
 }
-export async function listenAvailable(server, requestedPort = Number(process.env.PORT || 4173)) {
-  for (let offset = 0; offset < 20; offset++) {
+export async function listenAvailable(server, requestedPort = Number(process.env.PORT || 4173), host = process.env.HOST || '127.0.0.1') {
+  // A hosting platform hands us the exact port it will route to and expects every
+  // interface, so there is nothing to scan for and a near miss is worse than an error.
+  const fixed = host !== '127.0.0.1';
+  for (let offset = 0; offset < (fixed ? 1 : 20); offset++) {
     const port = requestedPort === 0 ? 0 : requestedPort + offset;
     try {
       await new Promise((resolve, reject) => {
         const onError = error => { server.removeListener('listening', onListen); reject(error); };
         const onListen = () => { server.removeListener('error', onError); resolve(); };
-        server.once('error', onError); server.once('listening', onListen); server.listen(port, '127.0.0.1');
+        server.once('error', onError); server.once('listening', onListen); server.listen(port, host);
       });
       return server.address().port;
-    } catch (error) { if (error.code !== 'EADDRINUSE') throw error; }
+    } catch (error) { if (error.code !== 'EADDRINUSE' || fixed) throw error; }
   }
   throw new Error('No local port is available. Close the older Shipyard launcher and try again.');
 }
@@ -47,7 +50,8 @@ function openBrowser(url) {
 async function main() {
   if (!fs.existsSync(dir)) throw new Error('No site-dist. Run the double-click launcher to build it first.');
   const server = createShipyardServer(); const port = await listenAvailable(server);
-  const base = `http://localhost:${port}`;
+  const host = process.env.HOST || '127.0.0.1';
+  const base = host === '127.0.0.1' ? `http://localhost:${port}` : `http://${host}:${port}`;
   console.log(`\nShipyard ${version}\nControl panel ${base}/panel.html\nYour apps     ${base}/launcher.html\nLeave this window open while you work. Close it or press control-C to stop.\n`);
   if (process.argv.includes('--open')) openBrowser(`${base}/panel.html?v=${encodeURIComponent(version)}`);
   for (const signal of ['SIGINT','SIGTERM']) process.on(signal, () => server.close(() => process.exit(0)));
