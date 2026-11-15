@@ -1,19 +1,15 @@
 {
   "bundleId": "elevatr.llc.machgolf",
-  "appStoreConnect": null,
-  "next": {
-    "title": "Create the App Store Connect record (one time)",
-    "detail": "Apple only lets the account holder create the record, and only on the website. If Apple says the name is taken, rename the game in Shipyard; the App ID follows the name until the first upload.",
-    "url": "https://appstoreconnect.apple.com/apps",
-    "fields": {
-      "Platform": "iOS",
-      "Name": "Mach Golf",
-      "Primary language": "English (U.S.)",
-      "Bundle ID": "elevatr.llc.machgolf",
-      "SKU": "mach-golf",
-      "User access": "Full access"
-    },
-    "blocking": true
+  "appStoreConnect": {
+    "appId": "6835178502",
+    "name": "Mach Golf",
+    "sku": "mach-golf",
+    "url": "https://appstoreconnect.apple.com/apps/6835178502"
   },
-  "updatedAt": "2026-11-15T18:28:01.427Z"
+  "next": null,
+  "updatedAt": "2026-11-15T18:35:59.110Z",
+  "name": {
+    "appStore": "Mach Golf",
+    "synced": true
+  }
 }
