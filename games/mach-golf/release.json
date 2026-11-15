@@ -7,7 +7,7 @@
     "url": "https://appstoreconnect.apple.com/apps/6835178502"
   },
   "next": null,
-  "updatedAt": "2026-11-15T18:40:32.985Z",
+  "updatedAt": "2026-11-15T18:41:37.378Z",
   "name": {
     "appStore": "Mach Golf",
     "synced": true
@@ -19,16 +19,21 @@
     "reason": "Build 371 was uploaded to App Store Connect with elevatr.llc.machgolf on 2026-11-15. Apple ties the app record, its TestFlight builds, and every future update to this ID, and it can never be changed or reused. Players never see it; they see the App Store name and the home-screen name, which you can still change."
   },
   "testflight": {
-    "state": "uploaded",
-    "label": "Build 371 uploaded, waiting for Apple to list it",
-    "detail": "A new build usually appears in App Store Connect within a few minutes.",
-    "next": null,
+    "state": "ready",
+    "label": "Build 371 is in Elevatr Internal Testing with no testers",
+    "detail": "Couldn't add tester kingr13@hotmail.com: Tester(s) cannot be assigned",
+    "next": {
+      "title": "Add yourself to Elevatr Internal Testing",
+      "detail": "Internal testers must be users on your App Store Connect team. Add your Apple ID under Internal Testing, or list it in shipyard.config.json → testflight.testers.",
+      "url": "https://appstoreconnect.apple.com/apps/6835178502/testflight/ios",
+      "blocking": true
+    },
     "build": "371",
-    "processingState": null,
-    "betaState": null,
+    "processingState": "VALID",
+    "betaState": "READY_FOR_BETA_TESTING",
     "group": "Elevatr Internal Testing",
     "testers": [],
     "version": "1.0.0",
-    "checkedAt": "2026-11-15T18:40:32.985Z"
+    "checkedAt": "2026-11-15T18:41:37.378Z"
   }
 }
