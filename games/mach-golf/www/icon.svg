@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Mach Golf gauge logo">
+  <rect width="512" height="512" rx="112" fill="#122225"/>
+  <rect x="1" y="1" width="510" height="510" rx="111" fill="none" stroke="#1E3A3F" stroke-width="4"/>
+  <path d="M151 337 A157 157 0 0 1 339 151" fill="none" stroke="#FF7A2F" stroke-width="39" stroke-linecap="round"/>
+  <path d="M347 160 A157 157 0 0 1 361 337" fill="none" stroke="#1E3A3F" stroke-width="39" stroke-linecap="round"/>
+  <path d="M256 256 L326 171" stroke="#E6EFEA" stroke-width="30" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="25" fill="#E6EFEA"/>
+</svg>
