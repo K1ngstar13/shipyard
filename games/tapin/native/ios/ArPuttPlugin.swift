@@ -73,6 +73,8 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
     private var cams: [(id: Int, cam: ARCamera)] = []
     private var frameId = 0
     private var detectOn = true
+    /// fast = small frames ~15 per second, for following a rolling ball or the putter head
+    private var fastFrames = false
     private var encoding = false
     private var lastFrameT: TimeInterval = 0
     private var lastStatusT: TimeInterval = 0
@@ -125,6 +127,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             self.sceneView = v
             self.hasLidar = lidar
             self.detectOn = true
+            self.fastFrames = false
             self.encoding = false
             self.cams = []
             UIApplication.shared.isIdleTimerDisabled = true
@@ -158,7 +161,9 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
 
     @objc func setDetect(_ call: CAPPluginCall) {
         let on = call.getBool("on") ?? true
+        let fast = call.getBool("fast") ?? false
         DispatchQueue.main.async {
+            self.fastFrames = fast
             self.detectOn = on
             call.resolve()
         }
@@ -196,17 +201,17 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             ])
         }
 
-        guard detectOn, !encoding, t - lastFrameT > 0.3 else { return }
+        guard detectOn, !encoding, t - lastFrameT > (fastFrames ? 0.06 : 0.3) else { return }
         lastFrameT = t
         encoding = true
         frameId += 1
         let id = frameId
         cams.append((id: id, cam: frame.camera))
-        if cams.count > 8 { cams.removeFirst() }
+        if cams.count > 60 { cams.removeFirst() }
 
         // upright (portrait) copy of the camera picture, ~720 px wide
         let img = CIImage(cvPixelBuffer: frame.capturedImage).oriented(.right)
-        let scale = 720.0 / img.extent.width
+        let scale = (fastFrames ? 360.0 : 720.0) / img.extent.width
         let small = img.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
         let w = Int(small.extent.width.rounded())
         let h = Int(small.extent.height.rounded())
@@ -216,7 +221,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             DispatchQueue.main.async {
                 self.encoding = false
                 guard let d = data, self.sceneView != nil else { return }
-                self.notifyListeners("frame", data: ["id": id, "w": w, "h": h, "jpeg": d.base64EncodedString()])
+                self.notifyListeners("frame", data: ["id": id, "w": w, "h": h, "t": t, "jpeg": d.base64EncodedString()])
             }
         }
     }
