@@ -4,6 +4,7 @@ import Capacitor
 import ARKit
 import SceneKit
 import CoreImage
+import ReplayKit
 
 /// Capacitor plugin: the live, world-anchored AR putt line.
 ///
@@ -19,7 +20,7 @@ import CoreImage
 ///  • drawing the lines and markers the web layer computes
 /// JS name: "ArPutt"  (see src/lib/arPutt.ts)
 @objc(ArPuttPlugin)
-public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate {
+public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPreviewViewControllerDelegate {
     public let identifier = "ArPuttPlugin"
     public let jsName = "ArPutt"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -31,7 +32,41 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate {
         CAPPluginMethod(name: "tap", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "heights", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setScene", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "recStart", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "recStop", returnType: CAPPluginReturnPromise),
     ]
+
+    // MARK: record the AR view (the real putt with the line on it)
+
+    /// Starts a screen recording (iOS asks the golfer to allow it the first time).
+    @objc func recStart(_ call: CAPPluginCall) {
+        let rec = RPScreenRecorder.shared()
+        guard rec.isAvailable else { call.reject("Screen recording isn't available right now"); return }
+        if rec.isRecording { call.resolve(); return }
+        rec.isMicrophoneEnabled = false
+        rec.startRecording { err in
+            if let e = err { call.reject(e.localizedDescription) } else { call.resolve() }
+        }
+    }
+
+    /// Stops and shows iOS's own preview, where the clip can be trimmed, saved to Photos or shared.
+    @objc func recStop(_ call: CAPPluginCall) {
+        let rec = RPScreenRecorder.shared()
+        guard rec.isRecording else { call.resolve(["shown": false]); return }
+        rec.stopRecording { preview, err in
+            DispatchQueue.main.async {
+                guard let p = preview else { call.reject(err?.localizedDescription ?? "Nothing was recorded"); return }
+                p.previewControllerDelegate = self
+                p.modalPresentationStyle = .fullScreen
+                self.bridge?.viewController?.present(p, animated: true)
+                call.resolve(["shown": true])
+            }
+        }
+    }
+
+    public func previewControllerDidFinish(_ previewController: RPPreviewViewController) {
+        previewController.dismiss(animated: true)
+    }
 
     private var sceneView: ARSCNView?
     private let root = SCNNode()
