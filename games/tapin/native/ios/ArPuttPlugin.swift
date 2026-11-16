@@ -12,7 +12,7 @@ import CoreImage
 /// the green. Walk around it and it stays put.
 ///
 /// Native does only what the web layer can't:
-///  • world tracking (gravity + compass aligned: +X east, +Y up, −Z north)
+///  • world tracking (gravity aligned; "east/north" are just the session's fixed X and −Z axes)
 ///  • small camera frames for the web layer's ball / flag detector
 ///  • ray-casts from a pixel to the ground (LiDAR depth when available)
 ///  • a height grid of the turf from the LiDAR mesh
@@ -78,7 +78,9 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate {
             web.scrollView.isOpaque = false
 
             let cfg = ARWorldTrackingConfiguration()
-            cfg.worldAlignment = .gravityAndHeading
+            // Gravity only. With compass alignment ARKit keeps turning the whole world as the heading
+            // estimate settles (worse near a metal tripod), which slid the line, ball and cup sideways.
+            cfg.worldAlignment = .gravity
             cfg.planeDetection = [.horizontal]
             let lidar = ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh)
             if lidar { cfg.sceneReconstruction = .mesh }
@@ -258,12 +260,23 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate {
         DispatchQueue.main.async {
             guard let v = self.sceneView, let frame = v.session.currentFrame else { call.reject("AR isn't running"); return }
             let pt = CGPoint(x: x, y: y)
-            if let q = v.raycastQuery(from: pt, allowing: .estimatedPlane, alignment: .any), let r = v.session.raycast(q).first {
-                let c = r.worldTransform.columns.3
-                call.resolve(["point": self.enu(SIMD3<Float>(c.x, c.y, c.z), approx: false)])
-                return
-            }
             let ground = self.groundY(v.session, cam: frame.camera)
+            let m = frame.camera.transform
+            let origin = SIMD3<Float>(m.columns.3.x, m.columns.3.y, m.columns.3.z)
+            // the ground first (horizontal), then anything; a hit far off the ground height is a
+            // flagstick, a leg or a wrong plane guess, so it is skipped
+            for align in [ARRaycastQuery.TargetAlignment.horizontal, ARRaycastQuery.TargetAlignment.any] {
+                guard let q = v.raycastQuery(from: pt, allowing: .estimatedPlane, alignment: align) else { continue }
+                for r in v.session.raycast(q) {
+                    let c = r.worldTransform.columns.3
+                    let p = SIMD3<Float>(c.x, c.y, c.z)
+                    let d = simd_distance(p, origin)
+                    if d > 0.05 && d < 60 && abs(p.y - ground) < max(0.25, 0.06 * d) {
+                        call.resolve(["point": self.enu(p, approx: false)])
+                        return
+                    }
+                }
+            }
             var plane = matrix_identity_float4x4
             plane.columns.3 = SIMD4<Float>(0, ground, 0, 1)
             if let flat = frame.camera.unprojectPoint(pt, ontoPlane: plane, orientation: .portrait, viewportSize: v.bounds.size) {

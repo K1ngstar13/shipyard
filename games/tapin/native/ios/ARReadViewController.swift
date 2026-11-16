@@ -11,7 +11,7 @@ import RealityKit
 ///   arDraw → lines / markers / gates in world coordinates (east, north, up; metres)
 ///   arMeasure → height grid of everything scanned so far (event "surface")
 /// and receives events: "tap" (a point on the ground), "button" (id), "surface", "closed".
-/// World alignment is gravity + compass: +Y up, −Z true north, +X east.
+/// World alignment is gravity only: +Y up; "east/north" are the session's fixed X and −Z axes.
 final class ARReadViewController: UIViewController, ARSessionDelegate {
     var onEvent: (([String: Any]) -> Void)?
     private var arView: ARView!
@@ -41,7 +41,7 @@ final class ARReadViewController: UIViewController, ARSessionDelegate {
 
         let cfg = ARWorldTrackingConfiguration()
         cfg.sceneReconstruction = .mesh
-        cfg.worldAlignment = .gravityAndHeading
+        cfg.worldAlignment = .gravity // compass alignment keeps turning the world: lines slid off their spots
         cfg.environmentTexturing = .none
         arView.session.delegate = self
         arView.session.run(cfg)
