@@ -32,6 +32,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         CAPPluginMethod(name: "tap", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "heights", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setScene", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "pin", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "recStart", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "recStop", returnType: CAPPluginReturnPromise),
     ]
@@ -81,6 +82,16 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
     private var hasLidar = false
     private let ci = CIContext()
     private var savedBackground: UIColor?
+
+    // Pinning the scene to the real ground. ARKit corrects its own drift by nudging anchors, not
+    // the raw world axes. One anchor is dropped at the first ball; everything the web layer sees
+    // (ball, cup, heights, camera) is given in that anchor's frame as it was when dropped, and the
+    // drawing follows the anchor, so the line, ball and cup stay on the same blades of grass.
+    private var pinAnchor: ARAnchor?
+    private var pin0 = matrix_identity_float4x4
+    /// scene frame → current world, and back
+    private var delta = matrix_identity_float4x4
+    private var deltaInv = matrix_identity_float4x4
 
     // MARK: lifecycle
 
@@ -150,6 +161,11 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         sceneView = nil
         for n in root.childNodes { n.removeFromParentNode() }
         root.removeFromParentNode()
+        root.simdTransform = matrix_identity_float4x4
+        pinAnchor = nil
+        pin0 = matrix_identity_float4x4
+        delta = matrix_identity_float4x4
+        deltaInv = matrix_identity_float4x4
         cams = []
         if let web = bridge?.webView {
             web.isOpaque = true
@@ -173,6 +189,12 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
 
     public func session(_ session: ARSession, didUpdate frame: ARFrame) {
         let t = frame.timestamp
+        if let a = pinAnchor, let cur = frame.anchors.first(where: { $0.identifier == a.identifier }) {
+            let d = simd_mul(cur.transform, simd_inverse(pin0))
+            delta = d
+            deltaInv = simd_inverse(d)
+            root.simdTransform = d
+        }
         if t - lastStatusT > 0.4 {
             lastStatusT = t
             let m = frame.camera.transform
@@ -194,10 +216,12 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             let fwd = -SIMD3<Float>(m.columns.2.x, m.columns.2.y, m.columns.2.z)
             let pitchDown = asin(max(-1, min(1, -fwd.y))) * 180 / .pi
             let meshes = frame.anchors.filter { $0 is ARMeshAnchor }.count
+            let cp = simd_mul(deltaInv, SIMD4<Float>(m.columns.3.x, m.columns.3.y, m.columns.3.z, 1))
+            let drift = simd_length(SIMD3<Float>(delta.columns.3.x, delta.columns.3.y, delta.columns.3.z))
             notifyListeners("status", data: [
                 "tracking": state, "reason": reason, "lidar": hasLidar, "meshes": meshes,
-                "e": Double(m.columns.3.x), "n": Double(-m.columns.3.z), "u": Double(m.columns.3.y),
-                "pitchDown": Double(pitchDown),
+                "e": Double(cp.x), "n": Double(-cp.z), "u": Double(cp.y),
+                "pitchDown": Double(pitchDown), "drift": Double(drift), "pinned": pinAnchor != nil,
             ])
         }
 
@@ -230,8 +254,28 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
 
     private func num(_ v: Any?) -> Double { return (v as? NSNumber)?.doubleValue ?? 0 }
 
+    /// A point in ARKit's world → east/north/up in the pinned scene frame.
     private func enu(_ p: SIMD3<Float>, approx: Bool) -> [String: Any] {
-        return ["e": Double(p.x), "n": Double(-p.z), "u": Double(p.y), "approx": approx]
+        let s = simd_mul(deltaInv, SIMD4<Float>(p.x, p.y, p.z, 1))
+        return ["e": Double(s.x), "n": Double(-s.z), "u": Double(s.y), "approx": approx]
+    }
+
+    /// Drop the anchor the scene is pinned to (once per AR session), at a spot given in scene metres.
+    @objc func pin(_ call: CAPPluginCall) {
+        let e = Float(call.getDouble("e") ?? 0)
+        let n = Float(call.getDouble("n") ?? 0)
+        let u = Float(call.getDouble("u") ?? 0)
+        DispatchQueue.main.async {
+            guard let v = self.sceneView else { call.reject("AR isn't running"); return }
+            if self.pinAnchor != nil { call.resolve(["pinned": true, "new": false]); return }
+            var t = matrix_identity_float4x4
+            t.columns.3 = SIMD4<Float>(e, u, -n, 1) // before the first pin the scene frame is the world
+            let a = ARAnchor(name: "tapin-pin", transform: t)
+            v.session.add(anchor: a)
+            self.pinAnchor = a
+            self.pin0 = t
+            call.resolve(["pinned": true, "new": true])
+        }
     }
 
     /// Rough ground height: look 45° down in front of the camera.
@@ -338,8 +382,9 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         DispatchQueue.main.async {
             guard let v = self.sceneView, let frame = v.session.currentFrame else { call.reject("AR isn't running"); return }
             let anchors = frame.anchors.compactMap { $0 as? ARMeshAnchor }
+            let toScene = self.deltaInv
             DispatchQueue.global(qos: .userInitiated).async {
-                let r = ArPuttPlugin.grid(anchors: anchors, e0: e0, n0: n0, e1: e1, n1: n1, cell: cell)
+                let r = ArPuttPlugin.grid(anchors: anchors, e0: e0, n0: n0, e1: e1, n1: n1, cell: cell, toScene: toScene)
                 DispatchQueue.main.async {
                     if let r = r { call.resolve(r) } else { call.reject("That area is too big to read") }
                 }
@@ -347,17 +392,22 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         }
     }
 
-    /// Samples every near-flat mesh triangle into a grid (x = east, y = north, value = up).
-    static func grid(anchors: [ARMeshAnchor], e0: Float, n0: Float, e1: Float, n1: Float, cell: Float) -> [String: Any]? {
+    /// Samples every flat mesh triangle into a grid (x = east, y = north, value = up), in the pinned
+    /// scene frame. Steep triangles (furniture, walls, legs, a rug's edge, the ball) are not turf:
+    /// the cells under them and 15 cm around are flagged `near`, because the mesh rounds off the
+    /// floor beside them ("skirts") and that rounding would read as slope.
+    static func grid(anchors: [ARMeshAnchor], e0: Float, n0: Float, e1: Float, n1: Float, cell: Float, toScene: simd_float4x4) -> [String: Any]? {
         let nx = Int(((e1 - e0) / cell).rounded(.up)) + 1
         let ny = Int(((n1 - n0) / cell).rounded(.up)) + 1
         guard nx > 1, ny > 1, nx * ny <= 400_000 else { return nil }
         var sum = [Float](repeating: 0, count: nx * ny)
         var cnt = [Int32](repeating: 0, count: nx * ny)
+        var steep = [UInt8](repeating: 0, count: nx * ny)
         var samples = 0
         for a in anchors {
+            let M = simd_mul(toScene, a.transform)
             // skip mesh chunks nowhere near the area
-            let c = a.transform.columns.3
+            let c = M.columns.3
             if c.x < e0 - 6 || c.x > e1 + 6 || -c.z < n0 - 6 || -c.z > n1 + 6 { continue }
             let vs = a.geometry.vertices
             let fs = a.geometry.faces
@@ -367,7 +417,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             wv.reserveCapacity(vs.count)
             for i in 0..<vs.count {
                 let p = vb.advanced(by: vs.offset + vs.stride * i).assumingMemoryBound(to: Float.self)
-                let w = a.transform * SIMD4<Float>(p[0], p[1], p[2], 1)
+                let w = simd_mul(M, SIMD4<Float>(p[0], p[1], p[2], 1))
                 wv.append(SIMD3<Float>(w.x, w.y, w.z))
             }
             let per = fs.indexCountPerPrimitive
@@ -384,7 +434,12 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                 let nrm = simd_cross(B - A, C - A)
                 let len = simd_length(nrm)
                 if len < 1e-9 { continue }
-                if abs(nrm.y) / len < 0.8 { continue } // not turf: legs, bag, flagstick
+                let flatness = abs(nrm.y) / len
+                // turf: within about 20° of level. Steeper than about 45°: something standing on it.
+                // In between: mesh noise or the rounded foot of something; used for neither.
+                let isGround = flatness >= 0.94
+                let isSteep = flatness < 0.7
+                if !isGround && !isSteep { continue }
                 let longest = max(simd_distance(A, B), max(simd_distance(B, C), simd_distance(A, C)))
                 let n = max(1, min(16, Int((longest / (cell * 0.7)).rounded(.up))))
                 for i in 0...n {
@@ -394,9 +449,23 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                         let gi = Int(((p.x - e0) / cell).rounded())
                         let gj = Int(((-p.z - n0) / cell).rounded())
                         if gi < 0 || gj < 0 || gi >= nx || gj >= ny { continue }
+                        if isSteep { steep[gj * nx + gi] = 1; continue }
                         sum[gj * nx + gi] += p.y
                         cnt[gj * nx + gi] += 1
                         samples += 1
+                    }
+                }
+            }
+        }
+        // grow the steep flags by 15 cm
+        let r = max(1, Int((0.15 / cell).rounded(.up)))
+        var near = [Int](repeating: 0, count: nx * ny)
+        for gj in 0..<ny {
+            for gi in 0..<nx where steep[gj * nx + gi] == 1 {
+                for dj in -r...r {
+                    for di in -r...r where di * di + dj * dj <= r * r {
+                        let x = gi + di, y = gj + dj
+                        if x >= 0 && y >= 0 && x < nx && y < ny { near[y * nx + x] = 1 }
                     }
                 }
             }
@@ -409,7 +478,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             counts.append(Int(cnt[k]))
             if cnt[k] > 0 { heights.append(NSNumber(value: sum[k] / Float(cnt[k]))) } else { heights.append(NSNull()) }
         }
-        return ["cell": Double(cell), "nx": nx, "ny": ny, "e0": Double(e0), "n0": Double(n0), "heights": heights, "counts": counts, "samples": samples]
+        return ["cell": Double(cell), "nx": nx, "ny": ny, "e0": Double(e0), "n0": Double(n0), "heights": heights, "counts": counts, "near": near, "samples": samples]
     }
 
     // MARK: drawing
@@ -459,7 +528,9 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         guard count >= 2 else { return nil }
         let half = Float(max(0.002, num(l["width"]) / 2))
         let dash = (l["dash"] as? Bool) ?? false
-        let lift: Float = 0.012
+        // on the turf, not above it: with no depth test nothing flickers, and a line floating even
+        // a centimetre up slides against the grass as you walk around it (parallax)
+        let lift: Float = 0.002
         var pos = [SIMD3<Float>]()
         for i in 0..<count { pos.append(SIMD3<Float>(Float(p[i * 3]), Float(p[i * 3 + 2]) + lift, -Float(p[i * 3 + 1]))) }
         var verts = [SCNVector3]()
@@ -504,7 +575,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             ball.position = SCNVector3(0, Float(hgt), 0)
             let foot = SCNNode(geometry: SCNCylinder(radius: r, height: 0.003))
             foot.geometry?.materials = [flatMaterial(c)]
-            foot.position = SCNVector3(0, 0.012, 0)
+            foot.position = SCNVector3(0, 0.003, 0)
             node.addChildNode(pole)
             node.addChildNode(ball)
             node.addChildNode(foot)
@@ -512,12 +583,12 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         } else if kind == "disc" {
             let d = SCNNode(geometry: SCNCylinder(radius: r, height: 0.003))
             d.geometry?.materials = [flatMaterial(c)]
-            d.position = SCNVector3(0, 0.012, 0)
+            d.position = SCNVector3(0, 0.003, 0)
             node.addChildNode(d)
         } else {
             let t = SCNNode(geometry: SCNTorus(ringRadius: r, pipeRadius: 0.006))
             t.geometry?.materials = [flatMaterial(c)]
-            t.position = SCNVector3(0, 0.012, 0)
+            t.position = SCNVector3(0, 0.004, 0)
             node.addChildNode(t)
         }
         if let text = m["label"] as? String, !text.isEmpty {
