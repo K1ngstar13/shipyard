@@ -2,7 +2,7 @@
   "name": "Tap-In: AI Green Reading",
   "displayName": "Tap-In",
   "bundleId": "elevatr.llc.tapin",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "orientation": "portrait",
   "backgroundColor": "#07140e",
   "hideStatusBar": false,
@@ -39,6 +39,7 @@
         "NSCameraUsageDescription": "Tap-In uses the camera and LiDAR scanner to scan putting greens, film putts (Putt Cam) and read course QR codes.",
         "NSLocationWhenInUseUsageDescription": "Tap-In uses your location to find the golf course and green you're on.",
         "NSMotionUsageDescription": "Tap-In uses motion sensors for the level check, Stroke Meter and Putt Cam horizon.",
+        "NSPhotoLibraryAddUsageDescription": "Tap-In saves your putt recordings to Photos when you tap Save Video.",
         "UIFileSharingEnabled": true,
         "LSSupportsOpeningDocumentsInPlace": true
       },

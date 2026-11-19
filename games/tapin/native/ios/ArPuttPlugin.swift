@@ -50,15 +50,33 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         }
     }
 
-    /// Stops and shows iOS's own preview, where the clip can be trimmed, saved to Photos or shared.
+    /// Stops and hands the clip to the iPhone's share sheet: Save Video, AirDrop, Messages, Files.
+    /// (Apple's own preview screen sat up under the status bar here and its X / Save didn't respond.)
     @objc func recStop(_ call: CAPPluginCall) {
         let rec = RPScreenRecorder.shared()
         guard rec.isRecording else { call.resolve(["shown": false]); return }
+        if #available(iOS 14.0, *) {
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent("Tap-In putt \(Int(Date().timeIntervalSince1970)).mp4")
+            try? FileManager.default.removeItem(at: url)
+            rec.stopRecording(withOutput: url) { err in
+                DispatchQueue.main.async {
+                    if let e = err { call.reject(e.localizedDescription); return }
+                    guard let vc = self.bridge?.viewController else { call.reject("Couldn't show the recording"); return }
+                    let share = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+                    if let pop = share.popoverPresentationController {
+                        pop.sourceView = vc.view
+                        pop.sourceRect = CGRect(x: vc.view.bounds.midX, y: vc.view.bounds.maxY - 120, width: 1, height: 1)
+                    }
+                    vc.present(share, animated: true)
+                    call.resolve(["shown": true])
+                }
+            }
+            return
+        }
         rec.stopRecording { preview, err in
             DispatchQueue.main.async {
                 guard let p = preview else { call.reject(err?.localizedDescription ?? "Nothing was recorded"); return }
                 p.previewControllerDelegate = self
-                p.modalPresentationStyle = .fullScreen
                 self.bridge?.viewController?.present(p, animated: true)
                 call.resolve(["shown": true])
             }
@@ -470,15 +488,13 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                 }
             }
         }
+        // (no per-cell counts: nothing uses them, and the scan round the cup sends ~10,000 cells a second)
         var heights: [Any] = []
-        var counts: [Int] = []
         heights.reserveCapacity(nx * ny)
-        counts.reserveCapacity(nx * ny)
         for k in 0..<(nx * ny) {
-            counts.append(Int(cnt[k]))
             if cnt[k] > 0 { heights.append(NSNumber(value: sum[k] / Float(cnt[k]))) } else { heights.append(NSNull()) }
         }
-        return ["cell": Double(cell), "nx": nx, "ny": ny, "e0": Double(e0), "n0": Double(n0), "heights": heights, "counts": counts, "near": near, "samples": samples]
+        return ["cell": Double(cell), "nx": nx, "ny": ny, "e0": Double(e0), "n0": Double(n0), "heights": heights, "near": near, "samples": samples]
     }
 
     // MARK: drawing
