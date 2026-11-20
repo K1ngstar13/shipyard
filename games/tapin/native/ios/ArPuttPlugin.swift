@@ -235,11 +235,14 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             let pitchDown = asin(max(-1, min(1, -fwd.y))) * 180 / .pi
             let meshes = frame.anchors.filter { $0 is ARMeshAnchor }.count
             let cp = simd_mul(deltaInv, SIMD4<Float>(m.columns.3.x, m.columns.3.y, m.columns.3.z, 1))
+            // where the camera points, in the pinned scene frame (east, north): for the scan map's arrow
+            let fw = simd_mul(deltaInv, SIMD4<Float>(-m.columns.2.x, -m.columns.2.y, -m.columns.2.z, 0))
             let drift = simd_length(SIMD3<Float>(delta.columns.3.x, delta.columns.3.y, delta.columns.3.z))
             notifyListeners("status", data: [
                 "tracking": state, "reason": reason, "lidar": hasLidar, "meshes": meshes,
                 "e": Double(cp.x), "n": Double(-cp.z), "u": Double(cp.y),
                 "pitchDown": Double(pitchDown), "drift": Double(drift), "pinned": pinAnchor != nil,
+                "fe": Double(fw.x), "fn": Double(-fw.z),
             ])
         }
 
