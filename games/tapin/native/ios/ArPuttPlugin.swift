@@ -30,6 +30,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         CAPPluginMethod(name: "setDetect", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "locate", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "tap", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "project", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "heights", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setScene", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "pin", returnType: CAPPluginReturnPromise),
@@ -107,6 +108,9 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
     // drawing follows the anchor, so the line, ball and cup stay on the same blades of grass.
     private var pinAnchor: ARAnchor?
     private var pin0 = matrix_identity_float4x4
+    /// where the pinned spot was in ARKit's world when it was pinned, and how far ARKit has moved it since
+    private var pinWorld0 = SIMD3<Float>(0, 0, 0)
+    private var pinDrift: Float = 0
     /// scene frame → current world, and back
     private var delta = matrix_identity_float4x4
     private var deltaInv = matrix_identity_float4x4
@@ -147,7 +151,10 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             // Gravity only. With compass alignment ARKit keeps turning the whole world as the heading
             // estimate settles (worse near a metal tripod), which slid the line, ball and cup sideways.
             cfg.worldAlignment = .gravity
-            cfg.planeDetection = [.horizontal]
+            // No plane detection. With it on, ARKit flattens the LiDAR mesh onto the level planes it
+            // finds, and a sloping green comes out as level steps a few centimetres apart (seen in
+            // reads sent from the course, Nov 2026: flat patches, 2–9 cm steps between them). The raw
+            // mesh keeps the slope. Ray-casts use depth ("estimatedPlane"), which needs no planes.
             let lidar = ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh)
             if lidar { cfg.sceneReconstruction = .mesh }
             if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) { cfg.frameSemantics.insert(.sceneDepth) }
@@ -182,6 +189,8 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         root.simdTransform = matrix_identity_float4x4
         pinAnchor = nil
         pin0 = matrix_identity_float4x4
+        pinWorld0 = SIMD3<Float>(0, 0, 0)
+        pinDrift = 0
         delta = matrix_identity_float4x4
         deltaInv = matrix_identity_float4x4
         cams = []
@@ -212,6 +221,8 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             delta = d
             deltaInv = simd_inverse(d)
             root.simdTransform = d
+            let c = cur.transform.columns.3
+            pinDrift = simd_distance(SIMD3<Float>(c.x, c.y, c.z), pinWorld0)
         }
         if t - lastStatusT > 0.4 {
             lastStatusT = t
@@ -237,7 +248,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             let cp = simd_mul(deltaInv, SIMD4<Float>(m.columns.3.x, m.columns.3.y, m.columns.3.z, 1))
             // where the camera points, in the pinned scene frame (east, north): for the scan map's arrow
             let fw = simd_mul(deltaInv, SIMD4<Float>(-m.columns.2.x, -m.columns.2.y, -m.columns.2.z, 0))
-            let drift = simd_length(SIMD3<Float>(delta.columns.3.x, delta.columns.3.y, delta.columns.3.z))
+            let drift = pinDrift
             notifyListeners("status", data: [
                 "tracking": state, "reason": reason, "lidar": hasLidar, "meshes": meshes,
                 "e": Double(cp.x), "n": Double(-cp.z), "u": Double(cp.y),
@@ -281,20 +292,31 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         return ["e": Double(s.x), "n": Double(-s.z), "u": Double(s.y), "approx": approx]
     }
 
-    /// Drop the anchor the scene is pinned to (once per AR session), at a spot given in scene metres.
+    /// Pin the scene to the real ground with an anchor at a spot given in scene metres. `move`: pin
+    /// it here instead of where it was (each putt is pinned at its own ball, so ARKit's corrections
+    /// turn about the putt being read, not about a spot across the green). The scene frame itself
+    /// carries on unchanged: only what it follows changes.
     @objc func pin(_ call: CAPPluginCall) {
         let e = Float(call.getDouble("e") ?? 0)
         let n = Float(call.getDouble("n") ?? 0)
         let u = Float(call.getDouble("u") ?? 0)
+        let move = call.getBool("move") ?? false
         DispatchQueue.main.async {
             guard let v = self.sceneView else { call.reject("AR isn't running"); return }
-            if self.pinAnchor != nil { call.resolve(["pinned": true, "new": false]); return }
+            if let old = self.pinAnchor {
+                if !move { call.resolve(["pinned": true, "new": false]); return }
+                v.session.remove(anchor: old)
+            }
             var t = matrix_identity_float4x4
-            t.columns.3 = SIMD4<Float>(e, u, -n, 1) // before the first pin the scene frame is the world
-            let a = ARAnchor(name: "tapin-pin", transform: t)
+            t.columns.3 = SIMD4<Float>(e, u, -n, 1)
+            // where that spot is in ARKit's world right now (before the first pin the scene frame is the world)
+            let world = simd_mul(self.delta, t)
+            let a = ARAnchor(name: "tapin-pin", transform: world)
             v.session.add(anchor: a)
             self.pinAnchor = a
             self.pin0 = t
+            self.pinWorld0 = SIMD3<Float>(world.columns.3.x, world.columns.3.y, world.columns.3.z)
+            self.pinDrift = 0
             call.resolve(["pinned": true, "new": true])
         }
     }
@@ -354,7 +376,8 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                 let pt = CGPoint(x: self.num(p["x"]), y: self.num(p["y"]))
                 if let r = self.hit(v.session, cam: cam, pt: pt, size: size, ground: ground) { out.append(r) } else { out.append(NSNull()) }
             }
-            call.resolve(["points": out])
+            let cm = cam.transform.columns.3
+            call.resolve(["points": out, "origin": self.enu(SIMD3<Float>(cm.x, cm.y, cm.z), approx: false)])
         }
     }
 
@@ -377,7 +400,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                     let p = SIMD3<Float>(c.x, c.y, c.z)
                     let d = simd_distance(p, origin)
                     if d > 0.05 && d < 60 && abs(p.y - ground) < max(0.25, 0.06 * d) {
-                        call.resolve(["point": self.enu(p, approx: false)])
+                        call.resolve(["point": self.enu(p, approx: false), "origin": self.enu(origin, approx: false)])
                         return
                     }
                 }
@@ -385,10 +408,37 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             var plane = matrix_identity_float4x4
             plane.columns.3 = SIMD4<Float>(0, ground, 0, 1)
             if let flat = frame.camera.unprojectPoint(pt, ontoPlane: plane, orientation: .portrait, viewportSize: v.bounds.size) {
-                call.resolve(["point": self.enu(flat, approx: true)])
+                call.resolve(["point": self.enu(flat, approx: true), "origin": self.enu(origin, approx: false)])
             } else {
                 call.resolve(["point": NSNull()])
             }
+        }
+    }
+
+    /// Spots in the scene (metres) → pixels of a camera frame: the reverse of `locate`. Null for a
+    /// spot behind the camera.
+    @objc func project(_ call: CAPPluginCall) {
+        let id = call.getInt("id") ?? -1
+        let w = call.getDouble("w") ?? 0
+        let h = call.getDouble("h") ?? 0
+        let pts = (call.getArray("points") ?? []).compactMap { $0 as? JSObject }
+        DispatchQueue.main.async {
+            guard self.sceneView != nil else { call.reject("AR isn't running"); return }
+            guard w > 0, h > 0, let cam = self.cams.first(where: { $0.id == id })?.cam else { call.reject("That frame is too old"); return }
+            let size = CGSize(width: w, height: h)
+            let m = cam.transform
+            let origin = SIMD3<Float>(m.columns.3.x, m.columns.3.y, m.columns.3.z)
+            let fwd = -SIMD3<Float>(m.columns.2.x, m.columns.2.y, m.columns.2.z)
+            var out: [Any] = []
+            for p in pts {
+                let sp = SIMD4<Float>(Float(self.num(p["e"])), Float(self.num(p["u"])), -Float(self.num(p["n"])), 1)
+                let wv = simd_mul(self.delta, sp)
+                let wp = SIMD3<Float>(wv.x, wv.y, wv.z)
+                if simd_dot(wp - origin, fwd) <= 0.05 { out.append(NSNull()); continue }
+                let q = cam.projectPoint(wp, orientation: .portrait, viewportSize: size)
+                out.append(["x": Double(q.x), "y": Double(q.y)])
+            }
+            call.resolve(["points": out, "origin": self.enu(origin, approx: false)])
         }
     }
 
@@ -459,7 +509,11 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                 // turf: within about 20° of level. Steeper than about 45°: something standing on it.
                 // In between: mesh noise or the rounded foot of something; used for neither.
                 let isGround = flatness >= 0.94
-                let isSteep = flatness < 0.7
+                // Something standing on the turf (a bag, feet, the flagstick, the ball) is a few
+                // centimetres tall at least. A small steep facet is a wrinkle in the mesh (a seam,
+                // LiDAR scatter): on a real green those flagged half the ground as "beside something".
+                let tall = max(A.y, max(B.y, C.y)) - min(A.y, min(B.y, C.y)) >= 0.03
+                let isSteep = flatness < 0.7 && tall
                 if !isGround && !isSteep { continue }
                 let longest = max(simd_distance(A, B), max(simd_distance(B, C), simd_distance(A, C)))
                 let n = max(1, min(16, Int((longest / (cell * 0.7)).rounded(.up))))
