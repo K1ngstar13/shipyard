@@ -32,6 +32,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         CAPPluginMethod(name: "tap", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "project", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "heights", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "depth", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setScene", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "pin", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "recStart", returnType: CAPPluginReturnPromise),
@@ -120,8 +121,17 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
     // one frame than a phone can move. The web layer throws away what it measured before (see
     // src/ar/track.ts): ground from two maps laid over each other gave 10–17 cm cliffs on a green.
     private var mapEpoch = 0
-    private var lastCamPos: SIMD3<Float>?
     private var everNormal = false
+    // Carrying the scene through a restart. When ARKit's tracking starts over, its map begins again
+    // at wherever the camera is, turned however it's facing. But the camera itself has hardly moved
+    // between the last picture before and the first picture after (a sixtieth of a second): its
+    // place in the scene just before IS its place in the scene just after. That ties the new map
+    // to the scene, so what was measured and drawn carries on. (What's lost is only how far the
+    // phone moved while it had no tracking.)
+    private var lastCamScene: simd_float4x4?
+    private var lastWasInit = true
+    private var lastFrameTime: TimeInterval = 0
+    private var carried = 0
 
     // MARK: lifecycle
 
@@ -202,8 +212,11 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         delta = matrix_identity_float4x4
         deltaInv = matrix_identity_float4x4
         mapEpoch = 0
-        lastCamPos = nil
         everNormal = false
+        lastCamScene = nil
+        lastWasInit = true
+        lastFrameTime = 0
+        carried = 0
         cams = []
         if let web = bridge?.webView {
             web.isOpaque = true
@@ -231,21 +244,16 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
 
     public func sessionInterruptionEnded(_ session: ARSession) {
         mapEpoch += 1
-        lastCamPos = nil
     }
 
     public func session(_ session: ARSession, didFailWithError error: Error) {
         mapEpoch += 1
-        lastCamPos = nil
     }
 
     public func session(_ session: ARSession, didUpdate frame: ARFrame) {
         let t = frame.timestamp
-        // a phone can't move a foot between two frames: the map restarted under it
-        let camCol = frame.camera.transform.columns.3
-        let camPos = SIMD3<Float>(camCol.x, camCol.y, camCol.z)
-        if let lp = lastCamPos, everNormal, simd_distance(camPos, lp) > 0.3 { mapEpoch += 1 }
-        lastCamPos = camPos
+        var isInit = false
+        if case .limited(let why0) = frame.camera.trackingState, case .initializing = why0 { isInit = true }
         if let a = pinAnchor, let cur = frame.anchors.first(where: { $0.identifier == a.identifier }) {
             let d = simd_mul(cur.transform, simd_inverse(pin0))
             delta = d
@@ -254,6 +262,34 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             let c = cur.transform.columns.3
             pinDrift = simd_distance(SIMD3<Float>(c.x, c.y, c.z), pinWorld0)
         }
+        // Where the camera is in the scene now. It can't jump: more than a phone can move or turn
+        // between two pictures means ARKit's map restarted under it (or its tracking has just
+        // started over). The scene is carried across: the camera is where it was.
+        var camScene = simd_mul(deltaInv, frame.camera.transform)
+        if everNormal, let was = lastCamScene {
+            let dt = Float(max(0.0, min(1.0, t - lastFrameTime)))
+            let a = was.columns.3
+            let b = camScene.columns.3
+            let moved = simd_distance(SIMD3<Float>(a.x, a.y, a.z), SIMD3<Float>(b.x, b.y, b.z))
+            let f0 = simd_normalize(SIMD3<Float>(-was.columns.2.x, -was.columns.2.y, -was.columns.2.z))
+            let f1 = simd_normalize(SIMD3<Float>(-camScene.columns.2.x, -camScene.columns.2.y, -camScene.columns.2.z))
+            let turned = acos(max(-1, min(1, simd_dot(f0, f1)))) * 180 / .pi
+            // (3 m/s and 400° a second are beyond a hand; the allowance grows if pictures were dropped)
+            if moved > 0.3 + 3.0 * dt || turned > 20 + 400 * dt || (isInit && !lastWasInit) {
+                let inv = simd_mul(was, simd_inverse(frame.camera.transform))
+                deltaInv = inv
+                delta = simd_inverse(inv)
+                root.simdTransform = delta
+                pinAnchor = nil
+                pinDrift = 0
+                carried += 1
+                mapEpoch += 1
+                camScene = was
+            }
+        }
+        lastCamScene = camScene
+        lastWasInit = isInit
+        lastFrameTime = t
         if t - lastStatusT > 0.4 {
             lastStatusT = t
             let m = frame.camera.transform
@@ -301,7 +337,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                 "e": Double(cp.x), "n": Double(-cp.z), "u": Double(cp.y),
                 "pitchDown": Double(pitchDown), "drift": Double(drift), "pinned": pinAnchor != nil,
                 "fe": Double(fw.x), "fn": Double(-fw.z),
-                "why": why, "epoch": mapEpoch, "light": light,
+                "why": why, "epoch": mapEpoch, "light": light, "carried": carried,
             ])
         }
 
@@ -508,6 +544,150 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                     if let r = r { call.resolve(r) } else { call.reject("That area is too big to read") }
                 }
             }
+        }
+    }
+
+    /// One LiDAR picture of the ground in front of the phone: this camera frame's depth alone, not
+    /// ARKit's mesh. The mesh is ARKit's own blend of everything it has seen, laid down in a map
+    /// that drifts over a long walk; a single depth frame is one rigid snapshot, good to
+    /// millimetres within itself, and levelled by gravity (which doesn't drift). The web layer
+    /// takes slopes from it (src/ar/slopeScan.ts). Returned: a square grid of mean heights round
+    /// the camera in the scene frame, the spread of the depth points inside each cell (something
+    /// standing on the turf shows as a large spread), and where the camera was.
+    @objc func depth(_ call: CAPPluginCall) {
+        let cell = Float(max(0.05, min(0.5, call.getDouble("cell") ?? 0.1)))
+        let reach = Float(max(1.0, min(5.0, call.getDouble("reach") ?? 3.6)))
+        let minConf = UInt8(max(0, min(2, call.getInt("minConf") ?? 1)))
+        DispatchQueue.main.async {
+            guard let v = self.sceneView, let frame = v.session.currentFrame else { call.reject("AR isn't running"); return }
+            var tracking = "limited"
+            if case .normal = frame.camera.trackingState { tracking = "normal" }
+            let camNow = simd_mul(self.deltaInv, frame.camera.transform).columns.3
+            // (no depth in this frame, as happens for a moment now and then: an empty picture, not an error)
+            let empty: [String: Any] = [
+                "cell": Double(cell), "nx": 0, "ny": 0, "e0": Double(camNow.x), "n0": Double(-camNow.z),
+                "heights": [Any](), "spread": [Any](),
+                "cam": ["e": Double(camNow.x), "n": Double(-camNow.z), "u": Double(camNow.y)],
+                "fe": 0.0, "fn": 0.0, "fu": 0.0, "t": frame.timestamp, "tracking": tracking,
+                "w": 0, "h": 0, "used": 0, "total": 0, "high": 0,
+            ]
+            guard let dd = frame.sceneDepth else { call.resolve(empty); return }
+            let depthMap = dd.depthMap
+            guard CVPixelBufferGetPixelFormatType(depthMap) == kCVPixelFormatType_DepthFloat32 else { call.reject("Unexpected depth format"); return }
+            let toScene = simd_mul(self.deltaInv, frame.camera.transform)
+            let K = frame.camera.intrinsics
+            let res = frame.camera.imageResolution
+            let w = CVPixelBufferGetWidth(depthMap)
+            let h = CVPixelBufferGetHeight(depthMap)
+            guard w > 8, h > 8, res.width > 0, res.height > 0 else { call.reject("Empty depth frame"); return }
+            // the camera's intrinsics are for the full picture: scale them to the depth map
+            let sx = Float(w) / Float(res.width)
+            let sy = Float(h) / Float(res.height)
+            let fx = K[0][0] * sx
+            let fy = K[1][1] * sy
+            let cx = K[2][0] * sx
+            let cy = K[2][1] * sy
+            guard fx > 1, fy > 1 else { call.reject("Bad camera intrinsics"); return }
+            let camP = toScene.columns.3
+            // a square grid round the camera, on the scene's own lattice (so pictures line up)
+            let half = Int((reach / cell).rounded(.up))
+            let n = 2 * half + 1
+            let ce = (camP.x / cell).rounded() * cell
+            let cn = (-camP.z / cell).rounded() * cell
+            var sum = [Float](repeating: 0, count: n * n)
+            var sq = [Float](repeating: 0, count: n * n)
+            var cnt = [Int32](repeating: 0, count: n * n)
+            var used = 0
+            var high = 0
+            var total = 0
+            CVPixelBufferLockBaseAddress(depthMap, .readOnly)
+            let conf = dd.confidenceMap
+            if let c = conf { CVPixelBufferLockBaseAddress(c, .readOnly) }
+            if let base = CVPixelBufferGetBaseAddress(depthMap) {
+                let rowBytes = CVPixelBufferGetBytesPerRow(depthMap)
+                var cBase: UnsafeMutableRawPointer? = nil
+                var cRow = 0
+                if let c = conf, CVPixelBufferGetWidth(c) == w, CVPixelBufferGetHeight(c) == h {
+                    cBase = CVPixelBufferGetBaseAddress(c)
+                    cRow = CVPixelBufferGetBytesPerRow(c)
+                }
+                let reach2 = reach * reach
+                for vy in 0..<h {
+                    let row = base.advanced(by: vy * rowBytes).assumingMemoryBound(to: Float32.self)
+                    let crow = cBase?.advanced(by: vy * cRow).assumingMemoryBound(to: UInt8.self)
+                    for ux in 0..<w {
+                        let d = row[ux]
+                        // (NaN fails this test too)
+                        if !(d > 0.2 && d < 6.0) { continue }
+                        total += 1
+                        if let cr = crow {
+                            let cv = cr[ux]
+                            if cv >= 2 { high += 1 }
+                            if cv < minConf { continue }
+                        }
+                        // pixel → camera space (x right, y up, z towards the viewer) → scene
+                        let xc = (Float(ux) - cx) * d / fx
+                        let yc = -(Float(vy) - cy) * d / fy
+                        let p = simd_mul(toScene, SIMD4<Float>(xc, yc, -d, 1))
+                        let dx = p.x - camP.x
+                        let dz = p.z - camP.z
+                        if dx * dx + dz * dz > reach2 { continue }
+                        let gi = Int(((p.x - ce) / cell).rounded()) + half
+                        let gj = Int(((-p.z - cn) / cell).rounded()) + half
+                        if gi < 0 || gj < 0 || gi >= n || gj >= n { continue }
+                        let k = gj * n + gi
+                        sum[k] += p.y
+                        sq[k] += p.y * p.y
+                        cnt[k] += 1
+                        used += 1
+                    }
+                }
+            }
+            if let c = conf { CVPixelBufferUnlockBaseAddress(c, .readOnly) }
+            CVPixelBufferUnlockBaseAddress(depthMap, .readOnly)
+            // only the part of the grid with anything in it is sent (the wedge in front of the phone)
+            var i0 = n, i1 = -1, j0 = n, j1 = -1
+            for gj in 0..<n {
+                for gi in 0..<n where cnt[gj * n + gi] >= 4 {
+                    if gi < i0 { i0 = gi }
+                    if gi > i1 { i1 = gi }
+                    if gj < j0 { j0 = gj }
+                    if gj > j1 { j1 = gj }
+                }
+            }
+            if i1 < i0 || j1 < j0 { call.resolve(empty); return }
+            let ox = i1 - i0 + 1
+            let oy = j1 - j0 + 1
+            var heights: [Any] = []
+            var spread: [Any] = []
+            heights.reserveCapacity(ox * oy)
+            spread.reserveCapacity(ox * oy)
+            for gj in j0...j1 {
+                for gi in i0...i1 {
+                    let k = gj * n + gi
+                    // (a cell needs a handful of depth points to mean anything)
+                    if cnt[k] >= 4 {
+                        let m = sum[k] / Float(cnt[k])
+                        let va = max(0, sq[k] / Float(cnt[k]) - m * m)
+                        heights.append(NSNumber(value: m))
+                        spread.append(NSNumber(value: va.squareRoot()))
+                    } else {
+                        heights.append(NSNull())
+                        spread.append(NSNull())
+                    }
+                }
+            }
+            let m = frame.camera.transform
+            let fw = simd_mul(self.deltaInv, SIMD4<Float>(-m.columns.2.x, -m.columns.2.y, -m.columns.2.z, 0))
+            call.resolve([
+                "cell": Double(cell), "nx": ox, "ny": oy,
+                "e0": Double(ce + Float(i0 - half) * cell), "n0": Double(cn + Float(j0 - half) * cell),
+                "heights": heights, "spread": spread,
+                "cam": ["e": Double(camP.x), "n": Double(-camP.z), "u": Double(camP.y)],
+                "fe": Double(fw.x), "fn": Double(-fw.z), "fu": Double(fw.y),
+                "t": frame.timestamp, "tracking": tracking,
+                "w": w, "h": h, "used": used, "total": total, "high": high,
+            ])
         }
     }
 
