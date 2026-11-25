@@ -7,7 +7,7 @@
     "url": "https://appstoreconnect.apple.com/apps/6823026046"
   },
   "next": null,
-  "updatedAt": "2026-11-25T03:33:23.061Z",
+  "updatedAt": "2026-11-25T04:16:55.363Z",
   "name": {
     "appStore": "Tap-In: AI Green Reading",
     "synced": true
@@ -20,21 +20,21 @@
   },
   "testflight": {
     "state": "available",
-    "label": "On TestFlight: build 521 for 1 tester",
+    "label": "On TestFlight: build 531 for 1 tester",
     "detail": "",
     "next": {
       "title": "Install it on your iPhone",
       "detail": "Open the TestFlight app signed in as kingr13@hotmail.com and tap Install. The first time, accept the TestFlight email invite.",
       "blocking": false
     },
-    "build": "521",
+    "build": "531",
     "processingState": "VALID",
     "betaState": "READY_FOR_BETA_TESTING",
     "group": "Elevatr Internal Testing",
     "testers": [
       "kingr13@hotmail.com"
     ],
-    "version": "0.12.3",
-    "checkedAt": "2026-11-25T03:33:23.061Z"
+    "version": "0.13.0",
+    "checkedAt": "2026-11-25T04:16:55.363Z"
   }
 }
