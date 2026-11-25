@@ -722,7 +722,13 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             }
             let m = frame.camera.transform
             let fw = simd_mul(self.deltaInv, SIMD4<Float>(-m.columns.2.x, -m.columns.2.y, -m.columns.2.z, 0))
+            // (for the record, so a scan that doesn't check out can be studied: the camera's "right"
+            //  axis, the numbers the picture was read with, and the size of the camera's own picture)
+            let rt = simd_mul(self.deltaInv, SIMD4<Float>(m.columns.0.x, m.columns.0.y, m.columns.0.z, 0))
+            let kk: [Double] = [Double(fx), Double(fy), Double(cx), Double(cy)]
+            let im: [Double] = [Double(res.width), Double(res.height)]
             call.resolve([
+                "re": Double(rt.x), "rn": Double(-rt.z), "ru": Double(rt.y), "k": kk, "img": im,
                 "cell": Double(cell), "nx": ox, "ny": oy,
                 "e0": Double(ce + Float(i0 - half) * cell), "n0": Double(cn + Float(j0 - half) * cell),
                 "heights": heights, "spread": spread,
