@@ -132,6 +132,12 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
     private var lastWasInit = true
     private var lastFrameTime: TimeInterval = 0
     private var carried = 0
+    // Restarts that could NOT be carried: the app left the screen (a call, another app), the
+    // session failed, or pictures stopped coming for more than a second. The phone may have been
+    // walked anywhere meanwhile, so "the camera is where it was" isn't true and nothing ties the
+    // new map to the scene. The web layer starts over when this goes up (`lost` in the status).
+    private var lostCount = 0
+    private var noCarry = false
 
     // MARK: lifecycle
 
@@ -217,6 +223,8 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         lastWasInit = true
         lastFrameTime = 0
         carried = 0
+        lostCount = 0
+        noCarry = false
         cams = []
         if let web = bridge?.webView {
             web.isOpaque = true
@@ -240,14 +248,19 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
 
     public func sessionWasInterrupted(_ session: ARSession) {
         mapEpoch += 1
+        lostCount += 1
+        noCarry = true
     }
 
     public func sessionInterruptionEnded(_ session: ARSession) {
         mapEpoch += 1
+        noCarry = true
     }
 
     public func session(_ session: ARSession, didFailWithError error: Error) {
         mapEpoch += 1
+        lostCount += 1
+        noCarry = true
     }
 
     public func session(_ session: ARSession, didUpdate frame: ARFrame) {
@@ -267,7 +280,8 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         // started over). The scene is carried across: the camera is where it was.
         var camScene = simd_mul(deltaInv, frame.camera.transform)
         if everNormal, let was = lastCamScene {
-            let dt = Float(max(0.0, min(1.0, t - lastFrameTime)))
+            let gap = t - lastFrameTime
+            let dt = Float(max(0.0, min(1.0, gap)))
             let a = was.columns.3
             let b = camScene.columns.3
             let moved = simd_distance(SIMD3<Float>(a.x, a.y, a.z), SIMD3<Float>(b.x, b.y, b.z))
@@ -276,17 +290,43 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             let turned = acos(max(-1, min(1, simd_dot(f0, f1)))) * 180 / .pi
             // (3 m/s and 400° a second are beyond a hand; the allowance grows if pictures were dropped)
             if moved > 0.3 + 3.0 * dt || turned > 20 + 400 * dt || (isInit && !lastWasInit) {
-                let inv = simd_mul(was, simd_inverse(frame.camera.transform))
-                deltaInv = inv
-                delta = simd_inverse(inv)
-                root.simdTransform = delta
-                pinAnchor = nil
-                pinDrift = 0
-                carried += 1
-                mapEpoch += 1
-                camScene = was
+                if noCarry || gap > 1.0 {
+                    // The map restarted, and either the app had been off the screen or pictures
+                    // had stopped for more than a second: where the phone went meanwhile isn't
+                    // known, so "the camera is where it was" isn't true and nothing is carried.
+                    // (An interruption was counted as lost when it began.)
+                    if !noCarry { lostCount += 1 }
+                    noCarry = true
+                    mapEpoch += 1
+                } else {
+                    // Carried by heading and position only. Which way is down comes from the new
+                    // map, not the old: both feel gravity directly, and tying them together through
+                    // the camera's full attitude (as 0.13.0 did) baked any difference between the
+                    // two, and any tipping of the phone between the two pictures, into everything
+                    // measured afterwards as a tilt: half a degree is 0.9 % of slope.
+                    let full = simd_mul(was, simd_inverse(frame.camera.transform))
+                    let yaw = atan2(full.columns.2.x - full.columns.0.z, full.columns.0.x + full.columns.2.z)
+                    let cy = cos(yaw)
+                    let sy = sin(yaw)
+                    var inv = matrix_identity_float4x4
+                    inv.columns.0 = SIMD4<Float>(cy, 0, -sy, 0)
+                    inv.columns.2 = SIMD4<Float>(sy, 0, cy, 0)
+                    let c = frame.camera.transform.columns.3
+                    let rc = simd_mul(inv, SIMD4<Float>(c.x, c.y, c.z, 1))
+                    inv.columns.3 = SIMD4<Float>(a.x - rc.x, a.y - rc.y, a.z - rc.z, 1)
+                    deltaInv = inv
+                    delta = simd_inverse(inv)
+                    root.simdTransform = delta
+                    pinAnchor = nil
+                    pinDrift = 0
+                    carried += 1
+                    mapEpoch += 1
+                    camScene = simd_mul(deltaInv, frame.camera.transform)
+                }
             }
         }
+        // (tracking is running again: from here a restart can be carried once more)
+        if noCarry, case .normal = frame.camera.trackingState { noCarry = false }
         lastCamScene = camScene
         lastWasInit = isInit
         lastFrameTime = t
@@ -337,7 +377,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                 "e": Double(cp.x), "n": Double(-cp.z), "u": Double(cp.y),
                 "pitchDown": Double(pitchDown), "drift": Double(drift), "pinned": pinAnchor != nil,
                 "fe": Double(fw.x), "fn": Double(-fw.z),
-                "why": why, "epoch": mapEpoch, "light": light, "carried": carried,
+                "why": why, "epoch": mapEpoch, "light": light, "carried": carried, "lost": lostCount,
             ])
         }
 
@@ -625,9 +665,12 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                             if cv >= 2 { high += 1 }
                             if cv < minConf { continue }
                         }
-                        // pixel → camera space (x right, y up, z towards the viewer) → scene
-                        let xc = (Float(ux) - cx) * d / fx
-                        let yc = -(Float(vy) - cy) * d / fy
+                        // pixel → camera space (x right, y up, z towards the viewer) → scene.
+                        // (A depth pixel stands for the middle of the square it covers, half a
+                        //  pixel in from its corner. Left out, as it was in 0.13.0, the whole
+                        //  picture is tipped by about 0.14°: a quarter of a percent of slope.)
+                        let xc = (Float(ux) + 0.5 - cx) * d / fx
+                        let yc = -(Float(vy) + 0.5 - cy) * d / fy
                         let p = simd_mul(toScene, SIMD4<Float>(xc, yc, -d, 1))
                         let dx = p.x - camP.x
                         let dz = p.z - camP.z
