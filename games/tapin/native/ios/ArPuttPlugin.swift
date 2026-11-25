@@ -115,6 +115,14 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
     private var delta = matrix_identity_float4x4
     private var deltaInv = matrix_identity_float4x4
 
+    // Has the phone's map of the world restarted? Counted up when the session is interrupted (the
+    // app left the screen, a call), when it fails, and when the camera's position jumps further in
+    // one frame than a phone can move. The web layer throws away what it measured before (see
+    // src/ar/track.ts): ground from two maps laid over each other gave 10–17 cm cliffs on a green.
+    private var mapEpoch = 0
+    private var lastCamPos: SIMD3<Float>?
+    private var everNormal = false
+
     // MARK: lifecycle
 
     @objc func isAvailable(_ call: CAPPluginCall) {
@@ -193,6 +201,9 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         pinDrift = 0
         delta = matrix_identity_float4x4
         deltaInv = matrix_identity_float4x4
+        mapEpoch = 0
+        lastCamPos = nil
+        everNormal = false
         cams = []
         if let web = bridge?.webView {
             web.isOpaque = true
@@ -214,8 +225,27 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
 
     // MARK: per-frame
 
+    public func sessionWasInterrupted(_ session: ARSession) {
+        mapEpoch += 1
+    }
+
+    public func sessionInterruptionEnded(_ session: ARSession) {
+        mapEpoch += 1
+        lastCamPos = nil
+    }
+
+    public func session(_ session: ARSession, didFailWithError error: Error) {
+        mapEpoch += 1
+        lastCamPos = nil
+    }
+
     public func session(_ session: ARSession, didUpdate frame: ARFrame) {
         let t = frame.timestamp
+        // a phone can't move a foot between two frames: the map restarted under it
+        let camCol = frame.camera.transform.columns.3
+        let camPos = SIMD3<Float>(camCol.x, camCol.y, camCol.z)
+        if let lp = lastCamPos, everNormal, simd_distance(camPos, lp) > 0.3 { mapEpoch += 1 }
+        lastCamPos = camPos
         if let a = pinAnchor, let cur = frame.anchors.first(where: { $0.identifier == a.identifier }) {
             let d = simd_mul(cur.transform, simd_inverse(pin0))
             delta = d
@@ -229,19 +259,36 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             let m = frame.camera.transform
             var state = "normal"
             var reason = ""
+            var why = ""
             switch frame.camera.trackingState {
-            case .normal: state = "normal"
-            case .notAvailable: state = "none"
+            case .normal:
+                state = "normal"
+                everNormal = true
+            case .notAvailable:
+                state = "none"
+                why = "other"
             case .limited(let r):
                 state = "limited"
                 switch r {
-                case .excessiveMotion: reason = "Move the phone slower"
-                case .insufficientFeatures: reason = "Point at the grass"
-                case .initializing: reason = "Starting up. Move the phone a little"
-                case .relocalizing: reason = "Finding its place again"
-                @unknown default: reason = "Hold steady"
+                case .excessiveMotion:
+                    reason = "Move the phone slower"
+                    why = "motion"
+                case .insufficientFeatures:
+                    reason = "Point at the grass"
+                    why = "features"
+                case .initializing:
+                    reason = "Starting up. Move the phone a little"
+                    why = "init"
+                case .relocalizing:
+                    reason = "Finding its place again"
+                    why = "reloc"
+                @unknown default:
+                    reason = "Hold steady"
+                    why = "other"
                 }
             }
+            // how bright the camera finds the scene (about 1000 = well lit): tracking needs light
+            let light = Double(frame.lightEstimate?.ambientIntensity ?? -1)
             let fwd = -SIMD3<Float>(m.columns.2.x, m.columns.2.y, m.columns.2.z)
             let pitchDown = asin(max(-1, min(1, -fwd.y))) * 180 / .pi
             let meshes = frame.anchors.filter { $0 is ARMeshAnchor }.count
@@ -254,6 +301,7 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                 "e": Double(cp.x), "n": Double(-cp.z), "u": Double(cp.y),
                 "pitchDown": Double(pitchDown), "drift": Double(drift), "pinned": pinAnchor != nil,
                 "fe": Double(fw.x), "fn": Double(-fw.z),
+                "why": why, "epoch": mapEpoch, "light": light,
             ])
         }
 
