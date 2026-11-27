@@ -138,6 +138,18 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
     // new map to the scene. The web layer starts over when this goes up (`lost` in the status).
     private var lostCount = 0
     private var noCarry = false
+    // The camera was interrupted (the app left the screen: another app, a call; on the first real
+    // phone also every screenshot and the share sheet). ARKit starts its map over when it comes
+    // back. If that's within a few seconds the phone can't have gone far (on a tripod it hasn't
+    // moved at all), so the scene is carried across as for any restart. Until 0.13.7 every
+    // interruption counted as lost: eight times in one 17-minute session, each one throwing away
+    // the scan round the cup, the ball and the cup. Longer than that, it's lost as before.
+    private var interrupted = false
+    // (the last picture before the interruption, and when: what comes after is measured against it)
+    private var interruptCam: simd_float4x4?
+    private var interruptTime: TimeInterval = 0
+    private static let carryGap: TimeInterval = 1.0
+    private static let carryGapInterrupted: TimeInterval = 6.0
 
     // MARK: lifecycle
 
@@ -225,6 +237,9 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         carried = 0
         lostCount = 0
         noCarry = false
+        interrupted = false
+        interruptCam = nil
+        interruptTime = 0
         cams = []
         if let web = bridge?.webView {
             web.isOpaque = true
@@ -247,14 +262,19 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
     // MARK: per-frame
 
     public func sessionWasInterrupted(_ session: ARSession) {
-        mapEpoch += 1
-        lostCount += 1
-        noCarry = true
+        // Whether anything is lost is decided when pictures come again (didUpdate): if ARKit's map
+        // started over, by how long they were gone (carried, or lost); if it didn't, nothing is.
+        // (The map's count isn't put up here any more: that alone made the app throw everything
+        //  away. ARKit starting over shows as its tracking beginning again, which is counted
+        //  there, and which the app also sees for itself.)
+        if !interrupted {
+            interrupted = true
+            interruptCam = lastCamScene
+            interruptTime = lastFrameTime
+        }
     }
 
     public func sessionInterruptionEnded(_ session: ARSession) {
-        mapEpoch += 1
-        noCarry = true
     }
 
     public func session(_ session: ARSession, didFailWithError error: Error) {
@@ -279,8 +299,11 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
         // between two pictures means ARKit's map restarted under it (or its tracking has just
         // started over). The scene is carried across: the camera is where it was.
         var camScene = simd_mul(deltaInv, frame.camera.transform)
-        if everNormal, let was = lastCamScene {
-            let gap = t - lastFrameTime
+        // (after an interruption: against the last picture before it, however many have come since)
+        let refCam: simd_float4x4? = interrupted ? (interruptCam ?? lastCamScene) : lastCamScene
+        let refTime: TimeInterval = interrupted ? interruptTime : lastFrameTime
+        if everNormal, let was = refCam {
+            let gap = t - refTime
             let dt = Float(max(0.0, min(1.0, gap)))
             let a = was.columns.3
             let b = camScene.columns.3
@@ -290,11 +313,11 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
             let turned = acos(max(-1, min(1, simd_dot(f0, f1)))) * 180 / .pi
             // (3 m/s and 400° a second are beyond a hand; the allowance grows if pictures were dropped)
             if moved > 0.3 + 3.0 * dt || turned > 20 + 400 * dt || (isInit && !lastWasInit) {
-                if noCarry || gap > 1.0 {
-                    // The map restarted, and either the app had been off the screen or pictures
-                    // had stopped for more than a second: where the phone went meanwhile isn't
-                    // known, so "the camera is where it was" isn't true and nothing is carried.
-                    // (An interruption was counted as lost when it began.)
+                if noCarry || gap > (interrupted ? ArPuttPlugin.carryGapInterrupted : ArPuttPlugin.carryGap) {
+                    // The map restarted, and pictures had stopped for too long (more than a second
+                    // by themselves; more than a few seconds with the camera interrupted): where
+                    // the phone went meanwhile isn't known, so "the camera is where it was" isn't
+                    // true and nothing is carried.
                     if !noCarry { lostCount += 1 }
                     noCarry = true
                     mapEpoch += 1
@@ -323,10 +346,17 @@ public class ArPuttPlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, RPPre
                     mapEpoch += 1
                     camScene = simd_mul(deltaInv, frame.camera.transform)
                 }
+                // (the restart after the interruption has been dealt with, one way or the other)
+                interrupted = false
+                interruptCam = nil
             }
         }
         // (tracking is running again: from here a restart can be carried once more)
-        if noCarry, case .normal = frame.camera.trackingState { noCarry = false }
+        if case .normal = frame.camera.trackingState {
+            noCarry = false
+            interrupted = false
+            interruptCam = nil
+        }
         lastCamScene = camScene
         lastWasInit = isInit
         lastFrameTime = t
